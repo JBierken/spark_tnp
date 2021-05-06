@@ -5,78 +5,21 @@ import sys
 sys.path.insert(1, '..')
 from correctionlib.schemav2 import Binning, Category, Correction, CorrectionSet
 
-def build_uncertainties(sf):
-    keys = ["nominal"]
-    keys += ["up_syst", "down_syst"] if "syst" in sf else []
-    keys += ["up_stat", "down_stat"] if "stat" in sf else []
+# TODO: how do we want to report uncertainties? value and systs separately, or value +/- syst already?
+# def build_uncertainties(sf):
+#     keys = ["nominal"]
+#     keys += ["up_syst", "down_syst"] if "syst" in sf else []
+#     keys += ["up_stat", "down_stat"] if "stat" in sf else []
     
-    content = [sf["value"]]
-    content += [sf["value"] + sf["syst"], sf["value"] - sf["syst"]] if "syst" in sf else []
-    content += [sf["value"] + sf["stat"], sf["value"] - sf["stat"]] if "stat" in sf else []
+#     content = [sf["value"]]
+#     content += [sf["value"] + sf["syst"], sf["value"] - sf["syst"]] if "syst" in sf else []
+#     content += [sf["value"] + sf["stat"], sf["value"] - sf["stat"]] if "stat" in sf else []
     
-    return Category.parse_obj({
-        "nodetype": "category",
-        "keys": keys,
-        "content": content
-    })
-
-
-def parse_str(key, prefix="abseta:"):
-    if not key.startswith(prefix + "["):
-        raise ValueError(f"{key} missing prefix {prefix}")
-    lo, hi = map(float, key[len(prefix + "["):-1].split(","))
-    return lo, hi
-
-
-def build_pts(sf):
-    # Could happen that higher pt bin edge comes
-    # lexicographically before lower one, so sort bins first
-    sf_sorted_data = {}
-    sf_sorted_hi = {}
-    for binstr, data in sf.items():
-        if not binstr.startswith("pt:["):
-            raise ValueError
-        lo, hi = map(float, binstr[len("pt:["):-1].split(","))
-        sf_sorted_data[lo] = data
-        sf_sorted_hi[lo] = hi
-
-    edges = []
-    content = []
-    for i in sorted(sf_sorted_data):
-        lo = i
-        data = sf_sorted_data[i]
-        if len(edges) == 0:
-            edges.append(lo)
-        if edges[-1] != lo:
-            raise ValueError
-        edges.append(sf_sorted_hi[lo])
-        content.append(build_uncertainties(data))
-    
-    return Binning.parse_obj({
-        "nodetype": "binning",
-        "edges": edges,
-        "content": content,
-    })
-
-
-def build_etas(sf):
-    bins = [parse_str(s, "abseta:") for s in sf]
-    edges = sorted(set(edge for bin in bins for edge in bin))
-    content = [None] * (len(edges) - 1)
-    for s, data in sf.items():
-        lo, hi = parse_str(s, "abseta:")
-        found = False
-        for i, bin in enumerate(bins):
-            if bin[0] >= lo and bin[1] <= hi:
-                content[i] = build_pts(data)
-                found = True
-
-        
-    return Binning.parse_obj({
-        "nodetype": "binning",
-        "edges": edges,
-        "content": content,
-    })
+#     return Category.parse_obj({
+#         "nodetype": "category",
+#         "keys": keys,
+#         "content": content
+#     })
 
 def build_content(sf, binning_array):
 
@@ -89,8 +32,7 @@ def build_content(sf, binning_array):
         bin_strings[bin_var] = []
         for idx in range(len(bin_edges)-1):
             bin_strings[bin_var] += [bin_var + ':[' + str(bin_edges[idx]) + ',' + str(bin_edges[idx+1]) + ']']
-    
-    # print(bin_strings)
+
     dimensions = len(binning)
     bin_vars = list(binning.keys())
 
@@ -108,8 +50,6 @@ def build_content(sf, binning_array):
             for d, bin_var in enumerate(bin_vars):
                 index_to_string_mapping[bin_var] = bin_strings[bin_var][index[d]-1]
 
-            # print('map:', index_to_string_mapping)
-
             def get_systematics(sf, keys):
                 for key in keys.values():
                     sf = sf[key]
@@ -118,7 +58,7 @@ def build_content(sf, binning_array):
             systematics = get_systematics(sf, index_to_string_mapping)
 
             keys, content = [], []
-            for syst, value in systematics.items(): # all_systematics[index].items():
+            for syst, value in systematics.items():
                 keys.append(syst)
                 content.append({"key": syst, "value": value}) 
             return Category.parse_obj({
@@ -157,14 +97,6 @@ for root, subdirs, files in os.walk(rootdir):
             json_files = [os.path.join(subroot, subfile) for subfile in subfiles if subfile.endswith('.json') and 'schemaV1' not in subfile]
             all_json_files += json_files
 
-# # Load data
-# if 'https://' in file_name:
-#     import requests
-#     sf = requests.get(file_name).json()
-# else:
-#     with open(file_name) as f:
-#         sf = json.load(f)
-
 all_corrections = []
 
 for json_file in all_json_files:
@@ -188,7 +120,6 @@ for json_file in all_json_files:
         inputs += [{"name": "uncertainties", "type": "string"}]
         
         data = build_content(sf[sf_name][sf_vars_string], binning_array)
-        # print(data)
 
         corr = Correction.parse_obj({
             "version": 1,
@@ -200,7 +131,6 @@ for json_file in all_json_files:
         })
 
         all_corrections.append(corr)
-# exit(0)
 
 cset = CorrectionSet.parse_obj({
     "schema_version": 2,
