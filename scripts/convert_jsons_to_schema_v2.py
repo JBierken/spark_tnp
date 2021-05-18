@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import sys
+import json
+import os
 # insert at 1, 0 is the script path (or '' in REPL)
 sys.path.insert(1, '..')
 from correctionlib.schemav2 import Binning, Category, Correction, CorrectionSet
@@ -60,10 +62,11 @@ def build_content(sf, binning_array):
             keys, content = [], []
             for syst, value in systematics.items():
                 keys.append(syst)
+                syst = syst if syst != "value" else "nominal"
                 content.append({"key": syst, "value": value}) 
             return Category.parse_obj({
                 "nodetype": "category",
-                "input": "systematics",
+                "input": "scale_factors",
                 "content": content
             })
 
@@ -80,9 +83,6 @@ def build_content(sf, binning_array):
 
     content = build_schema_recursively(1, tuple([1] * dimensions))
     return content
-
-
-import json, os
 
 if __name__ != "__main__" or len(sys.argv) < 2:
     print(f'Please run this script as {sys.argv[0]} dir_with_json_dirs (output of spark_tnp)')
@@ -116,8 +116,8 @@ for json_file in all_json_files:
         for binning in binning_array:
             bin_vars.append(binning['variable'])
 
-        inputs = [{"name": bin_var, "type": "real"} for bin_var in bin_vars]
-        inputs += [{"name": "uncertainties", "type": "string"}]
+        inputs = [{"name": bin_var, "type": "real", "description": "Probe " + bin_var} for bin_var in bin_vars]
+        inputs += [{"name": "scale_factors", "type": "string", "description": "Choose nominal scale factor or one of the uncertainties"}]
         
         data = build_content(sf[sf_name][sf_vars_string], binning_array)
 
@@ -126,7 +126,7 @@ for json_file in all_json_files:
             "name": sf_name,
             "description": sf_description,
             "inputs": inputs,
-            "output": {"name": "weight", "type": "real"},
+            "output": {"name": "weight", "type": "real", "description": "Output scale factor (nominal) or uncertainty"},
             "data": data
         })
 
