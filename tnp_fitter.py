@@ -136,7 +136,7 @@ def add_common_era(parser):
 
 
 def add_common_data_tier(parser):
-    allowed = ['AOD', 'MiniAOD']
+    allowed = ['AOD', 'MINIAOD']
     parser.add_argument('dataTier', choices=allowed,
                         help='Data-tier of underlying ntuples')
 

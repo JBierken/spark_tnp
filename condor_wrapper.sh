@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "Setting up environment"
-source env-lxplus.sh
+source env.sh
 echo "Setup complete"
 echo "Will run:"
 echo "$@"

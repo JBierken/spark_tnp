@@ -37,7 +37,7 @@ def build_condor_submit(joblist, test=False, jobsPerSubmit=1, njobs=1):
     # for now, hard coded for lxplus
     args = ['outFName', 'inFName', 'binName', 'templateFName',
             'plotDir', 'version', 'histType', 'shiftType', 'resonance', 'effType']
-    files = ['env-lxplus.sh', 'TagAndProbeFitter.py',
+    files = ['env.sh', 'TagAndProbeFitter.py',
              'run_single_fit.py',
              'RooCMSShape.cc', 'RooCMSShape.h',
              'tdrstyle.py', 'CMS_lumi.py']

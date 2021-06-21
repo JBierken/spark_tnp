@@ -13,8 +13,9 @@ elif [[ "$HOSTNAME" == *"lxplus"* ]]; then
   source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix
   echo "Done!"
 else
-  echo "ERROR setting up environment! Environment can only be lxplus or the CERN hadoop edge nodes. See README for more details"
-  exit 1
+  echo "[Warning] Environment can only be lxplus or the CERN hadoop edge nodes. See README for more details"
+  # still source lxplus env in case this is inside a condor node
+  source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix
 fi
 
 # Compile the Roofit fitting function if it doesn't exist yet
