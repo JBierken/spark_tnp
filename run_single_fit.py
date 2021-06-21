@@ -190,12 +190,20 @@ def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
         else:
             fitter.set_fit_range(2.90, 3.30)
     else:
-        if shiftType == 'massRangeUp':
-            fitter.set_fit_range(75, 115)
-        elif shiftType == 'massRangeDown':
-            fitter.set_fit_range(65, 105)
+        if effType=='trig':
+            if shiftType == 'massRangeUp':
+                fitter.set_fit_range(75, 135)
+            elif shiftType == 'massRangeDown':
+                fitter.set_fit_range(65, 125)
+            else:
+                fitter.set_fit_range(70, 130)
         else:
-            fitter.set_fit_range(70, 110)
+            if shiftType == 'massRangeUp':
+                fitter.set_fit_range(75, 115)
+            elif shiftType == 'massRangeDown':
+                fitter.set_fit_range(65, 105)
+            else:
+                fitter.set_fit_range(70, 110)
 
     # setup
     os.makedirs(os.path.dirname(outFName), exist_ok=True)

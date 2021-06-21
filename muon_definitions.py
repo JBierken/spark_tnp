@@ -143,15 +143,24 @@ def get_weighted_dataframe(df, doGen, resonance, era, subEra, shift=None):
        # M.Oh: temporary solution for missing true PU branch in the new ntuples
        if 'pair_truePileUp' in df.columns:
            weightedDF = df.withColumn(
-               'weight', mapping_expr.getItem(F.round('pair_truePileUp')))
+               'PUweight', mapping_expr.getItem(F.round('pair_truePileUp')))
        elif 'nTrueInteractions' in df.columns:
            weightedDF = df.withColumn(
-               'weight', mapping_expr.getItem(F.round('nTrueInteractions')))
+               'PUweight', mapping_expr.getItem(F.round('nTrueInteractions')))
        elif 'nVertices' in df.columns:
            weightedDF = df.withColumn(
-               'weight', mapping_expr.getItem(F.col('nVertices')))
+               'PUweight', mapping_expr.getItem(F.col('nVertices')))
        else:
-           weightedDF = df.withColumn('weight', F.lit(1.0))
+           weightedDF = df.withColumn('PUweight', F.lit(1.0))
+       # apply gen weights
+       if 'genWeight' in weightedDF.columns:
+           weightedDF = weightedDF.withColumn('genWeightSign', F.signum('genWeight'))
+           weightedDF = weightedDF.withColumn('weight', F.col('genWeightSign') * F.col('PUweight'))
+       elif 'pair_genWeight' in weightedDF.columns:
+           weightedDF = weightedDF.withColumn('genWeightSign', F.signum('pair_genWeight'))
+           weightedDF = weightedDF.withColumn('weight', F.col('genWeightSign') * F.col('PUweight'))
+       else:
+           weightedDF = weightedDF.withColumn('weight', F.col('PUweight'))
    else:
        weightedDF = df.withColumn('weight', F.lit(1.0))
    weightedDF = weightedDF.withColumn(

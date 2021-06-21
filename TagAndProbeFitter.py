@@ -16,7 +16,7 @@ class TagAndProbeFitter:
         if resonance == 'Z':
             self._peak = 90
             self._fit_var_min = 60
-            self._fit_var_max = 120
+            self._fit_var_max = 140
             self._fit_range_min = 70
             self._fit_range_max = 110
         elif resonance == 'JPsi':

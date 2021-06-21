@@ -251,7 +251,7 @@ def run_spark(particle, probe, resonance, era, config, **kwargs):
 
     spark = SparkSession\
         .builder\
-        .appName("TnP")\
+        .appName("TnP")
 
     if _useLocalSpark == True:
         spark = spark.master("local")
