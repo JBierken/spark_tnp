@@ -36,7 +36,9 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
             particle, probe, resonance, era, subEra))
     else:
         fnames = registry.root(particle, probe, resonance, era, subEra)
-        fnames = ['root://eoscms.cern.ch/'+f for f in fnames]
+        # Assume path in registry is already correct, no need for redirector
+        # fnames = ['root://eoscms.cern.ch/'+f for f in fnames]
+        fnames = [f for f in fnames]
 
     jobPath = os.path.join(particle, probe, resonance, era, subEra)
     if shift:
@@ -62,6 +64,7 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
         else:
             baseDF = spark.read.parquet(fnames)
     else:
+        print('Loading root files, first file: ', fnames[0])
         treename = registry.treename(particle, probe, resonance, era, subEra)
         baseDF = spark.read.format("root")\
                       .option('tree', treename)\
@@ -249,9 +252,25 @@ def run_spark(particle, probe, resonance, era, config, **kwargs):
     _shiftType = kwargs.pop('shiftType', [])
     _useLocalSpark = kwargs.pop('useLocalSpark', False)
 
+    local_jars = ','.join([
+        './laurelin-1.0.0.jar',
+        './log4j-api-2.13.0.jar',
+        './log4j-core-2.13.0.jar',
+    ])
+
     spark = SparkSession\
         .builder\
         .appName("TnP")
+
+    if useParquet == False:
+        spark = spark\
+        .config("spark.jars", local_jars)\
+        .config("spark.driver.extraClassPath", local_jars)\
+        .config("spark.executor.extraClassPath", local_jars)\
+        .config("spark.dynamicAllocation.maxExecutors", "100")\
+        .config("spark.driver.memory", "6g")\
+        .config("spark.executor.memory", "4g")\
+        .config("spark.executor.cores", "2")
 
     if _useLocalSpark == True:
         spark = spark.master("local")
