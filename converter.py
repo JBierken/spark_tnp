@@ -98,6 +98,8 @@ def run_all(particle, resonance, era, dataTier, subEra=None, customDir='', baseD
         subEras = [subEra]
     else:
         subEras = get_allowed_sub_eras(resonance, era)
+        # subEras by default includes whole era too, so remove for convert
+        subEras.remove(era)
 
     local_jars = ','.join([
         './laurelin-1.0.0.jar',

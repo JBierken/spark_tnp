@@ -57,16 +57,15 @@ _rpath = os.path.abspath(os.path.dirname(__file__))
 _jsons = [
     # Muon POG generalTrack probes
     'data/registry_muon_Z_generalTracks.json',
-    ## 'data/registry_muon_Z_generalTracks_for_dSA.json', # currently conflicts with previous (non-dSA) entry
     'data/registry_muon_JPsi_generalTracks.json',
-    ## 'data/registry_muon_JPsi_generalTracks_for_dSA.json', # currently conflicts with previous (non-dSA) entry
+    # Old ntuples with generalTrack probes
+    # 'data/registry_muon_Z_generalTracks_oldNtuples.json',
+    # 'data/registry_muon_JPsi_generalTracks_oldNtuples.json',
     # Muon POG standAloneMuon probes
     'data/registry_muon_Z_standAloneMuons.json',
-    # Muon POG dSA probes for displaced ID measurements
-    'data/registry_muon_Z_displacedStandAloneMuons.json',
-    'data/registry_muon_JPsi_displacedStandAloneMuons.json',
-    # dSA studies
-    'data/registry_muon_Z_dSA_dRStudy.json'
+    # Muon POG displaced StandAlone muon probes for displaced ID measurements
+    'data/registry_muon_Z_dSAMuons.json',
+    'data/registry_muon_JPsi_dSAMuons.json'
 ]
 
 for fname in _jsons:
