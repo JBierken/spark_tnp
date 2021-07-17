@@ -226,7 +226,7 @@
         "treename": "muon/Events",
         "luminosity": -1,
         "version": 1
-    }
+    },
     {
         "particle": "muon",
         "resonance": "JPsi",

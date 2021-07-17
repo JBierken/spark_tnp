@@ -29,7 +29,7 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
     _baseDir = kwargs.pop('baseDir', '')
     _testing = kwargs.pop('testing', False)
 
-    print('Running flattening for', resonance, era, subEra, shift)
+    print('Running flattening for', particle, probe, resonance, era, subEra, shift)
 
     if useParquet:
         fnames = list(registry.parquet(

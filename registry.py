@@ -26,7 +26,11 @@ class Registry:
             df = df[df.era == era]
         # special handling for data eras of the form
         # Run20XY selecting all Run20XYZ subEras
+        # in UL case (e.g. 'Run2018_UL') remove '_UL'
+        # since subEras do not contain the '_UL' part
         if subEra is not None:
+            if '_UL' in subEra:
+                subEra = subEra.split('_')[0]
             df = df[df.subEra.str.startswith(subEra)]
         return df
 
