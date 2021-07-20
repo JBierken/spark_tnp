@@ -19,6 +19,11 @@ def get_pileup(resonance, era, subEra):
        'Run2016_UL': 'pileup/data/Run2016.root',
        'Run2017_UL': 'pileup/data/Run2017.root',
        'Run2018_UL': 'pileup/data/Run2018.root',
+       # Double muon PD
+       'Run2016_UL_HIPM_DM': 'pileup/data/Run2016.root',
+       'Run2016_UL_DM': 'pileup/data/Run2016.root',
+       'Run2017_UL_DM': 'pileup/data/Run2017.root',
+       'Run2018_UL_DM': 'pileup/data/Run2018.root',
        'Run2016': 'pileup/data/Run2016.root',
        'Run2017': 'pileup/data/Run2017.root',
        'Run2018': 'pileup/data/Run2018.root'
@@ -29,6 +34,11 @@ def get_pileup(resonance, era, subEra):
        'Run2016_UL': 'pileup/mc/Run2016_UL.root',
        'Run2017_UL': 'pileup/mc/Run2017_UL.root',
        'Run2018_UL': 'pileup/mc/Run2018_UL.root',
+       # Double muon PD
+       'Run2016_UL_HIPM_DM': 'pileup/mc/Run2016_UL.root',
+       'Run2016_UL_DM': 'pileup/mc/Run2016_UL.root',
+       'Run2017_UL_DM': 'pileup/mc/Run2017_UL.root',
+       'Run2018_UL_DM': 'pileup/mc/Run2018_UL.root',
        'Run2016': 'pileup/mc/Run2016.root',
        'Run2017': 'pileup/mc/Run2017.root',
        'Run2018': 'pileup/mc/Run2018.root'

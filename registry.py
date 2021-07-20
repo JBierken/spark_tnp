@@ -9,12 +9,19 @@ class Registry:
     def __init__(self):
         self._data = pd.DataFrame()
 
+    def reset(self):
+        self._data = pd.DataFrame()
+
     def load_json(self, fname):
         df = pd.read_json(fname)
-        self._data = self._data.append(df)
+        self._data = self._data.append(df, sort=True)
 
     def _reduce(self, particle=None, probe=None,
-                resonance=None, era=None, subEra=None):
+                resonance=None, era=None, subEra=None,
+                **kwargs):
+        _dataTier = kwargs.pop('dataTier', None)
+        _ntupleVer = kwargs.pop('ntupleVer', None)
+
         df = self._data
         if particle is not None:
             df = df[df.particle == particle]
@@ -32,26 +39,31 @@ class Registry:
             if '_UL' in subEra:
                 subEra = subEra.split('_')[0]
             df = df[df.subEra.str.startswith(subEra)]
+        if _dataTier is not None:
+            df = df[df.dataTier == _dataTier]
+        if _ntupleVer is not None:
+            df = df[df.version.astype(str) == str(_ntupleVer)]
+        assert df.shape[0] > 0, 'registry is empty, please check dataTier and ntupleVer'
         return df
 
-    def parquet(self, particle, probe, resonance, era, subEra):
-        df = self._reduce(particle, probe, resonance, era, subEra)
+    def parquet(self, particle, probe, resonance, era, subEra, **kwargs):
+        df = self._reduce(particle, probe, resonance, era, subEra, **kwargs)
         return itertools.chain.from_iterable(df.parquet.values)
 
-    def root(self, particle, probe, resonance, era, subEra):
-        df = self._reduce(particle, probe, resonance, era, subEra)
+    def root(self, particle, probe, resonance, era, subEra, **kwargs):
+        df = self._reduce(particle, probe, resonance, era, subEra, **kwargs)
         globs = itertools.chain.from_iterable(df.root.values)
         return itertools.chain.from_iterable((glob.glob(g) for g in globs))
 
-    def treename(self, particle, probe, resonance, era, subEra):
-        df = self._reduce(particle, probe, resonance, era, subEra)
+    def treename(self, particle, probe, resonance, era, subEra, **kwargs):
+        df = self._reduce(particle, probe, resonance, era, subEra, **kwargs)
         treename = df.treename.iloc[0]
         if not (df.treename.values == treename).all():
             raise ValueError('Multiple treenames for query')
         return treename
 
-    def luminosity(self, particle, probe, resonance, era, subEra):
-        df = self._reduce(particle, probe, resonance, era, subEra)
+    def luminosity(self, particle, probe, resonance, era, subEra, **kwargs):
+        df = self._reduce(particle, probe, resonance, era, subEra, **kwargs)
         return df.luminosity.sum()
 
 

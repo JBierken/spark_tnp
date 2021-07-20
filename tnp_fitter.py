@@ -135,10 +135,14 @@ def add_common_era(parser):
                         help='Scale factor set to produce')
 
 
-def add_common_data_tier(parser):
+def add_common_data_tier(parser, isPositional=True):
     allowed = ['AOD', 'MINIAOD']
-    parser.add_argument('dataTier', choices=allowed,
-                        help='Data-tier of underlying ntuples')
+    if isPositional:
+        parser.add_argument('dataTier', choices=allowed,
+                            help='Data-tier of underlying ntuples')
+    else:
+        parser.add_argument('--dataTier', choices=allowed,
+                            help='Data-tier of underlying ntuples')
 
 
 def add_common_sub_era(parser):
@@ -153,6 +157,7 @@ def add_common_sub_era(parser):
     parser.add_argument('subEra', nargs='?', choices=a_sub,
                         help='Sub-era if desired')
 
+
 def add_common_config(parser):
     parser.add_argument('config',
                         help='Efficiency configuration file')
@@ -165,6 +170,10 @@ def add_common_options(parser):
                         help='Use POG central space instead of user')
     parser.add_argument('--useLocalSpark', action='store_true',
                         help='Use local spark master for tests')
+    parser.add_argument('--registry', default=None,
+                        help='Specify data registry')
+    parser.add_argument('--ntupleVer', default=None,
+                        help='Specify ntuple version defined in data registry')
 
 
 def parse_command_line(argv):
@@ -180,7 +189,8 @@ def parse_command_line(argv):
     add_common_particle(parser_convert)
     add_common_resonance(parser_convert)
     add_common_era(parser_convert)
-    add_common_data_tier(parser_convert)
+    if argv[0] == 'convert':
+        add_common_data_tier(parser_convert, isPositional=True)
     add_common_sub_era(parser_convert)
     add_common_options(parser_convert)
 
@@ -193,6 +203,8 @@ def parse_command_line(argv):
     add_common_resonance(parser_flatten)
     add_common_era(parser_flatten)
     add_common_config(parser_flatten)
+    if argv[0] != 'convert':
+        add_common_data_tier(parser_flatten, isPositional=False)
     add_common_options(parser_flatten)
     add_common_flatten(parser_flatten)
 
@@ -218,6 +230,8 @@ def parse_command_line(argv):
     add_common_resonance(parser_prepare)
     add_common_era(parser_prepare)
     add_common_config(parser_prepare)
+    if argv[0] != 'convert':
+        add_common_data_tier(parser_prepare, isPositional=False)
     add_common_options(parser_prepare)
     add_common_multi(parser_prepare)
     add_common_prepare(parser_prepare)
@@ -256,11 +270,20 @@ def main(argv=None):
         return 0
     elif args.command == 'flatten':
         from flattener import run_spark
-        run_spark(args.particle, args.probe, args.resonance, args.era,
-                  Configuration(args.config),
-                  numerator=args.numerator, denominator=args.denominator,
-                  shiftType=args.shiftType, baseDir=baseDir,
-                  dataOnly=args.dataOnly, bySubEraAlso=args.bySubEraAlso, useLocalSpark=args.useLocalSpark)
+        run_spark(
+            args.particle, args.probe, args.resonance, args.era,
+            Configuration(args.config),
+            numerator=args.numerator,
+            denominator=args.denominator,
+            shiftType=args.shiftType,
+            baseDir=baseDir,
+            dataOnly=args.dataOnly,
+            bySubEraAlso=args.bySubEraAlso,
+            useLocalSpark=args.useLocalSpark,
+            registry=args.registry,
+            dataTier=args.dataTier,
+            ntupleVer=args.ntupleVer,
+        )
         return 0
     elif args.command == 'fit':
         from fitter import run_single_fit, build_fit_jobs, build_condor_submit
@@ -291,6 +314,9 @@ def main(argv=None):
             numerator=args.numerator,
             denominator=args.denominator,
             baseDir=baseDir,
+            registry=args.registry,
+            dataTier=args.dataTier,
+            ntupleVer=args.ntupleVer,
         )
         jobs = [job + [args.skipPlots, args.cutAndCount] for job in jobs]
         unit = 'efficiency'

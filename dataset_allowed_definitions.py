@@ -18,6 +18,11 @@ def get_allowed_eras(resonance):
             'Run2016_UL',
             'Run2017_UL',
             'Run2018_UL',
+            # Double muon PD
+            'Run2016_UL_HIPM_DM',
+            'Run2016_UL_DM',
+            'Run2017_UL_DM',
+            'Run2018_UL_DM',
             # rereco (i.e. legacy)
             'Run2016',
             'Run2017',
@@ -53,6 +58,15 @@ def get_allowed_sub_eras(resonance, era):
                 f'Run2017{b}' for b in 'BCDEF']+['DY_madgraph'],
             'Run2018_UL': ['Run2018_UL'] + [
                 f'Run2018{b}' for b in 'ABCD']+['DY_madgraph', 'DY_powheg'],
+            # Double muon PD
+            'Run2016_UL_HIPM_DM': ['Run2016_UL_HIPM_DM'] + [
+                f'Run2016{b}' for b in 'BCDEF']+['DY_madgraph'],
+            'Run2016_UL_DM': ['Run2016_UL_DM'] + [
+                f'Run2016{b}' for b in 'FGH']+['DY_madgraph'],
+            'Run2017_UL_DM': ['Run2017_UL_DM'] + [
+                f'Run2017{b}' for b in 'BCDEF']+['DY_madgraph'],
+            'Run2018_UL_DM': ['Run2018_UL_DM'] + [
+                f'Run2018{b}' for b in 'ABCD']+['DY_madgraph'],
             # rereco (i.e. legacy)
             'Run2016': ['Run2016'] + [
                f'Run2016{b}' for b in 'BCDEFGH']+['DY_madgraph'],
@@ -94,6 +108,11 @@ def get_data_mc_sub_eras(resonance, era):
             'Run2016_UL': ['Run2016_UL', 'DY_madgraph'],
             'Run2017_UL': ['Run2017_UL', 'DY_madgraph'],
             'Run2018_UL': ['Run2018_UL', 'DY_madgraph'],
+            # Double muon PD
+            'Run2016_UL_HIPM_DM': ['Run2016_UL_HIPM_DM', 'DY_madgraph'],
+            'Run2016_UL_DM': ['Run2016_UL_DM', 'DY_madgraph'],
+            'Run2017_UL_DM': ['Run2017_UL_DM', 'DY_madgraph'],
+            'Run2018_UL_DM': ['Run2018_UL_DM', 'DY_madgraph'],
             # rereco (i.e. legacy)
             'Run2016': ['Run2016', 'DY_madgraph'],
             'Run2017': ['Run2017', 'DY_madgraph'],
