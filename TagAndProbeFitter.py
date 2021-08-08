@@ -7,9 +7,10 @@ tdrstyle.setTDRStyle()
 
 class TagAndProbeFitter:
 
-    def __init__(self, name, resonance='Z'):
+    def __init__(self, name, resonance='Z', addName=''):
+        
         self._name = name
-        self._w = ROOT.RooWorkspace('w')
+        self._w = ROOT.RooWorkspace('w'+addName)
         self._useMinos = True
         self._hists = {}
         self._resonance = resonance
@@ -60,7 +61,7 @@ class TagAndProbeFitter:
         self._fitRangeMin = fMin
         self._fitRangeMax = fMax
 
-    def set_histograms(self, hPass, hFail, peak=None):
+    def set_histograms(self, hPass, hFail, peak=None, fitSignalOnly = False):
         if peak is None:
             peak = self._peak
         self._hists['Pass'] = hPass.Clone()
@@ -74,11 +75,13 @@ class TagAndProbeFitter:
         window = [int(pb-0.1*nb), int(pb+0.1*nb)]
         self._nPass_central = hPass.Integral(*window)
         self._nFail_central = hFail.Integral(*window)
+        hPassName = 'hPass' if not fitSignalOnly else 'hSigPass'
+        hFailName = 'hFail' if not fitSignalOnly else 'hSigFail'
         dhPass = ROOT.RooDataHist(
-            'hPass', 'hPass',
+            hPassName, hPassName,
             ROOT.RooArgList(self._w.var(self._fitVar)), hPass)
         dhFail = ROOT.RooDataHist(
-            'hFail', 'hFail',
+            hFailName, hFailName,
             ROOT.RooArgList(self._w.var(self._fitVar)), hFail)
         self.wsimport(dhPass)
         self.wsimport(dhFail)
@@ -106,7 +109,7 @@ class TagAndProbeFitter:
         self.wsimport(dhPass)
         self.wsimport(dhFail)
 
-    def set_workspace(self, lines, template=True):
+    def set_workspace(self, lines, template=True, fitSignalOnly = False):
         for line in lines:
             self._w.factory(line)
 
@@ -138,25 +141,31 @@ class TagAndProbeFitter:
 
         # build extended pdf
         self._w.factory("nSigP[{}, 0.5, {}]".format(nSigP, nPassHigh))
-        self._w.factory("nBkgP[{}, 0.5, {}]".format(nBkgP, nPassHigh))
         self._w.factory("nSigF[{}, 0.5, {}]".format(nSigF, nFailHigh))
-        self._w.factory("nBkgF[{}, 0.5, {}]".format(nBkgF, nFailHigh))
-        self._w.factory("SUM::pdfPass(nSigP*sigPass, nBkgP*bkgPass)")
-        self._w.factory("SUM::pdfFail(nSigF*sigFail, nBkgF*bkgFail)")
+        if not fitSignalOnly:
+            self._w.factory("nBkgP[{}, 0.5, {}]".format(nBkgP, nPassHigh))
+            self._w.factory("nBkgF[{}, 0.5, {}]".format(nBkgF, nFailHigh))
+            self._w.factory("SUM::pdfPass(nSigP*sigPass, nBkgP*bkgPass)")
+            self._w.factory("SUM::pdfFail(nSigF*sigFail, nBkgF*bkgFail)")
+        else:
+            self._w.factory("SUM::pdfPass(nSigP*sigPass)")
+            self._w.factory("SUM::pdfFail(nSigF*sigFail)")
 
-        # import the class code in case of non-standard PDFs
-        self._w.importClassCode("bkgPass")
-        self._w.importClassCode("bkgFail")
         self._w.importClassCode("sigPass")
         self._w.importClassCode("sigFail")
+        if not fitSignalOnly:
+            self._w.importClassCode("bkgPass")
+            self._w.importClassCode("bkgFail")
 
-    def fit(self, outFName, mcTruth=False, template=True):
+    def fit(self, outFName, mcTruth=False, template=True, fitSignalOnly=False):
 
         pdfPass = self._w.pdf('pdfPass')
         pdfFail = self._w.pdf('pdfFail')
+        pdfPassName = 'pdfPass'
+        pdfFailName = 'pdfFail'
 
         # if we are fitting MC truth, then set background things to constant
-        if mcTruth and template:
+        if (mcTruth and template):
             self._w.var('nBkgP').setVal(0)
             self._w.var('nBkgP').setConstant()
             self._w.var('nBkgF').setVal(0)
@@ -169,8 +178,11 @@ class TagAndProbeFitter:
         self._w.var(self._fitVar).setRange(
             'fitRange', self._fitRangeMin, self._fitRangeMax)
 
+        hPassName = 'hPass' if not fitSignalOnly else 'hSigPass'
+        hFailName = 'hFail' if not fitSignalOnly else 'hSigFail'
+            
         # fit passing histogram
-        resPass = pdfPass.fitTo(self._w.data("hPass"),
+        resPass = pdfPass.fitTo(self._w.data(hPassName),
                                 ROOT.RooFit.Minos(self._useMinos),
                                 ROOT.RooFit.SumW2Error(True),
                                 ROOT.RooFit.Save(),
@@ -186,7 +198,7 @@ class TagAndProbeFitter:
                 3.0 * self._w.var('sigmaP').getVal())
 
         # fit failing histogram
-        resFail = pdfFail.fitTo(self._w.data("hFail"),
+        resFail = pdfFail.fitTo(self._w.data(hFailName),
                                 ROOT.RooFit.Minos(self._useMinos),
                                 ROOT.RooFit.SumW2Error(True),
                                 ROOT.RooFit.Save(),
@@ -200,19 +212,23 @@ class TagAndProbeFitter:
         pFrame = self._w.var(self._fitVar).frame(
             self._fitRangeMin, self._fitRangeMax)
         pFrame.SetTitle('Passing probes')
-        self._w.data('hPass').plotOn(pFrame)
-        self._w.pdf('pdfPass').plotOn(pFrame,
+        self._w.data(hPassName).plotOn(pFrame)
+        self._w.pdf(pdfPassName).plotOn(pFrame,
+                                      ROOT.RooFit.Components('sigPass'),
+                                      ROOT.RooFit.LineWidth(0),
+                                      ) # invisible plotting, needed for chi2
+        self._w.pdf(pdfPassName).plotOn(pFrame,
                                       ROOT.RooFit.Components('bkgPass'),
                                       ROOT.RooFit.LineColor(ROOT.kBlue),
                                       ROOT.RooFit.LineStyle(ROOT.kDashed),
                                       )
-        self._w.pdf('pdfPass').plotOn(pFrame,
+        self._w.pdf(pdfPassName).plotOn(pFrame,         
                                       ROOT.RooFit.LineColor(ROOT.kRed),
                                       )
         # -2 for the extened PDF norm for bkg and sig
         ndofp = resPass.floatParsFinal().getSize() - 2
         chi2p = pFrame.chiSquare(ndofp)
-        self._w.data('hPass').plotOn(pFrame)
+        self._w.data(hPassName).plotOn(pFrame)
 
         # residuals/pull
         pullP = pFrame.pullHist()
@@ -224,19 +240,23 @@ class TagAndProbeFitter:
         fFrame = self._w.var(self._fitVar).frame(
             self._fitRangeMin, self._fitRangeMax)
         fFrame.SetTitle('Failing probes')
-        self._w.data('hFail').plotOn(fFrame)
-        self._w.pdf('pdfFail').plotOn(fFrame,
+        self._w.data(hFailName).plotOn(fFrame)
+        self._w.pdf(pdfFailName).plotOn(fFrame,
+                                      ROOT.RooFit.Components('sigFail'),
+                                      ROOT.RooFit.LineWidth(0),
+                                      ) # invisible plotting, needed for chi2
+        self._w.pdf(pdfFailName).plotOn(fFrame,
                                       ROOT.RooFit.Components('bkgFail'),
                                       ROOT.RooFit.LineColor(ROOT.kBlue),
                                       ROOT.RooFit.LineStyle(ROOT.kDashed),
                                       )
-        self._w.pdf('pdfFail').plotOn(fFrame,
+        self._w.pdf(pdfFailName).plotOn(fFrame,
                                       ROOT.RooFit.LineColor(ROOT.kRed),
                                       )
         # -2 for the extened PDF norm for bkg and sig
         ndoff = resFail.floatParsFinal().getSize() - 2
         chi2f = fFrame.chiSquare(ndoff)
-        self._w.data('hFail').plotOn(fFrame)
+        self._w.data(hFailName).plotOn(fFrame)
 
         # residuals/pull
         pullF = fFrame.pullHist()
@@ -261,12 +281,12 @@ class TagAndProbeFitter:
         # KS
         binWidth = self._hists['Pass'].GetBinWidth(1)
         nbins = int((self._fitRangeMax - self._fitRangeMin) / binWidth)
-        hPdfPass = self._w.pdf('pdfPass').createHistogram(
+        hPdfPass = self._w.pdf(pdfPassName).createHistogram(
             'ks_pdfPass',
             self._w.var(self._fitVar),
             ROOT.RooFit.Binning(nbins),
         )
-        hDataPass = self._w.data('hPass').createHistogram(
+        hDataPass = self._w.data(hPassName).createHistogram(
             'ks_hPass',
             self._w.var(self._fitVar),
             ROOT.RooFit.Binning(nbins),
@@ -274,12 +294,12 @@ class TagAndProbeFitter:
         ksP = hDataPass.KolmogorovTest(hPdfPass)
         branches['ksP'][0] = ksP
 
-        hPdfFail = self._w.pdf('pdfFail').createHistogram(
+        hPdfFail = self._w.pdf(pdfFailName).createHistogram(
             'ks_pdfFail',
             self._w.var(self._fitVar),
             ROOT.RooFit.Binning(nbins),
         )
-        hDataFail = self._w.data('hFail').createHistogram(
+        hDataFail = self._w.data(hFailName).createHistogram(
             'ks_hFail',
             self._w.var(self._fitVar),
             ROOT.RooFit.Binning(nbins),
@@ -449,4 +469,4 @@ class TagAndProbeFitter:
             self._hists[hKey].Write('{}_{}'.format(self._name, hKey),
                                     ROOT.TObject.kOverwrite)
         out.Close()
-        canvas.Print(outFName.replace('.root', '.png'))
+        canvas.Print(outFName.replace('.root', '.png') if not fitSignalOnly else outFName.replace('.root', '_signalFit.png'))

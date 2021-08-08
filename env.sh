@@ -25,3 +25,10 @@ if [ ! -f RooCMSShape_cc.so ]; then
     root -l -b -q -e '.L RooCMSShape.cc+'
     echo "Done!"
 fi
+
+if [ ! -f RooErfExp_cc.so ]; then
+    echo ""
+    echo "Did not detect a RooErfExp shared object file. Compiling with ACLiC... (should be needed only once)"
+    root -l -b -q -e '.L RooErfExp.cc+'
+    echo "Done!"
+fi
