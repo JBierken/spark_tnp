@@ -28,14 +28,19 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
     _denominator = kwargs.pop('denominator', [])
     _baseDir = kwargs.pop('baseDir', '')
     _testing = kwargs.pop('testing', False)
+    _registry = kwargs.pop('registry', None)
 
     print('Running flattening for', particle, probe, resonance, era, subEra, shift)
 
+    if _registry is not None:
+        registry.reset()
+        registry.load_json(_registry)
+
     if useParquet:
         fnames = list(registry.parquet(
-            particle, probe, resonance, era, subEra))
+            particle, probe, resonance, era, subEra, **kwargs))
     else:
-        fnames = registry.root(particle, probe, resonance, era, subEra)
+        fnames = registry.root(particle, probe, resonance, era, subEra, **kwargs)
         # Assume path in registry is already correct, no need for redirector
         # fnames = ['root://eoscms.cern.ch/'+f for f in fnames]
         fnames = [f for f in fnames]
@@ -65,7 +70,7 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
             baseDF = spark.read.parquet(fnames)
     else:
         print('Loading root files, first file: ', fnames[0])
-        treename = registry.treename(particle, probe, resonance, era, subEra)
+        treename = registry.treename(particle, probe, resonance, era, subEra, **kwargs)
         baseDF = spark.read.format("root")\
                       .option('tree', treename)\
                       .load(fnames)

@@ -297,11 +297,9 @@ def getSyst_cutAndCount(binName, fnameData, fnameMC, fitTypes, shiftTypes, reson
 
 
 def prepare(baseDir, particle, probe, resonance, era,
-            config, num, denom, variableLabels,
+            config, num, denom, variableLabels, lumi,
             skipPlots=False, cutAndCount=False):
 
-    subEra = era.split('_')[0]  # data subera is beginning of era
-    lumi = registry.luminosity(particle, probe, resonance, era, subEra)
     hists = {}
 
     effType = config.type() if 'type' in config else ''
@@ -953,6 +951,14 @@ def build_prepare_jobs(particle, probe, resonance, era,
     _baseDir = kwargs.pop('baseDir', '')
     _numerator = kwargs.pop('numerator', [])
     _denominator = kwargs.pop('denominator', [])
+    _registry = kwargs.pop('registry', None)
+
+    if _registry is not None:
+        registry.reset()
+        registry.load_json(_registry)
+
+    subEra = era.split('_')[0]  # data subera is beginning of era
+    lumi = registry.luminosity(particle, probe, resonance, era, subEra, **kwargs)
 
     jobs = []
     # iterate through the efficiencies
@@ -967,6 +973,6 @@ def build_prepare_jobs(particle, probe, resonance, era,
         for variableLabels in config.binVariables():
 
             jobs += [[_baseDir, particle, probe, resonance, era,
-                     config, num, denom, tuple(variableLabels)]]
+                     config, num, denom, tuple(variableLabels), lumi]]
 
     return jobs
