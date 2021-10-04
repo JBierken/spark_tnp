@@ -8,6 +8,33 @@ ROOT.gROOT.SetBatch()
 # kInfo = 1001, kWarning = 2001, ...
 ROOT.gROOT.ProcessLine("gErrorIgnoreLevel = 2001;")
 ROOT.gROOT.LoadMacro('RooCMSShape.cc+')
+ROOT.gROOT.LoadMacro('RooErfExp.cc+')
+
+def setMassRange(fitter, resonance, effType, shiftType):
+    
+    # mass range systematic
+    if resonance == 'JPsi':
+        if shiftType == 'massRangeUp':
+            fitter.set_fit_range(2.96, 3.36)
+        elif shiftType == 'massRangeDown':
+            fitter.set_fit_range(2.84, 3.24)
+        else:
+            fitter.set_fit_range(2.90, 3.30)
+    else:
+        if effType=='trig':
+            if shiftType == 'massRangeUp':
+                fitter.set_fit_range(75, 135)
+            elif shiftType == 'massRangeDown':
+                fitter.set_fit_range(65, 125)
+            else:
+                fitter.set_fit_range(70, 130)
+        else:
+            if shiftType == 'massRangeUp':
+                fitter.set_fit_range(75, 115)
+            elif shiftType == 'massRangeDown':
+                fitter.set_fit_range(65, 105)
+            else:
+                fitter.set_fit_range(70, 110)
 
 
 def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
@@ -123,6 +150,30 @@ def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
         "Voigtian::sigFail(x, meanF, widthF, sigmaF)",
     ]
 
+    # Alternative signal model with Voigtian+RooErfExp
+    tnpAltSigErfFit = [
+        "meanVRP[90.0, 80.0, 100.0]", "widthVRP[2.495]", "sigmaVRP[0.9, 0.8, 5.0]",
+        "meanVRF[90.0, 80.0, 100.0]", "widthVRF[2.495]", "sigmaVRF[0.9, 0.8, 5.0]",
+        "alphaVRP[70.0, 65.0, 90.0]", "gammaVRP[-1., -10, 10.]", "betaVRP[1., 0.01, 10.]", "nVRP[0.2, 0.1, 0.5]",
+        "alphaVRF[70.0, 65.0, 90.0]", "gammaVRF[-1., -10, 10.]", "betaVRF[1., 0.01, 10.]", "nVRF[0.2, 0.1, 0.5]",
+        "meanP[-0.0, -5.0, 5.0]", "sigmaP[0.9, 0.005, 5.0]",
+        "meanF[-0.0, -5.0, 5.0]", "sigmaF[0.9, 0.005, 5.0]",        
+        "RooErfExp::sigPass1(x, alphaVRP, gammaVRP, betaVRP, nVRP)",
+        "RooErfExp::sigFail1(x, alphaVRF, gammaVRF, betaVRF, nVRF)",
+        "Voigtian::sigPass2(x, meanVRP, widthVRP, sigmaVRP)",
+        "Voigtian::sigFail2(x, meanVRF, widthVRF, sigmaVRF)",
+        "fVRP[0.5, 0.1, 1.1]",
+        "fVRF[0.5, 0.1, 1.1]",
+        "SUM::sigSumPass(fVRP*sigPass1, sigPass2)",
+        "SUM::sigSumFail(fVRF*sigFail1, sigFail2)",
+        "meanResP[-0.0, -5.0, 5.0]", "sigmaResP[0.9, 0.05, 5.0]",
+        "meanResF[-0.0, -5.0, 5.0]", "sigmaResF[0.9, 0.05, 5.0]",
+        "Gaussian::sigResPass(x, meanResP, sigmaResP)",
+        "Gaussian::sigResFail(x, meanResF, sigmaResF)",
+        "FCONV::sigPass(x, sigSumPass, sigResPass)",
+        "FCONV::sigFail(x, sigSumFail, sigResFail)",
+    ]
+
     # AltBkg
     if effType=='trig':
         tnpAltBkgFit = [
@@ -157,6 +208,10 @@ def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
     elif version == 'AltSig':
         tnpWorkspace.extend(tnpAltSigFit)
         tnpWorkspace.extend(tnpNomFitBkg)
+    elif version == 'AltSigErf':
+        tnpWorkspace.extend(tnpAltSigErfFit)
+        tnpWorkspace.extend(tnpAltBkgFit)
+        doTemplate = False
     elif version == 'AltBkg':
         tnpWorkspace.extend(tnpNomFitSig)
         tnpWorkspace.extend(tnpAltBkgFit)
@@ -172,39 +227,6 @@ def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
             hF = hF.Rebin(2)  # 0.5 GeV bins
         return hP, hF
 
-    # init fitter
-    infile = ROOT.TFile(inFName, "read")
-    hP = infile.Get(f'{binName}_Pass')
-    hF = infile.Get(f'{binName}_Fail')
-    hP, hF = rebin(hP, hF)
-    fitter = TagAndProbeFitter(binName, resonance=resonance)
-    fitter.set_histograms(hP, hF)
-    infile.Close()
-
-    # mass range systematic
-    if resonance == 'JPsi':
-        if shiftType == 'massRangeUp':
-            fitter.set_fit_range(2.96, 3.36)
-        elif shiftType == 'massRangeDown':
-            fitter.set_fit_range(2.84, 3.24)
-        else:
-            fitter.set_fit_range(2.90, 3.30)
-    else:
-        if effType=='trig':
-            if shiftType == 'massRangeUp':
-                fitter.set_fit_range(75, 135)
-            elif shiftType == 'massRangeDown':
-                fitter.set_fit_range(65, 125)
-            else:
-                fitter.set_fit_range(70, 130)
-        else:
-            if shiftType == 'massRangeUp':
-                fitter.set_fit_range(75, 115)
-            elif shiftType == 'massRangeDown':
-                fitter.set_fit_range(65, 105)
-            else:
-                fitter.set_fit_range(70, 110)
-
     # setup
     os.makedirs(os.path.dirname(outFName), exist_ok=True)
 
@@ -219,14 +241,46 @@ def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
         histZLineShapeP = fileTruth.Get(f'{binName}_Pass')
         histZLineShapeF = fileTruth.Get(f'{binName}_Fail')
     histZLineShapeP, histZLineShapeF = rebin(histZLineShapeP, histZLineShapeF)
+    
+    tnpWS = tnpWorkspace.copy()
+    
+    if version == 'AltSigErf':
+        fitter = TagAndProbeFitter(binName, resonance=resonance, addName="sig")
+        setMassRange(fitter, resonance, effType, shiftType)
+        fitter.set_gen_shapes(histZLineShapeP, histZLineShapeF)
+        fitter.set_histograms(histZLineShapeP, histZLineShapeF, fitSignalOnly = True)
+        fitter.set_workspace(tnpWorkspace, doTemplate, fitSignalOnly = True)
+        fitter._useMinos = False
+        fitter.fit(outFName, histType == 'mc', doTemplate, fitSignalOnly = True)
+        tnpAltSigErfFitFix = {}
+
+        tightFit = ['betaVRP', 'betaVRF', 'nVRP', 'nVRF', 'gammaVRP', 'gammaVRF', 'alphaVRP', 'alphaVRF']
+        mediumFit = ['nVRP', 'nVRF', 'betaVRP', 'betaVRF', 'fVRP', 'fVRF', 'alphaVRP', 'alphaVRF']
+        looseFit = ['nVRP', 'nVRF', 'fVRP', 'fVRF', 'alphaVRP', 'alphaVRF']
+        
+        for v in fitter._w.allVars():
+            varName = v.GetName()
+            tnpAltSigErfFitFix[varName] = varName+'['+str(v.getVal())+']'
+        for ix, x in enumerate(tnpWS):
+            for y in tnpAltSigErfFitFix.keys():
+                if y in tightFit:
+                    if x.startswith(y+'['): tnpWS[ix] = tnpAltSigErfFitFix[y]
+
+    fitter = TagAndProbeFitter(binName, resonance=resonance, addName="main")
+    if version == 'AltSigErf': fitter._useMinos = False
+    setMassRange(fitter, resonance, effType, shiftType)
     fitter.set_gen_shapes(histZLineShapeP, histZLineShapeF)
-
-    fileTruth.Close()
-
-    # set workspace
-    fitter.set_workspace(tnpWorkspace, doTemplate)
+    
+    infile = ROOT.TFile(inFName, "read")
+    hP = infile.Get(f'{binName}_Pass')
+    hF = infile.Get(f'{binName}_Fail')
+    hP, hF = rebin(hP, hF)    
+    fitter.set_histograms(hP, hF)
+    fitter.set_workspace(tnpWS, doTemplate)
     fitter.fit(outFName, histType == 'mc', doTemplate)
-
+    
+    fileTruth.Close()
+    infile.Close()
 
 # TODO other fits and argparse
 if __name__ == "__main__":
