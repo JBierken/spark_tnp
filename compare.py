@@ -794,7 +794,7 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                         hist.SetLineColor(ROOT.kAzure-2)
                         hist.SetFillColor(ROOT.kAzure-2)
                         
-                        his.Scale(hist_2.Integral()/hist.Integral())
+                        hist.Scale(hist_2.Integral()/hist.Integral())
                         hist.Draw("HIST")
                         hist_2.Draw("E1 SAME")
                     elif subera2_isMC and not subera1_isMC:
@@ -934,7 +934,7 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                         hist.SetLineColor(ROOT.kAzure-2)
                         hist.SetFillColor(ROOT.kAzure-2)
                         
-                        his.Scale(hist_2.Integral()/hist.Integral())
+                        hist.Scale(hist_2.Integral()/hist.Integral())
                         hist.Draw("HIST")
                         hist_2.Draw("E1 SAME")
 
