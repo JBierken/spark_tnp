@@ -108,6 +108,15 @@ def add_common_prepare(parser):
     parser.add_argument('--cutAndCount', action='store_true',
                         help='Use cut and count rather than fits')
 
+def add_common_compare(parser):
+    parser.add_argument('--subera1', default='',
+                        help='Introduce first subera')
+    parser.add_argument('--subera2', default='',
+                        help='Introduce second subera')
+    parser.add_argument('--era2', default='',
+                        help='Introduce de second era, if needed')
+    parser.add_argument('--condor_submit', action='store_true',
+                        help='Prepare condor submit script')
 
 def add_common_particle(parser):
     parser.add_argument('particle', choices=['muon', 'electron'],
@@ -222,6 +231,19 @@ def parse_command_line(argv):
     add_common_multi(parser_prepare)
     add_common_prepare(parser_prepare)
 
+    parser_compare = subparsers.add_parser(
+        'compare',
+        help='Compare distributions',
+    )
+    add_common_particle(parser_compare)
+    add_common_probe(parser_compare)
+    add_common_resonance(parser_compare)
+    add_common_era(parser_compare)
+    add_common_config(parser_compare)
+    add_common_options(parser_compare)
+    add_common_multi(parser_compare)
+    add_common_compare(parser_compare)
+
     return parser.parse_args(argv)
 
 
@@ -296,6 +318,36 @@ def main(argv=None):
         unit = 'efficiency'
         desc = 'Preparing'
 
+    elif args.command == 'compare':
+        from compare import compare
+        if args.condor_submit == True:
+            from run_multiple_compare import compare_multiple
+            compare_multiple(
+                args.particle,
+                args.probe,
+                args.resonance,
+                args.era,
+                args.config,
+                subera1=args.subera1,
+                subera2=args.subera2,
+                era2=args.era2,
+                baseDir=baseDir,
+            )
+        else:
+            compare(
+                args.particle,
+                args.probe,
+                args.resonance,
+                args.era,
+                Configuration(args.config),
+                subera1=args.subera1,
+                subera2=args.subera2,
+                era2=args.era2,
+                baseDir=baseDir,
+            )
+
+        return 0
+        
     if args.dryrun:
         print('Will run {} {} jobs'.format(len(jobs), args.command))
     elif args.condor:
