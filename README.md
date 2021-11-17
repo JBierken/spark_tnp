@@ -297,3 +297,28 @@ xsec=69200
 maxBins=100
 pileupCalc.py -i $lumimask --inputLumiJSON $pileupjson --calcMode true  --minBiasXsec $xsec --maxPileupBin $maxBins --numPileupBins $maxBins pileup/data/Run2017.root
 ```
+
+### 6. Pre-fit distributions
+
+Plot pre-fit distributions using local running or condor (add --condor_submit option). Some options are supported.
+
+Plot Data/MC plots for a full era:
+
+```
+./tnp_fitter.py compare particle probe resonance era configs/muon_example.json --baseDir ./example
+```
+
+Produce plots for two sepecific suberas:
+
+```
+./tnp_fitter.py compare particle probe resonance era configs/muon_example.json --baseDir ./example --subera1 SubEra1 --subera2 SubEra2
+```
+
+If the two suberas came from different eras, just add the option "--era2":
+
+```
+./tnp_fitter.py compare particle probe resonance era1 configs/muon_example.json --baseDir ./example --subera1 SubEra1 --subera2 SubEra2 --era2 Era2
+```
+
+
+
