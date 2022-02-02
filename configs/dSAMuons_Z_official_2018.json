@@ -20,7 +20,7 @@
         "probe_absdxy": "abs(probe_dxy)",
         "probe_absdz": "abs(probe_dz)",
         "tag_absdxy": "abs(probe_dxy)",
-        "tag_absdz": "abs(probe_dz)"
+        "tag_absdz": "abs(tag_dz)"
     },
     "binning": {
         "pt": [15, 20, 25, 30, 40, 50, 60, 120],
