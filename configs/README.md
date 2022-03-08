@@ -77,6 +77,10 @@ Configuration files have the structure (note: comments are not valid JSON):
     "fitShifts": {
         // Changing the fit type (PDF used)
         "AltSig": {"fitType": "AltSig"},
+        // Changing the template fit procedure by analytical functions
+        // Example: NominalOld, where signal is fitted by the sum of two-voigtians, and background by CMSShape
+        // Different definitions can be implemented in run_single_fit.py with RooFit
+        "NominalOld": {"fitType": "NominalOld"},
         // Changing the shift type (alternative fit inputs/configurations)
         "massBinUp": {"shiftType": "massBinUp"},
         "massBinDown": {"shiftType": "massBinDown"},
