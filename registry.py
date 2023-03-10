@@ -14,6 +14,7 @@ class Registry:
 
     def load_json(self, fname):
         df = pd.read_json(fname)
+        df.head(8)
         self._data = self._data.append(df, sort=True)
 
     def _reduce(self, particle=None, probe=None,
@@ -36,7 +37,7 @@ class Registry:
         # in UL case (e.g. 'Run2018_UL') remove '_UL'
         # since subEras do not contain the '_UL' part
         if subEra is not None:
-            if '_UL' in subEra:
+            if '_UL' in subEra or '_EE' in subEra:
                 subEra = subEra.split('_')[0]
             df = df[df.subEra.str.startswith(subEra)]
         if _dataTier is not None:
@@ -72,16 +73,23 @@ registry = Registry()
 _rpath = os.path.abspath(os.path.dirname(__file__))
 _jsons = [
     # Muon POG generalTrack probes
-    'data/registry_muon_Z_generalTracks.json',
-    'data/registry_muon_JPsi_generalTracks.json',
+    #'data/registry_muon_Z_generalTracks.json',
+    #'data/registry_muon_JPsi_generalTracks.json',
+
     # Old ntuples with generalTrack probes
     # 'data/registry_muon_Z_generalTracks_oldNtuples.json',
     # 'data/registry_muon_JPsi_generalTracks_oldNtuples.json',
     # Muon POG standAloneMuon probes
-    'data/registry_muon_Z_standAloneMuons.json',
+    #'data/registry_muon_Z_standAloneMuons.json',
+
+    #'data/registry_muon_Z_standAloneMuons_MINIAOD.json',
+    'data/registry_muon_Z_standAloneMuons_AOD.json'
+
+
     # Muon POG displaced StandAlone muon probes for displaced ID measurements
-    'data/registry_muon_Z_dSAMuons.json',
-    'data/registry_muon_JPsi_dSAMuons.json'
+    #'data/registry_muon_Z_dSAMuons.json',
+    #'data/registry_muon_JPsi_dSAMuons.json'
+    
 ]
 
 for fname in _jsons:

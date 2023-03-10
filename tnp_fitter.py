@@ -108,6 +108,16 @@ def add_common_prepare(parser):
     parser.add_argument('--cutAndCount', action='store_true',
                         help='Use cut and count rather than fits')
 
+def add_common_prepare_corrected(parser):
+    parser.add_argument('--numerator', nargs='*',
+                        help='Filter by numerator')
+    parser.add_argument('--denominator', nargs='*',
+                        help='Filter by denominator')
+    parser.add_argument('--skipPlots', action='store_true',
+                        help='Skip efficiency plots')
+    parser.add_argument('--cutAndCount', action='store_true',
+                        help='Use cut and count rather than fits')
+
 def add_common_compare(parser):
     parser.add_argument('--subera1', default='',
                         help='Introduce first subera')
@@ -245,6 +255,21 @@ def parse_command_line(argv):
     add_common_multi(parser_prepare)
     add_common_prepare(parser_prepare)
 
+    parser_prepare_corrected = subparsers.add_parser(
+        'prepare_corrected',
+        help='Prepare efficiencies',
+    )
+    add_common_particle(parser_prepare_corrected)
+    add_common_probe(parser_prepare_corrected)
+    add_common_resonance(parser_prepare_corrected)
+    add_common_era(parser_prepare_corrected)
+    add_common_config(parser_prepare_corrected)
+    if argv[0] != 'convert':
+        add_common_data_tier(parser_prepare_corrected, isPositional=False)
+    add_common_options(parser_prepare_corrected)
+    add_common_multi(parser_prepare_corrected)
+    add_common_prepare_corrected(parser_prepare_corrected)
+
     parser_compare = subparsers.add_parser(
         'compare',
         help='Compare distributions',
@@ -328,6 +353,25 @@ def main(argv=None):
         from prepare import prepare, build_prepare_jobs
         job_fn = prepare
         jobs = build_prepare_jobs(
+            args.particle,
+            args.probe,
+            args.resonance,
+            args.era,
+            Configuration(args.config),
+            numerator=args.numerator,
+            denominator=args.denominator,
+            baseDir=baseDir,
+            registry=args.registry,
+            dataTier=args.dataTier,
+            ntupleVer=args.ntupleVer,
+        )
+        jobs = [job + [args.skipPlots, args.cutAndCount] for job in jobs]
+        unit = 'efficiency'
+        desc = 'Preparing'
+    elif args.command == 'prepare_corrected':
+        from prepare_corrected import prepare_corrected, build_prepare_corrected_jobs
+        job_fn = prepare_corrected
+        jobs = build_prepare_corrected_jobs(
             args.particle,
             args.probe,
             args.resonance,

@@ -105,7 +105,7 @@ def build_fit_jobs(particle, probe, resonance, era,
     _recover = kwargs.pop('recover', False)
     _recoverMode = kwargs.pop('recoverMode', 'simple')
     doData = (not _sampleType) or ('data' in _sampleType)
-    doMC = (not _sampleType) or ('mc' in _sampleType)
+    doMC = (not _sampleType) or ('mc' in _sampleType) 
 
     # defining type of efficiency for initializing nominal and alternative
     # fit functions, initial parameters, mass binning, etc
@@ -192,7 +192,7 @@ def build_fit_jobs(particle, probe, resonance, era,
                     # PDF based fits are:
                     #   NominalOld, AltSigOld
                     if doMC and process(outFName) and\
-                            fitType in ['NominalOld', 'AltSigOld']:
+                            fitType in ['Nominal','NominalOld', 'AltSigOld']:
                         os.makedirs(os.path.dirname(outFName), exist_ok=True)
                         _jobs += [(outFName, inFName, binName, templateFName,
                                    plotDir, fitType, 'mc', shiftType, resonance, effType)]

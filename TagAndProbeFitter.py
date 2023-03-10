@@ -1,6 +1,7 @@
 from array import array
 import ROOT
 import tdrstyle
+import CMS_lumi
 ROOT.gROOT.SetBatch()
 tdrstyle.setTDRStyle()
 
@@ -19,7 +20,11 @@ class TagAndProbeFitter:
             self._fit_var_min = 60
             self._fit_var_max = 140
             self._fit_range_min = 70
-            self._fit_range_max = 110
+            self._fit_range_max = 115
+            #self._fit_var_min = 30
+            #self._fit_var_max = 160
+            #self._fit_range_min = 40
+            #self._fit_range_max = 149.125
         elif resonance == 'JPsi':
             self._peak = 3.10
             self._fit_var_min = 2.80
@@ -38,7 +43,7 @@ class TagAndProbeFitter:
         return getattr(self._w, 'import')(*args)
 
     def set_fit_var(self, v='x', vMin=None, vMax=None,
-                    unit='GeV', label='m(#mu#mu)'):
+                    unit='GeV/c^{2}', label='m(#mu^{+}#mu^{-})'):
         if vMin is None:
             vMin = self._fit_var_min
         if vMax is None:
@@ -50,7 +55,7 @@ class TagAndProbeFitter:
         if unit:
             self._w.var(v).setUnit(unit)
         if label:
-            self._w.var(v).setPlotLabel(label)
+            #self._w.var(v).setPlotLabel(label)
             self._w.var(v).SetTitle(label)
 
     def set_fit_range(self, fMin=None, fMax=None):
@@ -119,6 +124,7 @@ class TagAndProbeFitter:
         nBkgF = 0.9*self._nFail
         nPassHigh = 1.1*self._nPass
         nFailHigh = 1.1*self._nFail
+        #efficiency = 0
 
         if template:
             self._w.factory(
@@ -142,11 +148,14 @@ class TagAndProbeFitter:
         # build extended pdf
         self._w.factory("nSigP[{}, 0.5, {}]".format(nSigP, nPassHigh))
         self._w.factory("nSigF[{}, 0.5, {}]".format(nSigF, nFailHigh))
+        #self._w.factory("efficiency[0.9,0,1]")
         if not fitSignalOnly:
             self._w.factory("nBkgP[{}, 0.5, {}]".format(nBkgP, nPassHigh))
             self._w.factory("nBkgF[{}, 0.5, {}]".format(nBkgF, nFailHigh))
-            self._w.factory("SUM::pdfPass(nSigP*sigPass, nBkgP*bkgPass)")
-            self._w.factory("SUM::pdfFail(nSigF*sigFail, nBkgF*bkgFail)")
+            #self._w.factory("SUM::pdfPass(nSigP*efficiency*sigPass, nBkgP*bkgPass)") #Nsignal*efficiency*signal + NbackgroundPass*backgroundPass 
+            #self._w.factory("SUM::pdfFail(nSigF*(1-efficiency)*sigFail, nBkgF*bkgFail)") #Nsignal*(1-efficiency)*signal + NbackgroundFail*backgroundFail.
+            self._w.factory("SUM::pdfPass(nSigP*sigPass, nBkgP*bkgPass)") #Nsignal*efficiency*signal + NbackgroundPass*backgroundPass 
+            self._w.factory("SUM::pdfFail(nSigF*sigFail, nBkgF*bkgFail)") #Nsignal*(1-efficiency)*signal + NbackgroundFail*backgroundFail.
         else:
             self._w.factory("SUM::pdfPass(nSigP*sigPass)")
             self._w.factory("SUM::pdfFail(nSigF*sigFail)")
@@ -211,7 +220,17 @@ class TagAndProbeFitter:
         # pass
         pFrame = self._w.var(self._fitVar).frame(
             self._fitRangeMin, self._fitRangeMax)
-        pFrame.SetTitle('Passing probes')
+        #pFrame.SetTitle('Passing Probes')
+        pFrame.SetTitleOffset(0)
+        pFrame.GetYaxis().SetTitleOffset(1.5)
+        pFrame.GetXaxis().SetTitleOffset(1.1)
+        pFrame.GetXaxis().SetLabelOffset(0.018)
+        #Added
+        pFrame.GetXaxis().SetTitleOffset(0.1)
+        pFrame.GetXaxis().SetTitleSize(0.)
+        pFrame.GetXaxis().SetLabelSize(0.)
+        pFrame.GetYaxis().SetMaxDigits(4)
+        pFrame.GetYaxis().SetLabelOffset(0.006)
         self._w.data(hPassName).plotOn(pFrame)
         self._w.pdf(pdfPassName).plotOn(pFrame,
                                       ROOT.RooFit.Components('sigPass'),
@@ -219,11 +238,11 @@ class TagAndProbeFitter:
                                       ) # invisible plotting, needed for chi2
         self._w.pdf(pdfPassName).plotOn(pFrame,
                                       ROOT.RooFit.Components('bkgPass'),
-                                      ROOT.RooFit.LineColor(ROOT.kBlue),
+                                      ROOT.RooFit.LineColor(ROOT.kGreen),
                                       ROOT.RooFit.LineStyle(ROOT.kDashed),
                                       )
         self._w.pdf(pdfPassName).plotOn(pFrame,         
-                                      ROOT.RooFit.LineColor(ROOT.kRed),
+                                      ROOT.RooFit.LineColor(ROOT.kGreen),
                                       )
         # -2 for the extened PDF norm for bkg and sig
         ndofp = resPass.floatParsFinal().getSize() - 2
@@ -239,7 +258,17 @@ class TagAndProbeFitter:
         # fail
         fFrame = self._w.var(self._fitVar).frame(
             self._fitRangeMin, self._fitRangeMax)
-        fFrame.SetTitle('Failing probes')
+        #fFrame.SetTitle('Failing Probes')
+        fFrame.SetTitleOffset(0)
+        fFrame.GetYaxis().SetTitleOffset(1.5)
+        fFrame.GetXaxis().SetTitleOffset(1.1)
+        #Added
+        fFrame.GetXaxis().SetTitleOffset(0.1)
+        fFrame.GetXaxis().SetTitleSize(0.)
+        fFrame.GetXaxis().SetLabelSize(0.)
+        fFrame.GetYaxis().SetMaxDigits(4)
+        fFrame.GetXaxis().SetLabelOffset(0.018)
+        fFrame.GetYaxis().SetLabelOffset(0.006)
         self._w.data(hFailName).plotOn(fFrame)
         self._w.pdf(pdfFailName).plotOn(fFrame,
                                       ROOT.RooFit.Components('sigFail'),
@@ -247,7 +276,7 @@ class TagAndProbeFitter:
                                       ) # invisible plotting, needed for chi2
         self._w.pdf(pdfFailName).plotOn(fFrame,
                                       ROOT.RooFit.Components('bkgFail'),
-                                      ROOT.RooFit.LineColor(ROOT.kBlue),
+                                      ROOT.RooFit.LineColor(ROOT.kRed),
                                       ROOT.RooFit.LineStyle(ROOT.kDashed),
                                       )
         self._w.pdf(pdfFailName).plotOn(fFrame,
@@ -328,25 +357,34 @@ class TagAndProbeFitter:
         e_nF = nSigF.getError()
         rele_nF = e_nF / nF if nF > 0. else 0.
         nTot = nP + nF
+        #eff =  efficiency.getVal()
+        #e_eff = efficiency.getError()
         eff = nP / (nP + nF)
-        e_eff = 1.0 / nTot * (rele_nP**2 + rele_nF**2)**0.5
+        e_eff = 1 / (nTot)**2 * (e_nP**2 * nF**2 + e_nF**2 * nP**2)**0.5 
+            
+        #e_eff = 1.0 / nTot * (rele_nP**2 + rele_nF**2)**0.5
 
-        text1 = ROOT.TPaveText(0, 0.8, 1, 1)
-        text1.SetFillColor(0)
-        text1.SetBorderSize(0)
-        text1.SetTextAlign(12)
+        #text1 = ROOT.TPaveText(0, 0.9, 1, 1)
+        #text1.SetFillColor(0)
+        #text1.SetBorderSize(0)
+        #text1.SetTextAlign(12)
 
-        text1.AddText("Fit status pass: {}, fail: {}".format(
-            resPass.status(), resFail.status()))
-        text1.AddText("#chi^{{2}}/ndof pass: {:.3f}, fail: {:.3f}".format(
-            chi2p, chi2f))
-        text1.AddText("KS pass: {:.3f}, fail: {:.3f}".format(ksP, ksF))
-        text1.AddText("eff = {:.4f} #pm {:.4f}".format(eff, e_eff))
+        #text1.AddText("Fit status pass: {}, fail: {}".format(
+        #    resPass.status(), resFail.status()))
+        #text1.AddText("#chi^{{2}}/ndof pass: {:.3f}, fail: {:.3f}".format(
+        #    chi2p, chi2f))
+        #text1.AddText("KS pass: {:.3f}, fail: {:.3f}".format(ksP, ksF))
+        #text1.AddText("efficiency = {:.5f} #pm {:.5f}".format(eff, e_eff))
 
-        text = ROOT.TPaveText(0, 0, 1, 0.8)
+        text = ROOT.TPaveText(0, 0.1, 1, 0.9,"brNDC")
         text.SetFillColor(0)
-        text.SetBorderSize(0)
+        text.SetBorderSize(2)
         text.SetTextAlign(12)
+        if eff + e_eff >= 1.0:
+            text.AddText('efficiency = ({:.2f} (+{:.2f}) (-{:.2f})) %'.format(eff*100, (1. - eff)*100, e_eff*100))
+        else:
+            text.AddText('efficiency = ({:.2f} #pm {:.2f}) %'.format(eff*100, e_eff*100))
+        text.GetListOfLines().Last().SetTextFont(62)
         text.AddText("    --- parameters ")
 
         def argsetToList(argset):
@@ -359,40 +397,122 @@ class TagAndProbeFitter:
                 arglist += [ax]
                 ax = argiter.Next()
             return arglist
-
-        text.AddText("    pass")
+        
+        text.SetTextFont(52)
+        text.AddText("    Passing Probes")
+        text.GetListOfLines().Last().SetTextColor(ROOT.kGreen-2)
         listParFinalP = argsetToList(resPass.floatParsFinal())
         for p in listParFinalP:
             pName = p.GetName()
             pVar = self._w.var(pName)
-            text.AddText("    - {} \t= {:.3f} #pm {:.3f}".format(
-                pName, pVar.getVal(), pVar.getError()))
+            if 'alpha' in pName:
+                pName = pName.replace('alpha','#alpha')
+            if 'acms' in pName:
+                pName = pName.replace('acms','#alpha')
+            if 'beta' in pName:
+                pName = pName.replace('beta','#beta')
+            if 'gamma' in pName:
+                pName = pName.replace('gamma','#gamma')
+            if 'mean' in pName:
+                pName = pName.replace('mean','#mu')
+            if 'sigma' in pName:
+                pName = pName.replace('sigma','#sigma')
+            if 'width' in pName:
+                pName = pName.replace('width','#Gamma')
+            if 'n' in pName:
+                text.AddText('    - {} \t= ({:.2f} #pm {:.2f}) #times 10^{{3}}'.format(
+                    pName, pVar.getVal()/1000, pVar.getError()/1000))
+            if 'alpha' in pName:
+                text.AddText('    - {} \t= ({:.2f} #pm {:.2f}) #times 10^{{-2}}'.format(
+                    pName, pVar.getVal()*100, pVar.getError()*100))
+            if 'beta' in pName:
+                text.AddText('    - {} \t= ({:.2f} #pm {:.2f}) #times 10^{{-2}}'.format(
+                    pName, pVar.getVal()*100, pVar.getError()*100))
+            if 'gamma' in pName:
+                text.AddText('    - {} \t= ({:.2f} #pm {:.2f}) #times 10^{{-2}}'.format(
+                    pName, pVar.getVal()*100, pVar.getError()*100))
+            if 'mu' in pName:
+                text.AddText('    - {} \t= ({:.2f} #pm {:.2f}) #times 10^{{-2}}'.format(
+                    pName, pVar.getVal()*100, pVar.getError()*100))
+            if '#Gamma' in pName:
+                text.AddText('    - {} \t= ({:.2f} #pm {:.2f}) #times 10^{{-2}}'.format(
+                    pName, pVar.getVal()*100, pVar.getError()*100))
+            if 'sigma' in pName:
+                text.AddText('    - {} \t= ({:.2f} #pm {:.2f}) #times 10^{{-3}}'.format(
+                    pName, pVar.getVal()*1000, pVar.getError()*1000))
 
-        text.AddText("    fail")
+        text.AddText("    Failing Probes")
+        text.GetListOfLines().Last().SetTextColor(ROOT.kRed)
         listParFinalF = argsetToList(resFail.floatParsFinal())
         for p in listParFinalF:
             pName = p.GetName()
             pVar = self._w.var(pName)
-            text.AddText("    - {} \t= {:.3f} #pm {:.3f}".format(
-                pName, pVar.getVal(), pVar.getError()))
+            if 'alpha' in pName:
+                pName = pName.replace('alpha','#alpha')
+            if 'acms' in pName:
+                pName = pName.replace('acms','#alpha')
+            if 'beta' in pName:
+                pName = pName.replace('beta','#beta')
+            if 'mean' in pName:
+                pName = pName.replace('mean','#mu')
+            if 'sigma' in pName:
+                pName = pName.replace('sigma','#sigma')
+            if 'gamma' in pName:
+                pName = pName.replace('gamma','#gamma')
+            if 'width' in pName:
+                pName = pName.replace('width','#Gamma')
+            if 'alpha' in pName:
+                text.AddText('    - {} \t= ({:.2f} #pm {:.2f}) #times 10^{{-2}}'.format(
+                    pName, pVar.getVal()*100, pVar.getError()*100))
+            if 'beta' in pName:
+                text.AddText('    - {} \t= ({:.2f} #pm {:.2f}) #times 10^{{-2}}'.format(
+                    pName, pVar.getVal()*100, pVar.getError()*100))
+            if 'gamma' in pName:
+                text.AddText('    - {} \t= ({:.2f} #pm {:.2f}) #times 10^{{-2}}'.format(
+                    pName, pVar.getVal()*100, pVar.getError()*100))
+            if '#Gamma' in pName:
+                text.AddText('    - {} \t= ({:.2f} #pm {:.2f}) #times 10^{{-2}}'.format(
+                    pName, pVar.getVal()*100, pVar.getError()*100))
+            if 'n' in pName:
+                text.AddText('    - {} \t= ({:.2f} #pm {:.2f}) #times 10^{{3}}'.format(
+                    pName, pVar.getVal()/1000, pVar.getError()/1000))
+            if 'mu' in pName:
+                text.AddText('    - {} \t= ({:.2f} #pm {:.2f}) #times 10^{{-2}}'.format(
+                    pName, pVar.getVal()*100, pVar.getError()*100))
+            if 'sigma' in pName:
+                text.AddText('    - {} \t= ({:.2f} #pm {:.2f}) #times 10^{{-3}}'.format(
+                    pName, pVar.getVal()*1000, pVar.getError()*1000))
 
-        text1.Draw()
+        #text1.Draw()
         text.Draw()
 
         # print fit frames
         canvas.cd(2)
-        plotpadP = ROOT.TPad("plotpadP", "top pad", 0.0, 0.21, 1.0, 1.0)
-        ROOT.SetOwnership(plotpadP, False)
-        plotpadP.SetBottomMargin(0.00)
-        plotpadP.SetRightMargin(0.04)
-        plotpadP.SetLeftMargin(0.16)
+        plotpadP = ROOT.TPad("plotpadP", "top pad", 0.0, 0.12, 1.0, 1.0)
+        #ROOT.SetOwnership(plotpadP, False)
+        plotpadP.SetFillStyle(4000)
+        latP = ROOT.TLatex(.37,.96,"Passing Probes")
+        latP.SetNDC()
+        latP.SetTextSize(0.03)
+        latP.Draw()
+        CMS_lumi.cmsText = 'CMS'
+        CMS_lumi.writeExtraText = True
+        CMS_lumi.extraText = 'Preliminary'
+        #CMS_lumi.extraText = 'Work in progress'
+        CMS_lumi.CMS_lumi(canvas.cd(2), 4, 11)
+        plotpadP.SetTopMargin(0.06)
+        #plotpadP.SetBottomMargin(0.15)
+        plotpadP.SetRightMargin(0.035)
+        plotpadP.SetLeftMargin(0.18)
         plotpadP.Draw()
         ratiopadP = ROOT.TPad("ratiopadP", "bottom pad", 0.0, 0.0, 1.0, 0.21)
-        ROOT.SetOwnership(ratiopadP, False)
-        ratiopadP.SetTopMargin(0.00)
-        ratiopadP.SetRightMargin(0.04)
+        #ROOT.SetOwnership(ratiopadP, False)
+        ratiopadP.SetGridx()
+        ratiopadP.SetGridy()
+        #ratiopadP.SetTopMargin(0.06)
+        ratiopadP.SetRightMargin(0.035)
         ratiopadP.SetBottomMargin(0.5)
-        ratiopadP.SetLeftMargin(0.16)
+        ratiopadP.SetLeftMargin(0.18)
         ratiopadP.SetTickx(1)
         ratiopadP.SetTicky(1)
         ratiopadP.Draw()
@@ -404,6 +524,7 @@ class TagAndProbeFitter:
         prims = ratiopadP.GetListOfPrimitives()
         for prim in prims:
             if 'frame' in prim.GetName():
+                prim.SetTitle("")
                 prim.GetXaxis().SetLabelSize(0.19)
                 prim.GetXaxis().SetTitleSize(0.21)
                 prim.GetXaxis().SetTitleOffset(1.0)
@@ -418,18 +539,27 @@ class TagAndProbeFitter:
                 break
 
         canvas.cd(3)
-        plotpadF = ROOT.TPad("plotpadF", "top pad", 0.0, 0.21, 1.0, 1.0)
-        ROOT.SetOwnership(plotpadF, False)
-        plotpadF.SetBottomMargin(0.00)
-        plotpadF.SetRightMargin(0.04)
-        plotpadF.SetLeftMargin(0.16)
+        plotpadF = ROOT.TPad("plotpadF", "top pad", 0.0, 0.12, 1.0, 1.0)
+        plotpadF.SetFillStyle(4000)
+        latF = ROOT.TLatex(.38,.96,"Failing Probes")
+        latF.SetNDC()
+        latF.SetTextSize(0.03)
+        latF.Draw()
+        #ROOT.SetOwnership(plotpadF, False)
+        plotpadF.SetTopMargin(0.06)
+        #plotpadF.SetBottomMargin(0.15)
+        plotpadF.SetRightMargin(0.035)
+        plotpadF.SetLeftMargin(0.18)
+        CMS_lumi.CMS_lumi(canvas.cd(3), 4, 11)
         plotpadF.Draw()
         ratiopadF = ROOT.TPad("ratiopadF", "bottom pad", 0.0, 0.0, 1.0, 0.21)
-        ROOT.SetOwnership(ratiopadF, False)
-        ratiopadF.SetTopMargin(0.00)
-        ratiopadF.SetRightMargin(0.04)
+        #ROOT.SetOwnership(ratiopadF, False)
+        ratiopadF.SetGridx()
+        ratiopadF.SetGridy()
+        #ratiopadF.SetTopMargin(0.06)
+        ratiopadF.SetRightMargin(0.035)
         ratiopadF.SetBottomMargin(0.5)
-        ratiopadF.SetLeftMargin(0.16)
+        ratiopadF.SetLeftMargin(0.18)
         ratiopadF.SetTickx(1)
         ratiopadF.SetTicky(1)
         ratiopadF.Draw()
@@ -441,6 +571,7 @@ class TagAndProbeFitter:
         prims = ratiopadF.GetListOfPrimitives()
         for prim in prims:
             if 'frame' in prim.GetName():
+                prim.SetTitle("")
                 prim.GetXaxis().SetLabelSize(0.19)
                 prim.GetXaxis().SetTitleSize(0.21)
                 prim.GetXaxis().SetTitleOffset(1.0)
@@ -453,7 +584,7 @@ class TagAndProbeFitter:
                 prim.GetYaxis().SetTitle('Pull')
                 prim.GetYaxis().SetRangeUser(-3, 3)
                 break
-
+        canvas.Update()
         # save
         out = ROOT.TFile.Open(outFName, 'RECREATE')
         # workspace is not readable due to RooCMSShape
@@ -469,4 +600,5 @@ class TagAndProbeFitter:
             self._hists[hKey].Write('{}_{}'.format(self._name, hKey),
                                     ROOT.TObject.kOverwrite)
         out.Close()
-        canvas.Print(outFName.replace('.root', '.png') if not fitSignalOnly else outFName.replace('.root', '_signalFit.png'))
+        canvas.Draw()
+        canvas.SaveAs(outFName.replace('.root', '.png') if not fitSignalOnly else outFName.replace('.root', '_signalFit.pdf'))

@@ -43,6 +43,10 @@ def get_pileup_condor(resonance, era, subEra):
    Get the pileup distribution scalefactors to apply to simulation
    for a given era.
    '''
+   if 'Run2022' in era:
+       return None, None
+   if 'Run2022_EE' in era:
+       return None, None
    # get the pileup
    dataPileup = {
        # Note: for now use ReReco version of pileup
@@ -53,7 +57,8 @@ def get_pileup_condor(resonance, era, subEra):
        'Run2018_UL': 'Run2018.root',
        'Run2016': 'Run2016.root',
        'Run2017': 'Run2017.root',
-       'Run2018': 'Run2018.root'
+       'Run2018': 'Run2018.root',
+       #'Run2022': 'Run2018.root'
    }
    mcPileup = {
        # TODO: do the two eras have different profiles?
@@ -63,7 +68,8 @@ def get_pileup_condor(resonance, era, subEra):
        'Run2018_UL': 'Run2018_UL.root',
        'Run2016': 'Run2016.root',
        'Run2017': 'Run2017.root',
-       'Run2018': 'Run2018.root'
+       'Run2018': 'Run2018.root',
+       #'Run2022': 'Run2018_UL.root'
    }
    # get absolute path
    baseDir = os.path.dirname(__file__)
@@ -145,6 +151,10 @@ def get_data_pileup(era, era2):
    Get the pileup distribution scalefactors to apply to simulation                                                                                                                                          
    for a given era.                                                                                                                                                                                         
    '''
+   if 'Run2022' in era:
+       return None, None
+   if 'Run2022_EE' in era:
+       return None, None
    # get the pileup                                                                                                                                                                                         
    dataPileup = {
        # Note: for now use ReReco version of pileup                                                                                                                                                         
