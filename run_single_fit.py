@@ -34,11 +34,12 @@ def setMassRange(fitter, resonance, effType, shiftType):
             elif shiftType == 'massRangeDown':
                 fitter.set_fit_range(65, 105)
             else:
-                fitter.set_fit_range(70, 110)
+                fitter.set_fit_range(70, 115)
+                #fitter.set_fit_range(40, 149.125)
 
 
 def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
-                version='Nominal', histType='data', shiftType='Nominal', resonance='Z',
+                version='NominalOld', histType='data', shiftType='Nominal', resonance='Z',
                 effType=''):
 
     # Nominal
@@ -67,53 +68,81 @@ def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
         ]
     else:
         tnpNomFitSig = [
-        "meanP[-0.0, -5.0, 5.0]", "sigmaP[0.9, 0.05, 5.0]",
-        "meanF[-0.0, -5.0, 5.0]", "sigmaF[0.9, 0.05, 5.0]",
-        "Gaussian::sigResPass(x, meanP, sigmaP)",
-        "Gaussian::sigResFail(x, meanF, sigmaF)",
+        #"meanP[-0.0, -5.0, 5.0]", "sigmaP[0.9, 0.05, 5.0]",
+        #"meanF[-0.0, -5.0, 5.0]", "sigmaF[0.9, 0.05, 5.0]",
+        #"Gaussian::sigResPass(x, meanP, sigmaP)",
+        #"Gaussian::sigResFail(x, meanF, sigmaF)",
+        "meanP[91.0,70,115]", "sigmaP[5,1,30]",
+        "widthP[2.495,1.2,5.0]", 
+        "meanF[91.0,85,95]", "sigmaF[5,2.5,7.5]",
+        "widthF[2.495,1.2,3.6]",
+        "Voigtian::sigPass(x, meanP, widthP, sigmaP)",
+        "Voigtian::sigFail(x, meanF, widthF, sigmaF)",
+
         ]
         # Exponential is the nominal bkg shape for trigger SFs
         if effType=='trig':
             tnpNomFitBkg = [
-                "alphaP[-0.1, -5., 5.]",
-                "alphaF[-0.1, -5., 5.]",
-                "Exponential::bkgPass(x, alphaP)",
-                "Exponential::bkgFail(x, alphaF)",
+                #"alphaP[-0.1, -1., 0.1]",
+                #"alphaF[-0.1, -1., 0.1]",
+                #"Exponential::bkgPass(x, alphaP)",
+                #"Exponential::bkgFail(x, alphaF)",
+                "acmsP[80., 50., 140.]", "betaP[0.05, 0.01, 0.08]",
+                "gammaP[-0.1, -1., 0.1]", "peakP[91.0]",
+                "acmsF[80., 50., 140.]", "betaF[0.05, 0.01, 0.08]",
+                "gammaF[-0.1, -1., 0.1]", "peakF[91.0]",
+                "RooCMSShape::bkgPass(x, acmsP, betaP, gammaP, peakP)",
+                "RooCMSShape::bkgFail(x, acmsF, betaF, gammaF, peakF)",
+
             ]
         else:
             tnpNomFitBkg = [
-                "acmsP[60., 50., 190.]", "betaP[0.05, 0.01, 0.08]",
-                "gammaP[0.1, -2, 2]", "peakP[91.0]",
-                "acmsF[60., 50., 190.]", "betaF[0.05, 0.01, 0.08]",
-                "gammaF[0.1, -2, 2]", "peakF[91.0]",
+                #"alphaP[-0.1, -1., 0.1]",
+                #"alphaF[-0.1, -1., 0.1]",
+                #"Exponential::bkgPass(x, alphaP)",
+                #"Exponential::bkgFail(x, alphaF)",
+                "acmsP[80., 50., 140.]", "betaP[0.05, 0.01, 0.08]",
+                "gammaP[-0.1, -2, 2]", "peakP[91.0]",
+                "acmsF[80., 50., 140.]", "betaF[0.05, 0.01, 0.08]",
+                "gammaF[-0.1, -2, 2]", "peakF[91.0]",
                 "RooCMSShape::bkgPass(x, acmsP, betaP, gammaP, peakP)",
                 "RooCMSShape::bkgFail(x, acmsF, betaF, gammaF, peakF)",
+
             ]
 
-    # NominalOld
+    # NominalOld 
     tnpNomFitOldSig = [
-        "meanP1[90.0, 80.0, 100.0]", "sigmaP1[0.9, 0.5, 3.0]",
-        "widthP1[2.495]",
-        "meanF1[90.0, 80.0, 100.0]", "sigmaF1[0.9, 0.5, 3.0]",
-        "widthF1[2.495]",
-        "meanP2[90.0, 80.0, 100.0]", "sigmaP2[4.0, 3.0, 10.0]",
-        "widthP2[2.495]",
-        "meanF2[90.0, 80.0, 100.0]", "sigmaF2[4.0, 3.0, 10.0]",
-        "widthF2[2.495]",
-        "Voigtian::sigPass1(x, meanP1, widthP1, sigmaP1)",
-        "Voigtian::sigFail1(x, meanF1, widthF1, sigmaF1)",
-        "Voigtian::sigPass2(x, meanP2, widthP2, sigmaP2)",
-        "Voigtian::sigFail2(x, meanF2, widthF2, sigmaF2)",
-        "SUM::sigPass(fP[0.7, 0.5, 1]*sigPass1, sigPass2)",
-        "SUM::sigFail(fF[0.7, 0.5, 1]*sigFail1, sigFail2)",
+        #"meanP1[90.0, 80.0, 100.0]", "sigmaP1[0.9, 0.5, 3.0]",
+        #"widthP1[2.495]",
+        #"meanF1[90.0, 80.0, 100.0]", "sigmaF1[0.9, 0.5, 3.0]",
+        #"widthF1[2.495]",
+        #"meanP2[90.0, 80.0, 100.0]", "sigmaP2[4.0, 3.0, 10.0]",
+        #"widthP2[2.495]",
+        #"meanF2[90.0, 80.0, 100.0]", "sigmaF2[4.0, 3.0, 10.0]",
+        #"widthF2[2.495]",
+        #"Voigtian::sigPass1(x, meanP1, widthP1, sigmaP1)",
+        #"Voigtian::sigFail1(x, meanF1, widthF1, sigmaF1)",
+        #"Voigtian::sigPass2(x, meanP2, widthP2, sigmaP2)",
+        #"Voigtian::sigFail2(x, meanF2, widthF2, sigmaF2)",
+        #"SUM::sigPass(fP[0.7, 0.5, 1]*sigPass1, sigPass2)",
+        #"SUM::sigFail(fF[0.7, 0.5, 1]*sigFail1, sigFail2)",
+       "Voigtian::sigPass(x, mean[90,80,100], width[2.495], sigma[3,1,10])",
+       "Voigtian::sigFail(x, mean[90,80,100], width[2.495], sigma[3,1,10])",
     ]
     tnpNomFitOldBkg = [
-        "acmsP[70., 50., 90.]", "betaP[0.05, 0.01, 0.08]",
+        ############ First pre-approval #################
+        #"alphaP[-0.1, -1., 0.1]",
+        #"alphaF[-0.1, -1., 0.1]",
+        #"Exponential::bkgPass(x, alphaP)",
+        #"Exponential::bkgFail(x, alphaF)",
+        #################################################
+        "acmsP[90., 80., 100.]", "betaP[0.05, 0.01, 0.08]",
         "gammaP[0.1, -2, 2]", "peakP[90.0]",
-        "acmsF[70., 50., 90.]", "betaF[0.05, 0.01, 0.08]",
+        "acmsF[90., 80., 100.]", "betaF[0.05, 0.01, 0.08]",
         "gammaF[0.1, -2, 2]", "peakF[90.0]",
         "RooCMSShape::bkgPass(x, acmsP, betaP, gammaP, peakP)",
-        "RooCMSShape::bkgFail(x, acmsF, betaF, gammaF, peakF)",
+        "RooCMSShape::bkgFail(x, acmsF, betaF, gammaF, peakF)"
+        
     ]
 
     # AltSig (note, originally was CB for res, but took too long)
@@ -197,6 +226,7 @@ def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
     if version == 'Nominal':
         tnpWorkspace.extend(tnpNomFitSig)
         tnpWorkspace.extend(tnpNomFitBkg)
+        doTemplate = False
     if version == 'NominalOld':
         tnpWorkspace.extend(tnpNomFitOldSig)
         tnpWorkspace.extend(tnpNomFitOldBkg)
@@ -223,8 +253,10 @@ def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
             hP = hP.Rebin(4)  # 1.0 GeV bins
             hF = hF.Rebin(4)  # 1.0 GeV bins
         else:
-            hP = hP.Rebin(2)  # 0.5 GeV bins
-            hF = hF.Rebin(2)  # 0.5 GeV bins
+            hP = hP.Rebin(1)  # 0.5 GeV bins
+            hF = hF.Rebin(1)  # 0.5 GeV bins
+            #hP = hP.Rebin(4.5) # 1.125 GeV bins
+            #hF = hF.Rebin(4.5) # 1.125 GeV bins
         return hP, hF
 
     # setup

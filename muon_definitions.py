@@ -26,7 +26,9 @@ def get_pileup(resonance, era, subEra):
        'Run2018_UL_DM': 'pileup/data/Run2018.root',
        'Run2016': 'pileup/data/Run2016.root',
        'Run2017': 'pileup/data/Run2017.root',
-       'Run2018': 'pileup/data/Run2018.root'
+       'Run2018': 'pileup/data/Run2018.root',
+       'Run2022': 'pileup/data/Run2022.root',
+       'Run2022_EE': 'pileup/data/Run2022EE.root'
    }
    mcPileup = {
        # TODO: do the two eras have different profiles?
@@ -41,7 +43,9 @@ def get_pileup(resonance, era, subEra):
        'Run2018_UL_DM': 'pileup/mc/Run2018_UL.root',
        'Run2016': 'pileup/mc/Run2016.root',
        'Run2017': 'pileup/mc/Run2017.root',
-       'Run2018': 'pileup/mc/Run2018.root'
+       'Run2018': 'pileup/mc/Run2018.root',
+       'Run2022': 'pileup/mc/Run2022.root',
+       'Run2022_EE': 'pileup/data/Run2022EE.root'
    }
    # get absolute path
    baseDir = os.path.dirname(__file__)

@@ -35,6 +35,14 @@ elif args.era == 'Run2018':
     from SimGeneral\
         .MixingModule\
         .mix_2018_25ns_JuneProjectionFull18_PoissonOOTPU_cfi import mix
+elif args.era == 'Run2022':
+    from SimGeneral\
+        .MixingModule\
+        .2022_LHC_Simulation_10h_2h import mix
+elif args.era == 'Run2022_EE':
+    from SimGeneral\
+        .MixingModule\
+        .2022_LHC_Simulation_10h_2h import mix
 else:
     print('Unrecognized era', args.era)
     sys.exit(0)

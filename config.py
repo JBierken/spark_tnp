@@ -57,3 +57,20 @@ class Configuration(dict):
             if isinstance(binning[b], list):
                 binning[b] = np.array(binning[b])
         return binning
+
+    def massRanges(self):
+        default = {
+            'JPsi': 
+            {
+                'massRangeUp': [2.96, 3.36],
+                'massRangeDown': [2.84, 3.24],
+                'nominal': [2.90, 3.30]
+            },
+            'Z': {
+                'nominal': [70, 115],
+                'massRangeUp': [75, 135],
+                'massRangeDown': [65, 125]
+            }
+        }
+        default.update(self.get("massRanges", {}))
+        return default
