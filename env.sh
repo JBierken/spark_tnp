@@ -5,17 +5,17 @@ source /cvmfs/sft.cern.ch/lcg/views/${LCG_RELEASE}/${LCG_ARCH}-opt/setup.sh
 if [[ "$HOSTNAME" == *"ithdp"* ]]; then
   # edge node
   echo "Sourcing hadoop edge node environment..."
-  source hadoop-setconf.sh analytix
+  source hadoop-setconf.sh analytix 3.2 spark2
   echo "Done!"
 elif [[ "$HOSTNAME" == *"lxplus"* ]]; then
   # lxplus
   echo "Sourcing lxplus environment..."
-  source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix
+  source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix 3.2 spark2
   echo "Done!"
 else
   echo "[Warning] Environment can only be lxplus or the CERN hadoop edge nodes. See README for more details"
   # still source lxplus env in case this is inside a condor node
-  source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix
+  source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix 3.2 spark2
 fi
 
 # Compile the Roofit fitting function if it doesn't exist yet

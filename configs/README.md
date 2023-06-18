@@ -110,5 +110,6 @@ Configuration files have the structure (note: comments are not valid JSON):
 
 Some examples can be found in:
 * Simple example: [muon_example.json](muon_example.json)
+* Simple example for Run2 UL campaigns: [muon_example_run2_Z_UL.json](muon_example_run2_Z_UL.json)
 * Muon POG Z to mumu ID/Iso for Run-2: [muon_pog_official_run2_Z.json](muon_pog_official_run2_Z.json)
 * Muon POG Z to mumu ID/Iso for 2017 (with higher trigger threshold): [muon_pog_official_run2_Z_2017.json](muon_pog_official_run2_Z_2017.json)

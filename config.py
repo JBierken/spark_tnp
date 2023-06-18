@@ -67,7 +67,7 @@ class Configuration(dict):
                 'nominal': [2.90, 3.30]
             },
             'Z': {
-                'nominal': [70, 115],
+                'nominal': [70, 130],
                 'massRangeUp': [75, 135],
                 'massRangeDown': [65, 125]
             }

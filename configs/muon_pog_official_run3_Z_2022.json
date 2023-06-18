@@ -1,0 +1,110 @@
+{
+    "efficiencies": [
+
+        ["LooseID", "TrackerMuons"],
+        ["MediumID", "TrackerMuons"],
+        ["MediumPromptID", "TrackerMuons"],
+        ["TightID", "TrackerMuons"],
+        ["SoftID", "TrackerMuons"],
+        ["HighPtID", "TrackerMuons"],
+
+        ["LoosePFIso", "LooseID"],
+        ["LoosePFIso", "MediumID"],
+        ["LoosePFIso", "MediumPromptID"],
+        ["LoosePFIso", "TightID"],
+        ["LoosePFTkIso", "HighPtID"],
+        ["LoosePFTkIso", "TrkHighPtID"],
+
+        ["TightPFIso", "MediumID"],
+        ["TightPFIso", "MediumPromptID"],
+        ["TightPFIso", "TightID"],
+        ["TightPFTkIso", "HighPtID"],
+        ["TightPFTkIso", "TrkHighPtID"],
+        
+        ["LooseMiniIso", "LooseID"],
+        ["LooseMiniIso", "MediumID"],
+        ["MediumMiniIso", "MediumID"],
+        ["TightMiniIso", "MediumID"]
+    ],
+    "selection": "tag_pt>26 and tag_abseta<2.4 and tag_HLT_IsoMu24_v==1 and pair_probeMultiplicity==1 and tag_PFIso<0.2 and IP_cuts",
+    "definitions": {
+        "IP_cuts": "abs(pair_dz)<0.5 and abs(tag_dz) < 0.5 and abs(probe_dz) < 0.5 and abs(tag_dxy) < 0.2 and abs(probe_dxy) < 0.2",
+        "tag_PFIso": "(tag_pfIso04_charged + (0.5 * (((tag_pfIso04_neutral+tag_pfIso04_photon-0.5*tag_pfIso04_sumPU) + (0.0)) + abs((tag_pfIso04_neutral+tag_pfIso04_photon-0.5*tag_pfIso04_sumPU) - (0.0)))))/tag_pt",
+	"probe_abseta": "abs(probe_eta)",
+        "tag_abseta": "abs(tag_eta)",
+        "LooseID": "probe_CutBasedIdLoose == 1",
+        "MediumID": "probe_CutBasedIdMedium == 1",
+        "MediumPromptID": "probe_CutBasedIdMediumPrompt == 1",
+        "TightID": "probe_CutBasedIdTight == 1",
+        "SoftID": "probe_SoftCutBasedId == 1",
+        "HighPtID": "probe_CutBasedIdGlobalHighPt == 1",
+        "TrkHighPtID": "probe_CutBasedIdTrkHighPt == 1",
+
+        "TrackerMuons": "probe_isTracker == 1",
+        "LoosePFIso": "probe_PFIsoLoose == 1",  
+        "TightPFIso": "probe_PFIsoTight == 1",
+
+        "LoosePFTkIso": "probe_TkIsoLoose == 1",
+        "TightPFTkIso": "probe_TkIsoTight == 1",
+
+        "LooseMiniIso": "probe_miniIso < 0.4",
+        "MediumMiniIso" : "probe_miniIso < 0.2",
+        "TightMiniIso" : "probe_miniIso < 0.1"
+    },
+    "binning": {
+        "pt": [15, 20, 25, 30, 40, 50, 60, 120, 200],
+        "abseta": [0, 0.9, 1.2, 2.1, 2.4],
+        "eta": [-2.4, -2.1, -1.6, -1.2, -0.9, -0.3, -0.2, 0.2, 0.3, 0.9, 1.2, 1.6, 2.1, 2.4],
+        "njets": [-0.5, 0.5, 1.5, 2.5, 3.5, 4.5],
+        "nvtx": "np.array(range(10, 85, 5))",
+        "mass": "np.array(range(60*4, 140*4+1)) * 0.25",
+        "mcMass": "np.array(range(60*4, 140*4+1)) * 0.25"
+    },
+    "variables": {
+        "pt": {"variable": "probe_pt", "pretty": "p_{T} (GeV)"},
+        "abseta": {"variable": "probe_abseta", "pretty": "|#eta|"},
+        "eta": {"variable": "probe_eta", "pretty": "#eta"},
+        "mass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"},
+        "mcMass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"}
+    },
+
+    "fitVariable": "mass",
+    "fitVariableGen": "mcMass",
+    "binVariables": [
+        ["abseta", "pt"]
+    ],
+    "shifts": {
+        "TagIsoUp": {
+            "selection": "tag_pt>26 and tag_abseta<2.4 and tag_HLT_IsoMu24_v==1 and pair_probeMultiplicity==1 and tag_PFIso<0.3 and IP_cuts"
+        },
+        "TagIsoDown": {
+            "selection": "tag_pt>26 and tag_abseta<2.4 and tag_HLT_IsoMu24_v==1 and pair_probeMultiplicity==1 and tag_PFIso<0.1 and IP_cuts"
+        }
+    },
+    "fitShifts": { 
+        "AltSig": {"fitType": "AltSig"}, 
+        "AltBkg": {"fitType": "AltBkg"}, 
+        "tagIsoUp": {"shiftType": "tagIsoUp", "inType": "TagIsoUp"},
+        "tagIsoDown": {"shiftType": "tagIsoDown", "inType": "TagIsoDown"}, 
+        "massBinUp": {"shiftType": "massBinUp"},
+        "massBinDown": {"shiftType": "massBinDown"}, 
+        "massRangeUp": {"shiftType": "massRangeUp"},
+        "massRangeDown": {"shiftType": "massRangeDown"}
+    },
+    "systematics" : {
+        "SF": {
+            "fitTypes": ["AltSig", "AltBkg"],
+            "shiftTypes": ["tagIso", "massBin", "massRange"]
+
+
+        },
+        "dataEff": {
+            "fitTypes": ["AltSig", "AltBkg"],
+            "shiftTypes": ["tagIso", "massBin", "massRange"]
+        },
+        "mcEff": {
+            "fitTypes": [], 
+            "shiftTypes": ["tagIso", "massRange"]
+        }
+    }
+}

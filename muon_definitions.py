@@ -11,6 +11,10 @@ def get_pileup(resonance, era, subEra):
    Get the pileup distribution scalefactors to apply to simulation
    for a given era.
    '''
+
+   if 'Run2022' in era:
+       return None, None
+
    # get the pileup
    dataPileup = {
        # Note: for now use ReReco version of pileup
@@ -27,8 +31,9 @@ def get_pileup(resonance, era, subEra):
        'Run2016': 'pileup/data/Run2016.root',
        'Run2017': 'pileup/data/Run2017.root',
        'Run2018': 'pileup/data/Run2018.root',
+       # Run2022 (nVertices profile got privately by Pedro over our BCD merged ntuples. To be updated in the future)
        'Run2022': 'pileup/data/Run2022.root',
-       'Run2022_EE': 'pileup/data/Run2022EE.root'
+       'Run2022EE': 'pileup/data/Run2022EE.root'
    }
    mcPileup = {
        # TODO: do the two eras have different profiles?
@@ -44,8 +49,9 @@ def get_pileup(resonance, era, subEra):
        'Run2016': 'pileup/mc/Run2016.root',
        'Run2017': 'pileup/mc/Run2017.root',
        'Run2018': 'pileup/mc/Run2018.root',
+       # Run2022 (nVertices profile got privately by Pedro over our MC ntuples. To be updated in the future)
        'Run2022': 'pileup/mc/Run2022.root',
-       'Run2022_EE': 'pileup/data/Run2022EE.root'
+       'Run2022EE': 'pileup/mc/Run2022EE.root'
    }
    # get absolute path
    baseDir = os.path.dirname(__file__)
@@ -137,6 +143,9 @@ def get_weighted_dataframe(df, doGen, resonance, era, subEra, shift=None):
    # TODO: implement systematic shifts in the weight such as PDF, pileup, etc.
    # get the pileup
    pileup_ratio, pileup_edges = get_pileup(resonance, era, subEra)
+
+   if pileup_ratio is None or pileup_edges is None:
+       doGen = False
 
    # build the weights (pileup for MC)
    # TODO: if there is a weight column (ie, gen weight) get that first

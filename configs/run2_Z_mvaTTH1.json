@@ -1,0 +1,64 @@
+{
+    "efficiencies": [
+        ["mvaTTH", "LooseMuons"]
+    ],
+    "selection": "Tag_pt>26 and abs(Tag_eta)<2.4 and Tag_jetRelIso<0.15 and Probe_charge*Tag_charge<0 and abs(Tag_dxy)<0.05 and TnP_npairs==1 and abs(Tag_dz)<0.1 and Tag_isGenMatched==1",
+    "definitions": {
+        "LooseMuons": "Probe_looseId==1 and Probe_pt>5 and abs(Probe_eta)<2.4 and abs(Probe_dxy)<0.05 and abs(Probe_dz)<0.1 and Probe_sip3d<8",
+        "mvaTTH": "Probe_mvaTTH>=0.85 and Probe_mvaTTH<0.9",
+	      "Probe_abseta": "abs(Probe_eta)"
+    },
+    "binning": {
+        "pt": [15, 30, 45, 120],
+        "abseta": [0, 0.6, 1.0, 1.8, 2.4],
+        "eta": [-2.4, -1.6, -0.9, -0.2, 0.3, 1.2, 1.8, 2.4],
+        "mass": "np.array(range(60*4, 140*4+1)) * 0.25",
+	"mcMass": "np.array(range(60*4, 140*4+1)) * 0.25"
+    },
+    "variables": {
+        "pt": {"variable": "Probe_pt", "pretty": "p_{T} (GeV)"},
+        "abseta": {"variable": "Probe_abseta", "pretty": "|#eta|"},
+        "eta": {"variable": "Probe_eta", "pretty": "#eta"},
+        "mass": {"variable": "TnP_mass", "pretty": "m(#mu#mu) (GeV)"},
+        "mcMass": {"variable": "TnP_mass", "pretty": "m(#mu#mu) (GeV)"}
+    },
+    "fitVariable": "mass",
+    "fitVariableGen": "mcMass",
+    "binVariables": [
+        ["abseta", "pt"]
+    ],
+    "shifts": {
+        "TagIsoUp": {
+            "selection": "Tag_pt>26 and abs(Tag_eta)<2.4 and Tag_jetRelIso<0.2 and Probe_charge*Tag_charge<0 and abs(Tag_dxy)<0.05 and TnP_npairs==1 and abs(Tag_dz)<0.1 and Tag_isGenMatched==1"
+        },
+        "TagIsoDown": {
+            "selection": "Tag_pt>26 and abs(Tag_eta)<2.4 and Tag_jetRelIso<0.1 and Probe_charge*Tag_charge<0 and abs(Tag_dxy)<0.05 and TnP_npairs==1 and abs(Tag_dz)<0.1 and Tag_isGenMatched==1"
+        }
+    },
+    "fitShifts": {
+        "AltSig": {"fitType": "AltSig"},
+        "AltBkg": {"fitType": "AltBkg"},
+        "NominalOld": {"fitType": "NominalOld"},
+        "AltSigOld": {"fitType": "AltSigOld"},
+        "tagIsoUp": {"shiftType": "tagIsoUp", "inType": "TagIsoUp"},
+        "tagIsoDown": {"shiftType": "tagIsoDown", "inType": "TagIsoDown"},
+        "massBinUp": {"shiftType": "massBinUp"},
+        "massBinDown": {"shiftType": "massBinDown"},
+        "massRangeUp": {"shiftType": "massRangeUp"},
+        "massRangeDown": {"shiftType": "massRangeDown"}
+    },
+    "systematics" : {
+        "SF": {
+            "fitTypes": ["AltSig"],
+            "shiftTypes": ["tagIso", "massBin", "massRange"]
+        },
+        "dataEff": {
+            "fitTypes": ["AltSig"],
+            "shiftTypes": ["tagIso", "massBin", "massRange"]
+        },
+        "mcEff": {
+            "fitTypes": [],
+            "shiftTypes": ["tagIso", "massRange"]
+        }
+    }
+}

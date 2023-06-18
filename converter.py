@@ -71,6 +71,7 @@ def run_convert(spark, particle, resonance, era, dataTier, subEra, customDir='',
     # process batchsize files at a time
     batchsize = 100
     new = True
+    
     while fnames:
         current = fnames[:batchsize]
         fnames = fnames[batchsize:]
@@ -78,7 +79,7 @@ def run_convert(spark, particle, resonance, era, dataTier, subEra, customDir='',
         rootfiles = spark.read.format("root")\
                          .option('tree', treename)\
                          .load(current)
-        rootfiles = rootfiles.select("pair_mass","tag_pt", "tag_isTight","tag_charge","probe_charge","tag_pfIso04_neutral","tag_pfIso04_photon","tag_pfIso04_sumPU","tag_pfIso04_charged","tag_hltL3crIsoL1sSingleMu22L1f0L2f10QL3f24QL3trkIsoFiltered","tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q","probe_pt","probe_isTrkMatch","probe_isSA","probeSA_isTrkMatch","probe_eta","nVertices","ls")\
+        rootfiles = rootfiles.select("pair_mass","tag_pt", "tag_isTight","tag_charge","probe_charge","tag_pfIso04_neutral","tag_pfIso04_photon","tag_pfIso04_sumPU","tag_pfIso04_charged","tag_hltL3crIsoL1sSingleMu22L1f0L2f10QL3f24QL3trkIsoFiltered","tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q","probe_pt","probe_isTrkMatch","probe_isSA","probeSA_isTrkMatch","probe_eta","nVertices","ls","probe_minDR","istlumi","HLT_IsoMu24_v","HLT_Mu50_v","tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q_dr")                 
         # merge rootfiles. chosen to make files of 8-32 MB (input)
         # become at most 1 GB (parquet recommendation)
         # https://parquet.apache.org/documentation/latest/
@@ -118,7 +119,6 @@ def run_all(particle, resonance, era, dataTier, subEra=None, customDir='', baseD
         .config("spark.executor.memory", "10g")\
         .config("spark.sql.shuffle.partitions", "500")\
         .config("spark.executor.cores", "1")
-
     
     if use_local is True:
         spark = spark.master("local")

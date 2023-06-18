@@ -6,7 +6,7 @@ This package uses Apache Spark clusters.
 More details on CERN's Apache Spark can be found [here](https://hadoop-user-guide.web.cern.ch/hadoop-user-guide/spark/Using_Spark_on_Hadoop.html).
 
 **Important:** If you want to use the CERN analytix cluster (which is much faster to startup than the k8s cluster),
-you need to request access to the cluster in the help document found [here](https://hadoop-user-guide.web.cern.ch/hadoop-user-guide/getstart/access.html).
+you need to request access to the cluster in the help document found [here](https://hadoop-user-guide.web.cern.ch/getstart/access/).
 
 ## Quick start
 
@@ -238,6 +238,14 @@ To run locally (with 16 threads):
 ```
 
 To submit to condor:
+
+First, do cd to your workspace in `condor_wrapper.sh` and give it execute permissions
+```bash
+$ sed -i "s~ReplaceMe_by_cdWorkdir~cd $PWD~" condor_wrapper.sh
+$ chmod +x condor_wrapper.sh
+```
+
+Build the condor files and submit the jobs to the cluster:
 ```bash
 $ ./tnp_fitter.py fit muon generalTracks Z Run2017_UL configs/muon_pog_official_run2_Z_2017.json --condor
 $ condor_submit condor.sub
@@ -263,6 +271,20 @@ are still being implemented.
 
 **Note:** this recovery procedure simply looks for missing job output files in the fit directory, and runs the missing jobs again locally. If you are re-running your pipeline (e.g. after fixing some mistake in the config) using the same basedir, old fit jobs might still be located in that directory and so this simple recovery procedure won't detect the condor job failures. Additionally, you will end up with a mix of new and old fits in the folder. To avoid this, it's safer to erase the relevant folders before re-running (or choosing a new basedir).
 
+### Validating Fits
+
+Calls a script (`scripts/validateFits.py`) that automatically captures potential fit failures based on pulls and probability distributions. These potential fit failures are extracted into .png images, and will be saved within the designated base working directory as the directory `/geese/`.
+
+validateFits.py uses thresholds that are set within tnp_fitter.py's validateFits() call section. Here, the user can set the values of the thresholds, otherwise the default values are already set for: `KSCut`, `Chi2ProbCut`, `nSigFCut`, `nPredvsDataCut`.
+
+To use validateFits.py, the producedure can be called by using the flag `--validate`:
+```bash
+./tnp_fitter.py fit [usual parameters] --validate
+```
+
+The user can now parse through the captured .png files in order to determine which efficiencies and Scale Factors require corrections.
+
+
 ### 5. Extract scale factors
 
 Plots and scale factors can the be extracted with:
@@ -275,6 +297,36 @@ Plots are saved into a plots/ directory and the json files into a efficiencies/ 
 
 
 **Note:** this is still a WIP.
+
+### 6. Interpolate scale factors 
+
+Scale factors extracted from different working points of an MVA-based ID can be interpolated to correct the full shape of the discriminator:
+
+```bash
+./tnp_fitter.py interpolate muon generalTracks Z Run2018_UL configs/config.json --baseDir ./outputDir --numerator num --denominator den --directories ./outDir1 ./outDir2 ./outDir3 ./outDir4 --workingPoints wP1 wP2 wP3 wP4
+```
+where the output folders containing the scale factors for the different working points have to be specified under the options `--directories` and the working points value have to be listed after the `--workingPoints` flag. The configuration file is the one used for the fit in one of the working points and it is assumed that the binning is the same for all of them. The interpolation results are saved in the outputDir directory, including shape variations. 
+
+The interpolation results are saved in a .pck file and can be used to apply the scale factors in the analysis with:
+
+```bash
+import pickle
+with open('outputFile.pck', 'rb') as file_handle:
+    interpolationFunc = pickle.load(file_handle)
+```
+the ```interpolationFunc``` object will give the muon scale factor as function of the observables used for the binning and the output score of the discriminator. For example, if the scale factors were stored as function of the transverse momentum and the pseudorapidity of the muons, the scale factor will be given by:
+
+```bash
+scaleFactor = interpolationFunc(muon.pt, muon.eta, MVAoutput)
+```
+where ```mvaOutput``` is the output score of the discriminator for a specific muon.
+
+It is also possible to perform the interpolation as function of the observables used for the binning. In this case, the ID doesn't necessairly have to be 
+MVA-based and the scale factors only have to be extracted once. The interpolation can be performed with: 
+
+```bash
+./tnp_fitter.py interpolate muon generalTracks Z Run2018_UL configs/config.json --baseDir ./outputDir --numerator num --denominator den --directories ./outDir
+```
 
 ## Utilities
 
@@ -298,7 +350,7 @@ maxBins=100
 pileupCalc.py -i $lumimask --inputLumiJSON $pileupjson --calcMode true  --minBiasXsec $xsec --maxPileupBin $maxBins --numPileupBins $maxBins pileup/data/Run2017.root
 ```
 
-### 6. Pre-fit distributions
+### 7. Pre-fit distributions
 
 Plot pre-fit distributions using local running or condor (add --condor_submit option). Some options are supported.
 

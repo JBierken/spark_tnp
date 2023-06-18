@@ -13,22 +13,21 @@ writeExtraText = True
 extraText = "Preliminary"
 extraTextFont = 52
 
-lumiTextSize = 0.7
+lumiTextSize = 0.6
 lumiTextOffset = 0.2
 
-cmsTextSize = 1.0
+cmsTextSize = 0.75
 cmsTextOffset = 0.1
 
-relPosX = 0.07
+relPosX = 0.045
 relPosXAlt = 0.115
-relPosY = 0.07
+relPosY = 0.035
 relExtraDY = 1.2
 
 extraOverCmsTextSize = 0.76
 
 lumi_14TeV = "20.1 fb^{-1}"
-lumi_13TeV = "59.83 fb^{-1}"
-lumi_13p6TeV = "13.8 fb^{-1}"
+lumi_13TeV = "20.1 fb^{-1}"
 lumi_8TeV = "19.7 fb^{-1}"
 lumi_7TeV = "5.1 fb^{-1}"
 lumi_sqrtS = ""
@@ -70,10 +69,8 @@ def CMS_lumi(pad, iPeriod, iPosX):
     lumis = [
         (lumi_7TeV, '7 TeV'),
         (lumi_8TeV, '8 TeV'),
-        (lumi_13p6TeV, '13.6 TeV, 2022'),
-        #(lumi_13TeV, '13 TeV, 2018 Legacy'),
+        (lumi_13TeV, '13 TeV'),
         (lumi_14TeV, '14 TeV'),
-        (lumi_13p6TeV, '13.6 TeV')
     ]
     nlumis = 0
     for i, (lumi, sqrts) in enumerate(lumis):
