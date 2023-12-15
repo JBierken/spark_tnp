@@ -623,7 +623,7 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
         mcErr = (mcStat**2 + combined_syst['mcEff']**2)**0.5
         #mcErrD = (mcStatD**2 + combined_syst['mcEff']**2)**0.5
         #mcErrU = (mcStatU**2 + combined_syst['mcEff']**2)**0.5
-        mcErrD = dataStatD
+        mcErrD = mcStatD
         #print("dataEff:")
         #print(dataEff)
         #print("dataEffU:")
