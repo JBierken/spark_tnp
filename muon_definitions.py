@@ -12,9 +12,6 @@ def get_pileup(resonance, era, subEra):
    for a given era.
    '''
 
-   if 'Run2022' in era:
-       return None, None
-
    # get the pileup
    dataPileup = {
        # Note: for now use ReReco version of pileup
