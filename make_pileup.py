@@ -2,7 +2,7 @@
 from __future__ import print_function
 import sys
 import uproot
-from uproot_methods.classes import TH1
+import boost_histogram as bh
 import numpy as np
 import argparse
 
@@ -41,7 +41,8 @@ else:
 
 values = np.array([float(x) for x in mix.input.nbPileupEvents.probValue])
 edges = np.arange(len(values)+1)
-hist = TH1.from_numpy((values, edges))
+hist = bh.Histogram(bh.axis.Variable(edges), storage=bh.storage.Weight())
+hist.view(flow=True).value = values
 
 with uproot.recreate('pileup/mc/{era}.root'.format(era=args.era)) as f:
     f['pileup'] = hist

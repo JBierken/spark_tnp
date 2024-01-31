@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/bash                                                                                                                                                                                                                                                                    
 echo "Setting up environment"
-ReplaceMe_by_cdWorkdir
-source env.sh
+cd /afs/cern.ch/user/j/jbierken/spark_tnp
+source env.sh lxplus703.cern.ch
 echo "Setup complete"
 echo "Will run:"
 echo "$@"

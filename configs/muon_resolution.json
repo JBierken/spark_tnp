@@ -1,0 +1,66 @@
+{
+    "efficiencies":[
+           ["Resolution","ref"]
+],
+    "selection": "tag_isHighPt and probe_isHighPt and tag_tuneP_pt>53 and tag_abseta<2.4 and tag_LooseRelTkIso<0.10 and probe_tuneP_pt>53 and probe_abseta<2.4 and probe_LooseRelTkIso<0.10 and probe_tuneP_pt<tag_tuneP_pt and (tag_HLT_Mu50_v or probe_HLT_Mu50_v) and tag_uncertainty<0.3 and probe_uncertainty<0.3 and pair_pt>50",
+    "definitions": {
+        "probe_abseta": "abs(probe_eta)",
+        "tag_abseta": "abs(tag_eta)",
+        "tag_uncertainty": "abs(tag_tuneP_pterr/tag_tuneP_pt)",
+        "probe_uncertainty":"abs(probe_tuneP_pterr/probe_tuneP_pt)",
+        "ref": "True",
+        "Resolution": "True",
+        "tag_LooseRelTkIso": "tag_iso03_sumPt/tag_tuneP_pt",
+        "probe_LooseRelTkIso":"probe_iso03_sumPt/probe_tuneP_pt"    
+    },
+    "binning": {
+        "pt": [52, 72, 100, 152, 200, 275, 452, 800],
+        "abseta":[0.0, 1.2, 2.4],
+        "mass": "np.array(range(60*4,120*4+1))*0.25",
+        "mcMass": "np.array(range(60*4,120*4+1))*0.25"
+    },
+    "variables": {
+        "pt": {"variable": "tag_tuneP_pt", "pretty": "p_{T} (GeV)"},
+        "abseta": {"variable": "tag_abseta", "pretty": "|#eta|"},
+        "mass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"},
+        "mcMass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"}
+    },
+    "fitVariable": "mass",
+    "fitVariableGen": "mcMass",
+    "binVariables": [
+        ["abseta","pt"]
+    ],
+    "shifts": {
+    },
+    "fitShifts": {   
+        "res1":{"fitType":"resolution_SCB", "shiftType":"Nominal", "inType":"Nominal"},
+        "res1_massBinUp":  { "fitType":"resolution_SCB", "shiftType": "massBinUp" },
+        "res1_massBinDown":{ "fitType":"resolution_SCB", "shiftType": "massBinDown" },
+        "res1_massRangeUp":{ "fitType":"resolution_SCB", "shiftType": "massRangeUp" },
+        "res1_massRangeDown": { "fitType":"resolution_SCB", "shiftType": "massRangeDown" },
+
+        "res2":{"fitType":"resolution_cruijff", "shiftType":"Nominal", "inType":"Nominal"},
+        "res2_massBinUp":  { "fitType":"resolution_cruijff", "shiftType": "massBinUp" },
+        "res2_massBinDown":{ "fitType":"resolution_cruijff", "shiftType": "massBinDown" },
+        "res2_massRangeUp":{ "fitType":"resolution_cruijff", "shiftType": "massRangeUp" },
+        "res2_massRangeDown": { "fitType":"resolution_cruijff", "shiftType": "massRangeDown" },
+        
+    
+        "res3":{"fitType":"resolution_DCB", "shiftType":"Nominal", "inType":"Nominal"},  
+        "res3_massBinUp":  { "fitType":"resolution_DCB", "shiftType": "massBinUp" },
+        "res3_massBinDown":{ "fitType":"resolution_DCB", "shiftType": "massBinDown" },
+        "res3_massRangeUp":{ "fitType":"resolution_DCB", "shiftType": "massRangeUp" },
+        "res3_massRangeDown": { "fitType":"resolution_DCB", "shiftType": "massRangeDown" }
+
+},
+    "systematics":{
+        "dataRes":{
+            "fitTypes":["res1","res2"],
+            "shiftTypes":["res3_massRange","res3_massBin"]   
+        },
+        "mcRes":{
+            "fitTypes":["res1","res2"],
+            "shiftTypes":["res3_massRange","res3_massBin"]
+}
+    } 
+}

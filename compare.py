@@ -31,177 +31,114 @@ import tdrstyle
 import CMS_lumi
 
 from dataset_allowed_definitions import get_allowed_sub_eras, get_data_mc_sub_eras
-
-
-# Get Pile Up ratio for Data/Data plots
-
-def get_data_pileup(era, era2):
-   '''                                                                                                                                                                                                      
-   Get the pileup distribution scalefactors to apply to simulation                                                                                                                                          
-   for a given era.                                                                                                                                                                                         
-   '''
-   # get the pileup                                                                                                                                                                                         
-   if 'Run2022' in era:
-       return None, None
-
-   dataPileup = {
-       # Note: for now use ReReco version of pileup                                                                                                                                                         
-       # TODO: need to redo splitting by 2016 B-F/F-H                                                                                                                                                       
-       'Run2016_UL_HIPM': 'pileup/data/Run2016.root',
-       'Run2016_UL': 'pileup/data/Run2016.root',
-       'Run2017_UL': 'pileup/data/Run2017.root',
-       'Run2018_UL': 'pileup/data/Run2018.root',
-       'Run2016': 'pileup/data/Run2016.root',
-       'Run2017': 'pileup/data/Run2017.root',
-       'Run2018': 'pileup/data/Run2018.root'
-   }
-
-   # get absolute path                                                                                                                                                                                      
-   baseDir = os.path.dirname(__file__)
-   dataPileup = {k: os.path.join(baseDir, dataPileup[k]) for k in dataPileup}
-   with uproot.open(dataPileup[era]) as f:
-       data1_edges = f['pileup'].edges
-       data1_pileup = f['pileup'].values
-       data1_pileup /= sum(data1_pileup)
-   with uproot.open(dataPileup[era2]) as f:
-       data2_edges = f['pileup'].edges
-       data2_pileup = f['pileup'].values
-       data2_pileup /= sum(data2_pileup)
-
-   pileup_edges = data1_edges if len(data1_edges) < len(data2_edges) else data2_edges
-   pileup_ratio = [d1/d2 if d2 else 1.0 for d1, d2 in zip(
-       data1_pileup[:len(pileup_edges)-1], data2_pileup[:len(pileup_edges)-1])]
-
-
-   return pileup_ratio, pileup_edges
-
-
-# Get weighted dataframe
-# Modified to use the pile up files from condor
-# From muon_definitions.py
-# By this moment, nTrueInteractions and nPUInteractions not implemented in the ntuples (-1 value for all events), nVertices is used instead.
-
-def get_weighted_data(df, era, era2, shift=None):
-                                                                                                                            
-   # get the pileup                                                                                                                                                                                         
-   pileup_ratio, pileup_edges = get_data_pileup(era, era2)
-
-   # build the weights (pileup for Data2)                                                                                                                                               
-
-   pileupMap = {e: r for e, r in zip(pileup_edges[:-1], pileup_ratio)}
-   mapping_expr = F.create_map(
-       [F.lit(x) for x in itertools.chain(*pileupMap.items())])
-   
-   # M.Oh: temporary solution for missing true PU branch in the new ntuples                                                                                                                                 
-   if 'pair_truePileUp' in df.columns:
-      weightedDF = df.withColumn('PUweight', mapping_expr.getItem(F.round('pair_truePileUp')))
-   #elif 'nTrueInteractions' in df.columns:                                                                                                                                                                 
-   #   weightedDF = df.withColumn('PUweight', mapping_expr.getItem(F.round('nTrueInteractions')))                                                                                                           
-   #   test = weightedDF.withColumn('PU', F.round('nTrueInteractions'))                                                                                                                                     
-   #   test = test.select("PU")                                                                                                                                                                             
-   #   test.show()                                                                                                                                                                                          
-   elif 'nVertices' in df.columns:
-      weightedDF = df.withColumn('PUweight', mapping_expr.getItem(F.col('nVertices')))
-   else:
-      weightedDF = df.withColumn('PUweight', F.lit(1.0))
-
-
-   weightedDF = weightedDF.withColumn('weight', F.col('PUweight'))
-   weightedDF = weightedDF.withColumn('weight2', F.col('weight') * F.col('weight'))
-
-   return weightedDF
-
+from muon_definitions import get_weighted_dataframe,get_corrected_dataframe
 
 
 def run_files(particle, probe, resonance, era, subEra, config, spark, muon_ID, doDataRew, era1):
-    
-    useParquet = True
-    
-    # Select parquet files
-    
-    if useParquet:
-        fnames = list(registry.parquet(
-            particle, probe, resonance, era, subEra))
-    else:
-        fnames = registry.root(particle, probe, resonance, era, subEra)
-        # Assume path in registry is already correct, no need for redirector
-        # fnames = ['root://eoscms.cern.ch/'+f for f in fnames]
-        fnames = [f for f in fnames]
+   
+   useParquet = True
+   
+   # Select parquet files
+   
+   if useParquet:
+      fnames = list(registry.parquet(
+         particle, probe, resonance, era, subEra))
+   else:
+      fnames = registry.root(particle, probe, resonance, era, subEra)
+      # Assume path in registry is already correct, no need for redirector
+      # fnames = ['root://eoscms.cern.ch/'+f for f in fnames]
+      fnames = [f for f in fnames]
+      
+      
+   # Load parquet files (or root)
+   print('Loading parquet files:', fnames)
+   if isinstance(fnames, list):
+      baseDF = spark.read.parquet(*fnames)
+   else:
+      baseDF = spark.read.parquet(fnames)
+      
+   # Load definitions and filter events
 
+   doGen = ('DY' in subEra or 'JPsi' in subEra)
+   
+   #definitions = config['definitions']
+   definitions = config.definitions()
+   
+   defDF = baseDF
+   for d in definitions:
+      defDF = defDF.withColumn(d, F.expr(definitions[d]))
+
+      
+   doProbeMultiplicity = False
+   selection = config.selection()
+   if "pair_probeMultiplicity" in selection:
+      doProbeMultiplicity = True
+      selection = selection.split("and pair_probeMultiplicity")[0] + selection.split("and pair_probeMultiplicity")[1]
+
+   tagsDF = defDF.filter(selection +' and ' + muon_ID)
+   
+   if doProbeMultiplicity:
+      count = tagsDF.groupBy("tag_pt", "event").count()
+      tagsDF = tagsDF.join(count, on=["tag_pt", "event"])
+      tagsDF = tagsDF.filter("count==1")
+   
+   if doGen:
+      if 'mc_selection' in config:
+         tagsDF = tagsDF.filter(config.mc_selection())
+   else:
+      if 'data_selection' in config:
+         tagsDF = tagsDF.filter(config.data_selection())
+
+   weightedDF = get_weighted_dataframe(tagsDF, doGen, resonance, era, subEra, shift='Nominal')   
+
+   try:
+      scale_factors = config.scaleFactors()[muon_ID]
+   except:
+      scale_factors = None
+
+   if scale_factors!="None" and scale_factors!=None:
+      if doGen:
+         print("Computing scale factors for " + muon_ID + " working point!")
+         print("\n")
+         for sf_items in scale_factors:
+            weightedDF = get_corrected_dataframe(weightedDF, doGen, sf_items, scale_factors[sf_items], 15.0001, 199.999)
+
+   binning = config.binning()
+   variables = config.variables()
+   binVariables = config.binVariables()
+   
+   binningSet = set()
+   
+   for bvs in binVariables:
+      binningSet = binningSet.union(set(bvs))
+      
+   binnedDF = weightedDF
+   
+   for bName in binningSet:
+      binnedDF = get_binned_dataframe(
+         binnedDF, bName+"Bin",
+         variables[bName]['variable'],
+         binning[bName])                
+      
     
-    # Load parquet files (or root)
-    print('Loading parquet files:', fnames)
-    if isinstance(fnames, list):
-        baseDF = spark.read.parquet(*fnames)
-    else:
-        baseDF = spark.read.parquet(fnames)
-    
-    # Load definitions and filter events
-    
-    doGen = subEra in ['DY_madgraph', 'DY_powheg', 'JPsi_pythia8']
-    
-    #definitions = config['definitions']
-    definitions = config.definitions()
+   yields = {}
+   for binVars in binningSet:
+      key = binVars
+      yields[key] = binnedDF.groupBy(key+'Bin', *[key+'Bin']).agg({'weight': 'sum'})  
+      yields[key] = yields[key].select([key+'Bin', "sum(weight)"])                                          
+      
 
-    defDF = baseDF
-    for d in definitions:
-        defDF = defDF.withColumn(d, F.expr(definitions[d]))
-
-    
-    #tagsDF = defDF.filter(config['selection'])
-    tagsDF = defDF.filter(config.selection() +' and ' + muon_ID)
-    
-    if doGen:
-        if 'mc_selection' in config:
-            tagsDF = tagsDF.filter(config.mc_selection())
-    else:
-        if 'data_selection' in config:
-            tagsDF = tagsDF.filter(config.data_selection())
-
-            
-        
-    # Weight data and MC with the PileUp
-    if doDataRew:
-       weightedDF = get_weighted_data(tagsDF, era1, era, shift='Nominal')
-    else:
-       weightedDF = get_weighted_dataframe(tagsDF, doGen, resonance, era, subEra, shift='Nominal')
-        
-    binning = config.binning()
-    variables = config.variables()
-    binVariables = config.binVariables()
-
-    binningSet = set()
-
-    for bvs in binVariables:
-        binningSet = binningSet.union(set(bvs))
-
-    binnedDF = weightedDF
-        
-    for bName in binningSet:
-        binnedDF = get_binned_dataframe(
-            binnedDF, bName+"Bin",
-            variables[bName]['variable'],
-            binning[bName])                
-        
-    
-    yields = {}
-    for binVars in binningSet:
-        key = binVars
-        yields[key] = binnedDF.groupBy(key+'Bin', *[key+'Bin']).agg({'weight': 'sum'})                                            
-
-
-    realized = {}
-    for binVars in yields:
-        realized[binVars] = yields[binVars].toPandas()
-        
-    return realized
+   realized = {}
+   for binVars in yields:
+      realized[binVars] = yields[binVars].toPandas()
+      
+   return realized
 
 
 
 
 def compare(particle, probe, resonance, era, config, **kwargs):
-    
-
+   
     _useLocalSpark = False
     useParquet = True
 
@@ -215,25 +152,36 @@ def compare(particle, probe, resonance, era, config, **kwargs):
 
 
     local_jars = ','.join([
-        './laurelin-1.0.0.jar',
+        './laurelin-1.6.0.jar',
         './log4j-api-2.13.0.jar',
         './log4j-core-2.13.0.jar',
     ])
     
     spark = SparkSession\
         .builder\
+        .master("yarn")\
         .appName("TnP")
     
     if useParquet == False:
-        spark = spark\
-        .config("spark.jars", local_jars)\
-        .config("spark.driver.extraClassPath", local_jars)\
-        .config("spark.executor.extraClassPath", local_jars)\
-        .config("spark.dynamicAllocation.maxExecutors", "100")\
-        .config("spark.driver.memory", "6g")\
-        .config("spark.executor.memory", "4g")\
-        .config("spark.executor.cores", "2")
-
+       spark = spark\
+          .config("spark.jars", local_jars)\
+          .config("spark.driver.extraClassPath", local_jars)\
+          .config("spark.executor.extraClassPath", local_jars)\
+          .config("spark.dynamicAllocation.maxExecutors", "100")\
+          .config("spark.driver.memory", "6g")\
+          .config("spark.executor.memory", "4g")\
+          .config("spark.executor.cores", "2")\
+          .config("spark.executorEnv.PYTHONPATH", os.environ.get('PYTHONPATH'))\
+          .config("spark.executorEnv.LD_LIBRARY_PATH", os.environ.get('LD_LIBRARY_PATH'))
+    else:
+       spark = spark\
+          .config("spark.sql.broadcastTimeout", "36000")\
+          .config("spark.network.timeout", "600s")\
+          .config("spark.driver.memory", "6g")\
+          .config("spark.executor.memory", "10g")\
+          .config("spark.executorEnv.PYTHONPATH", os.environ.get('PYTHONPATH'))\
+          .config("spark.executorEnv.LD_LIBRARY_PATH", os.environ.get('LD_LIBRARY_PATH'))
+    
     if _useLocalSpark == True:
         spark = spark.master("local")
 
@@ -389,13 +337,14 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                            if i not in df[var_name+'Bin'].values:
                               df=df.append({var_name+'Bin':float(i), 'sum(weight)':0.0}, ignore_index=True)
 
-                        df = df.sort_values(by=[var_name+'Bin'])
-                        df = df.reset_index()
+                        df = df.sort_values(var_name+'Bin')
+                        df["index"] = df[var_name+'Bin'].values
+                        df = df.reset_index(drop=True)
                         
                         values = pd.Series(np.zeros(len(binning[var_name])+1))
                         values[df.index] = df['sum(weight)']
                         
-                        if (subEra in ['DY_madgraph', 'DY_powheg', 'JPsi_pythia8']):
+                        if (subEra in ['DY_madgraph', 'DY_powheg', 'JPsi_pythia8', 'DY_amcatnlo', 'DY_MassBinned']):
                             for i in df.index:
                                 fill_array_mc[i] = fill_array_mc[i] + float(values[i])
                         else:
@@ -420,11 +369,7 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                     
                     bins = np.array(binning[var_name])
                     bins = bins.astype(np.float32)
-                    
-                    print("\n")
-                    print("Binning for " + var_name + " is ", bins)
-                    print("\n")
-                    
+                                        
                     hist = ROOT.TH1F(var_name, var_name, len(bins)-1, bins) #ROOT histogram
                     hist_mc = ROOT.TH1F(var_name+'_mc', var_name+'_mc', len(bins)-1, bins) #ROOT histogram
                     
@@ -462,7 +407,7 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                     
                     hist_mc.SetLineWidth(3)
                     hist_mc.SetLineColor(ROOT.kAzure-4)
-                    hist_mc.SetFillColor(ROOT.kAzure-4)
+                    hist_mc.SetFillColorAlpha(ROOT.kAzure-4, 0.6)
                     
                     
                     
@@ -513,10 +458,8 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                     CMS_lumi.writeExtraText = True
                     CMS_lumi.extraText = 'Preliminary'
                     if lumi!=-1:
-                        CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
-                    else:
-                        CMS_lumi.lumi_13TeV = ""
-                    CMS_lumi.CMS_lumi(canvas, 4, 11)
+                        CMS_lumi.lumi = "%0.1f fb^{-1}" % (lumi)
+                    CMS_lumi.CMS_lumi(canvas, era, 11)
                 
 
                     #
@@ -614,10 +557,8 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                     CMS_lumi.writeExtraText = True
                     CMS_lumi.extraText = 'Preliminary'
                     if lumi!=-1:
-                        CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
-                    else:
-                        CMS_lumi.lumi_13TeV = ""
-                    CMS_lumi.CMS_lumi(plotPad, 4, 11)
+                        CMS_lumi.lumi = "%0.1f fb^{-1}" % (lumi)
+                    CMS_lumi.CMS_lumi(plotPad, era, 11)
 
 
                     #
@@ -683,7 +624,6 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                 
     else:
 
-
         for muon_ID in muon_IDs:
             
             subera1_isMC = _subera1 in ['DY_madgraph', 'DY_powheg', 'JPsi_pythia8']
@@ -694,7 +634,7 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                 realized[_subera2] = run_files(particle, probe, resonance, _era2, _subera2, config, spark, muon_ID, True, era)
             else:
                 realized[_subera2] = run_files(particle, probe, resonance, _era2, _subera2, config, spark, muon_ID, False, '')
-            
+               
             
             #binning = config['binning']
             #variables = config['variables']
@@ -726,8 +666,15 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                         
                         df = realized[subEra][var_name]
                         df = df.T.drop_duplicates().T
-                        df = df.sort_values(by=[var_name+'Bin'])
-                        df = df.reset_index()
+
+                        # Fill empty bins
+                        for i in range(0,len(binning[binVar[0]])+1):
+                           if i not in df[var_name+'Bin'].values:
+                              df=df.append({var_name+'Bin':float(i), 'sum(weight)':0.0}, ignore_index=True)
+
+                        df = df.sort_values(var_name+'Bin')
+                        df["index"] = df[var_name+'Bin'].values
+                        df = df.reset_index(drop=True)
                         
                         values = pd.Series(np.zeros(len(binning[var_name])+1))
                         values[df.index] = df['sum(weight)']
@@ -799,7 +746,7 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                         
                         hist.SetLineWidth(3)
                         hist.SetLineColor(ROOT.kAzure-2)
-                        hist.SetFillColor(ROOT.kAzure-2)
+                        hist.SetFillColorAlpha(ROOT.kAzure-2, 0.6)
                         
                         hist.Scale(hist_2.Integral()/hist.Integral())
                         hist.Draw("HIST")
@@ -809,7 +756,7 @@ def compare(particle, probe, resonance, era, config, **kwargs):
 
                         hist_2.SetLineWidth(3)
                         hist_2.SetLineColor(ROOT.kAzure-4)
-                        hist_2.SetFillColor(ROOT.kAzure-4)
+                        hist_2.SetFillColorAlpha(ROOT.kAzure-4, 0.6)
 
                         hist_2.Scale(hist.Integral()/hist_2.Integral())
                         hist_2.Draw("HIST")
@@ -878,10 +825,8 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                     CMS_lumi.writeExtraText = True
                     CMS_lumi.extraText = 'Preliminary'
                     if lumi!=-1:
-                        CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
-                    else:
-                        CMS_lumi.lumi_13TeV = ""
-                    CMS_lumi.CMS_lumi(canvas, 4, 11)
+                        CMS_lumi.lumi = "%0.1f fb^{-1}" % (lumi)
+                    CMS_lumi.CMS_lumi(canvas, era, 11)
                     
                     # Draw    
                     # Saved as file: ./baseDir/plots/muon/generalTracks/Z/Run2018_UL/muon_pt_Run2018A_vs_Run2018B.png 
@@ -939,7 +884,7 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                         
                         hist.SetLineWidth(3)
                         hist.SetLineColor(ROOT.kAzure-2)
-                        hist.SetFillColor(ROOT.kAzure-2)
+                        hist.SetFillColorAlpha(ROOT.kAzure-2, 0.6)
                         
                         hist.Scale(hist_2.Integral()/hist.Integral())
                         hist.Draw("HIST")
@@ -950,7 +895,7 @@ def compare(particle, probe, resonance, era, config, **kwargs):
 
                         hist_2.SetLineWidth(3)
                         hist_2.SetLineColor(ROOT.kAzure-4)
-                        hist_2.SetFillColor(ROOT.kAzure-4)
+                        hist_2.SetFillColorAlpha(ROOT.kAzure-4, 0.6)
 
                         hist_2.Scale(hist.Integral()/hist_2.Integral())
                         hist_2.Draw("HIST")
@@ -1005,10 +950,8 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                     CMS_lumi.writeExtraText = True
                     CMS_lumi.extraText = 'Preliminary'
                     if lumi!=-1:
-                        CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
-                    else:
-                        CMS_lumi.lumi_13TeV = ""
-                    CMS_lumi.CMS_lumi(plotPad, 4, 11)
+                        CMS_lumi.lumi = "%0.1f fb^{-1}" % (lumi)
+                    CMS_lumi.CMS_lumi(plotPad, era, 11)
 
 
                     #                                                                                                                                                                                     

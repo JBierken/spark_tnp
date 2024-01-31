@@ -1,0 +1,146 @@
+{
+    "efficiencies": [
+        ["HLT", "TrkHighPtTightRelIsoProbes"],
+        ["HLT", "TrkHighPtLooseRelIsoProbes"],
+        ["HLT", "HighPtTightRelIsoProbes"],
+        ["HLT", "HighPtLooseRelIsoProbes"],
+        ["HLT", "MediumIDTightRelIsoProbes"],
+        ["HLT", "MediumIDLooseRelIsoProbes"]
+    ],
+    "selection": "pair_cuts and tag_cuts and tag_TightRelTkIso and tag_MediumAbsTkIso and (!probe_isDuplicated or probe_isBestPair) and pair_probeMultiplicity",
+    "definitions": {
+        "isolatedGenTracks": "probe_iso03_sumPt < 0.20",
+        "TrackerMuons": "probe_isTracker == 1",
+        "GlobalMuons": "probe_isGlobal == 1",
+        "HighPtID": "probe_CutBasedIdGlobalHighPt == 1",
+        "TrkHighPtID": "probe_CutBasedIdTrkHighPt == 1",
+        "TightID": "probe_isTight == 1",
+        "MediumID": "probe_isMedium == 1",
+        "HighPtIDandIPCut": "probe_CutBasedIdGlobalHighPt == 1",
+        "TrkHighPtIDandIPCut": "probe_CutBasedIdTrkHighPt == 1",
+        "probe_absTrkIso03_corrected": "probe_iso03_sumPt",
+        "probe_LooseRelTkIso": "probe_absTrkIso03_corrected/probe_inner_pt < 0.10",
+        "probe_TightRelTkIso": "probe_absTrkIso03_corrected/probe_inner_pt < 0.05",
+        "probe_LooseAbsTkIso": "probe_absTrkIso03_corrected < 30",
+        "probe_MediumAbsTkIso": "probe_absTrkIso03_corrected < 15",
+        "probe_TightAbsTkIso": "probe_absTrkIso03_corrected < 5",
+        "tag_absTrkIso03_corrected": "tag_iso03_sumPt",
+        "tag_LooseRelTkIso": "tag_absTrkIso03_corrected/tag_inner_pt < 0.10",
+        "tag_TightRelTkIso": "tag_absTrkIso03_corrected/tag_inner_pt < 0.05",
+        "tag_TightestRelTkIso": "tag_absTrkIso03_corrected/tag_inner_pt < 0.025",
+        "tag_LooseAbsTkIso": "tag_absTrkIso03_corrected < 30",
+        "tag_MediumAbsTkIso": "tag_absTrkIso03_corrected < 15",
+        "tag_TightAbsTkIso": "tag_absTrkIso03_corrected < 5",
+        "probe_abseta": "abs(probe_inner_eta)",
+        "tag_abseta": "abs(tag_inner_eta)",
+        "tag_PFIso": "(tag_pfIso04_charged + (0.5 * (((tag_pfIso04_neutral+tag_pfIso04_photon-0.5*tag_pfIso04_sumPU) + (0.0)) + abs((tag_pfIso04_neutral+tag_pfIso04_photon-0.5*tag_pfIso04_sumPU) - (0.0)))))/tag_pt",
+        "IP_cuts": "abs(pair_dz)<0.5 and abs(tag_dz) < 0.5 and abs(probe_dz) < 0.5 and abs(tag_dxy) < 0.2 and abs(probe_dxy) < 0.2",
+        "tag_theta": "2*atan(exp(-tag_eta))",
+        "tag_p": "tag_tuneP_pt/sin(tag_theta)",
+        "tag_px": "tag_tuneP_pt*cos(tag_phi)",
+        "tag_py": "tag_tuneP_pt*sin(tag_phi)",
+        "tag_pz": "tag_p*cos(tag_theta)",
+        "probe_theta": "2*atan(exp(-probe_eta))",
+        "probe_p": "probe_tuneP_pt/sin(probe_theta)",
+        "probe_px": "probe_tuneP_pt*cos(probe_phi)",
+        "probe_py": "probe_tuneP_pt*sin(probe_phi)",
+        "probe_pz": "probe_p*cos(probe_theta)",
+        "dot_prod": "tag_px*probe_px + tag_py*probe_py + tag_pz*probe_pz",
+        "cos_angle": "dot_prod/ tag_p / probe_p",
+        "pi": "3.14159265358979",
+        "pair_abs_dz": "abs(pair_tuneP_dz)",
+        "HLT": "(probe_HLT_Mu50_v==1 or probe_hltL3fL1sMu22Or25L1f0L2f10QL3Filtered100Q==1 or probe_hltL3fL1sMu25f0TkFiltered100Q==1)",
+        "pair_cuts": "(pair_tuneP_normalchi2 < 20) and (cos_angle < pi -0.02) and (pair_tuneP_mass > 70) and (pair_abs_dz < 0.05)",
+        "tag_cuts": "(tag_inner_pt > 53) and (tag_abseta < 2.4) and (tag_HLT_Mu50_v==1 or tag_hltL3fL1sMu22Or25L1f0L2f10QL3Filtered100Q==1 or tag_hltL3fL1sMu25f0TkFiltered100Q==1) and (tag_isGlobal and tag_tuneP_ExistingRefit) and (tag_GlobalValidHits > 0) and (tag_tuneP_pterr/tag_tuneP_pt < 0.3) and (tag_inner_pterr/tag_inner_pt < 0.5) and (tag_inner_pixelHits > 0) and (tag_inner_trackerLayers > 5) and (tag_ZprimeMatchedStations) and (tag_dxy < 0.2) and (tag_dz < 0.5)",
+        "GlobalMuonProbes" : "(pair_tuneP_dR > 0.4) and (probe_isGlobal == 1) and (probe_inner_pt > 50) and (probe_abseta < 2.4) and probe_TightRelTkIso and probe_MediumAbsTkIso", 
+        "TrackerMuonProbes" : "(pair_tuneP_dR > 0.6) and (probe_isTracker == 1) and (probe_inner_pt > 50) and (probe_abseta < 2.4) and probe_TightRelTkIso and probe_MediumAbsTkIso and (probe_dxy < 0.2) and (probe_dz < 0.5) and (probe_inner_pterr/probe_inner_pt < 0.5) and (probe_inner_pixelLayers > 0) and (probe_inner_trackerLayers > 5)", 
+        "HighPtProbes" : "(pair_tuneP_dR > 0.4) and (probe_CutBasedIdGlobalHighPt == 1) and (probe_inner_pt > 50) and (probe_abseta < 2.4)",
+        "TrkHighPtProbes" : "(pair_tuneP_dR > 0.4) and (probe_CutBasedIdTrkHighPt == 1) and (probe_inner_pt > 50) and (probe_abseta < 2.4)",
+        "MediumIDProbes" : "(pair_tuneP_dR > 0.4) and (probe_isMedium == 1) and (probe_inner_pt > 50) and (probe_abseta < 2.4)",
+        "TrkHighPtTightRelIsoProbes" : "(pair_tuneP_dR > 0.4) and (probe_CutBasedIdTrkHighPt == 1) and (probe_inner_pt > 50) and (probe_abseta < 2.4) and (probe_dxy < 0.2) and (probe_dz < 0.5) and probe_TightRelTkIso",
+        "TrkHighPtLooseRelIsoProbes" : "(pair_tuneP_dR > 0.4) and (probe_CutBasedIdTrkHighPt == 1) and (probe_inner_pt > 50) and (probe_abseta < 2.4) and (probe_dxy < 0.2) and (probe_dz < 0.5) and probe_LooseRelTkIso",
+        "MediumIDLooseRelIsoProbes" : "(pair_tuneP_dR > 0.4) and (probe_isMedium == 1) and (probe_inner_pt > 50) and (probe_abseta < 2.4) and (probe_dxy < 0.2) and (probe_dz < 0.5) and probe_LooseRelTkIso",
+        "HighPtTightRelIsoProbes" : "(pair_tuneP_dR > 0.4) and (probe_CutBasedIdGlobalHighPt == 1) and (probe_inner_pt > 50) and (probe_abseta < 2.4) and (probe_dxy < 0.2) and (probe_dz < 0.5) and probe_TightRelTkIso",
+        "HighPtLooseRelIsoProbes" : "(pair_tuneP_dR > 0.4) and (probe_CutBasedIdGlobalHighPt == 1) and (probe_inner_pt > 50) and (probe_abseta < 2.4) and (probe_dxy < 0.2) and (probe_dz < 0.5) and probe_LooseRelTkIso",
+        "MediumIDTightRelIsoProbes" : "(pair_tuneP_dR > 0.4) and (probe_isMedium == 1) and (probe_inner_pt > 50) and (probe_abseta < 2.4) and (probe_dxy < 0.2) and (probe_dz < 0.5) and probe_TightRelTkIso"
+    },
+    "binning": {
+        "pt": [50,60,120, 200, 450, 1000],
+        "abseta": [0, 0.9, 1.2, 2.4],
+        "eta": [-2.4, -2.1, -1.6, -1.2, -0.9, -0.3, -0.2, 0.2, 0.3, 0.9, 1.2, 1.6, 2.1, 2.4],
+        "njets": [-0.5, 0.5, 1.5, 2.5, 3.5, 4.5],
+        "nvtx": "np.array(range(10, 85, 5))",
+        "mass": "np.array([70,10000])",
+        "mcMass": "np.array([70,10000])"
+    },
+    "variables": {
+        "pt": {"variable": "probe_tuneP_pt", "pretty": "tuneP p_{T} (GeV)"},
+        "abseta": {"variable": "probe_abseta", "pretty": "|#eta|"},
+        "eta": {"variable": "probe_eta", "pretty": "#eta"},
+        "njets": {"variable": "pair_nJets30", "pretty": "Number of jets (p_{T} > 30 GeV)"},
+        "nvtx": {"variable": "tag_nVertices", "pretty": "Number of primary vertices"},
+        "mass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"},
+        "mcMass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"}
+    },
+    "fitVariable": "mass",
+    "fitVariableGen": "mcMass",
+    "binVariables": [
+        ["abseta", "pt"]
+    ],
+    "shifts": {
+        "tagIsoUp": {
+            "selection": "pair_cuts and tag_cuts and tag_TightestRelTkIso and tag_TightAbsTkIso"
+        },
+        "tagIsoDown": {
+            "selection": "pair_cuts and tag_cuts and tag_LooseRelTkIso and tag_LooseAbsTkIso"
+        },
+        "massRangeUp": {
+	    "binning": {
+		"pt": [50,60,120, 200, 450, 1000],
+		"abseta": [0, 0.9, 1.2, 2.1, 2.4],
+		"eta": [-2.4, -2.1, -1.6, -1.2, -0.9, -0.3, -0.2, 0.2, 0.3, 0.9, 1.2, 1.6, 2.1, 2.4],
+		"njets": [-0.5, 0.5, 1.5, 2.5, 3.5, 4.5],
+		"nvtx": "np.array(range(10, 85, 5))",
+		"mass": "np.array([80,10000])",
+		"mcMass": "np.array([80,10000])"
+	    }
+        },
+        "massRangeDown": {
+	    "binning": {
+		"pt": [50,60,120, 200, 450, 1000],
+		"abseta": [0, 0.9, 1.2, 2.1, 2.4],
+		"eta": [-2.4, -2.1, -1.6, -1.2, -0.9, -0.3, -0.2, 0.2, 0.3, 0.9, 1.2, 1.6, 2.1, 2.4],
+		"njets": [-0.5, 0.5, 1.5, 2.5, 3.5, 4.5],
+		"nvtx": "np.array(range(10, 85, 5))",
+		"mass": "np.array([60,10000])",
+		"mcMass": "np.array([60,10000])"
+	    }
+        }
+    },
+    "fitShifts": {
+        "AltSig": {"fitType": "AltSig"},
+        "AltBkg": {"fitType": "AltBkg"},
+        "NominalOld": {"fitType": "NominalOld"},
+        "AltSigOld": {"fitType": "AltSigOld"},
+        "tagIsoUp": {"shiftType": "tagIsoUp", "inType": "TagIsoUp"},
+        "tagIsoDown": {"shiftType": "tagIsoDown", "inType": "TagIsoDown"},
+        "massBinUp": {"shiftType": "massBinUp"},
+        "massBinDown": {"shiftType": "massBinDown"},
+        "massRangeUp": {"shiftType": "massRangeUp"},
+        "massRangeDown": {"shiftType": "massRangeDown"}
+    },
+    "systematics" : {
+        "SF": {
+            "fitTypes": [],
+            "shiftTypes": ["tagIso", "massRange"]
+        },
+        "dataEff": {
+            "fitTypes": [],
+            "shiftTypes": ["tagIso", "massRange"]
+        },
+        "mcEff": {
+            "fitTypes": [],
+            "shiftTypes": ["tagIso", "massRange"]
+        }
+    }
+}

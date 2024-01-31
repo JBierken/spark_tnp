@@ -3,6 +3,8 @@
 import sys
 import json
 import os
+import math
+import numpy as np
 # insert at 1, 0 is the script path (or '' in REPL)
 sys.path.insert(1, '..')
 from correctionlib.schemav2 import Binning, Category, Correction, CorrectionSet
@@ -59,6 +61,14 @@ def build_content(sf, binning_array):
 
             systematics = get_systematics(sf, index_to_string_mapping)
 
+            if ("stat" in systematics and "syst" in systematics) and ("comb_syst" not in systematics):
+                comb_syst = systematics["value"]*np.sqrt((systematics["stat"]/systematics["value"])*(systematics["stat"]/systematics["value"]) + 
+                                                         (systematics["syst"]/systematics["value"])*(systematics["syst"]/systematics["value"]))
+
+                systematics['systup']   = systematics["value"] + comb_syst
+                systematics['systdown'] = systematics["value"] - comb_syst
+                
+
             keys, content = [], []
             for syst, value in systematics.items():
                 keys.append(syst)
@@ -72,6 +82,9 @@ def build_content(sf, binning_array):
 
         # If not, build a binning node
         edges = list(map(float, binning[bin_vars[dim-1]]))
+        if "pt" == bin_vars[dim-1] or "p" == bin_vars[dim-1]:
+            edges[-1] = math.inf if edges[-1]<9999.9 else edges[-1]
+
         content = [build_schema_recursively(dim+1, tuple(list(index)[0:dim-1]+[i]+list(index)[dim:])) for i in indices[dim-1]]
         return Binning.parse_obj({
             "nodetype": "binning",
@@ -134,6 +147,13 @@ for json_file in all_json_files:
 
 cset = CorrectionSet.parse_obj({
     "schema_version": 2,
+    "description": """This json file contains different scale factors centrally derived by the Muon POG. Corrections are supplied for various reconstructions, working points, IDs, isolation cuts, and resonances (Z or JPsi). In general, the scale factors are factorized into ID*ISO*HLT, and the names follow the next convention: NUM_{NumeratorNAME}_DEN_{DenominatorNAME} where 'NumeratorNAME' can be 'TightID' and denominator can be 'TrackerMuons', for example. Nominal scale factors and uncertainties are provided. 'nominal', 'stat', 'syst', 'systup', and 'systdown' are provided for all the cases. Additional systematic uncertainties may be included such as 'massBin', 'AltSig', etc. Please note the different meanings of the input labels.    
+ 'nominal'  : Nominal central scale factor value    
+ 'systup'   : Combined statistical+systematic up boundary (Consistent with XPOG format)    
+ 'systdown' : Combined statistical+systematic down boundary (Consistent with XPOG format)    
+ 'stat'     : Statistical uncertainty    
+ 'syst'     : Systematic uncertainty    
+""",    
     "corrections": all_corrections
 })
 

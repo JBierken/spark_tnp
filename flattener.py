@@ -2,11 +2,12 @@ from __future__ import print_function
 
 import os
 import itertools
-
+from glob import glob
 import numpy as np
 import pandas as pd
 import uproot
-from uproot_methods.classes import TH1
+import pickle
+import boost_histogram as bh
 
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
@@ -29,6 +30,8 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
     _baseDir = kwargs.pop('baseDir', '')
     _testing = kwargs.pop('testing', False)
     _registry = kwargs.pop('registry', None)
+
+    doProbeMultiplicity = False
 
     print('Running flattening for', particle, probe, resonance, era, subEra, shift)
 
@@ -56,7 +59,7 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
         jobPath = os.path.join(_baseDir, jobPath)
     os.makedirs(jobPath, exist_ok=True)
 
-    doGen = subEra in ['DY_madgraph', 'DY_powheg', 'JPsi_pythia8']
+    doGen = subEra in ['DY_madgraph', 'DY_powheg', 'DY_amcatnlo', 'JPsi_pythia8']
 
     # default numerator/denominator defintions
     efficiencies = config.efficiencies()
@@ -74,31 +77,31 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
         baseDF = spark.read.format("root")\
                       .option('tree', treename)\
                       .load(fnames)
-    # create the miniIsolation columns
-    # Need miniIsolation in new ntuples to restore this (coming soon)
-    miniIsoDF = baseDF #get_miniIso_dataframe(baseDF)
 
     # create the definitions columns
     definitions = config.definitions()
 
-    defDF = miniIsoDF
     for d in definitions:
-        defDF = defDF.withColumn(d, F.expr(definitions[d]))
+        baseDF = baseDF.withColumn(d, F.expr(definitions[d]))
 
     # select tags
-    tagsDF = defDF.filter(config.selection())
+    selection = config.selection()
+    if "pair_probeMultiplicity" in selection:
+        doProbeMultiplicity = True
+        selection = selection.split("and pair_probeMultiplicity")[0] + selection.split("and pair_probeMultiplicity")[1]
+    baseDF = baseDF.filter(selection)
 
     if doGen:
         if 'mc_selection' in config:
-            tagsDF = tagsDF.filter(config.mc_selection())
+            baseDF = baseDF.filter(config.mc_selection())
     else:
         if 'data_selection' in config:
-            tagsDF = tagsDF.filter(config.data_selection())
+            baseDF = baseDF.filter(config.data_selection())
 
     # build the weights (pileup for MC)
-    weightedDF = get_weighted_dataframe(
-        tagsDF, doGen, resonance, era, subEra, shift=shift)
-
+    baseDF = get_weighted_dataframe(
+        baseDF, doGen, resonance, era, subEra, shift=shift)
+ 
     # create the binning structure
     fitVariable = config.fitVariable()
     binningSet = set([fitVariable])
@@ -109,12 +112,16 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
     for bvs in binVariables:
         binningSet = binningSet.union(set(bvs))
 
-    binning = config.binning()
+    binning = config.binning() 
+
+    pklFile=open("./binning.pkl","wb")
+    pickle.dump(binning,pklFile)
+    pklFile.close()
+
     variables = config.variables()
-    binnedDF = weightedDF
     for bName in binningSet:
-        binnedDF = get_binned_dataframe(
-            binnedDF, bName+"Bin",
+        baseDF = get_binned_dataframe(
+            baseDF, bName+"Bin",
             variables[bName]['variable'],
             binning[bName])
 
@@ -124,7 +131,11 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
     yields_gen = {}
 
     for numLabel, denLabel in efficiencies:
-        den = binnedDF.filter(denLabel)
+        den = baseDF.filter(denLabel)
+        if doProbeMultiplicity:
+            count = den.groupBy("tag_pt", "event").count()
+            den = den.join(count, on=["tag_pt", "event"])
+            den = den.filter("count==1")
         for binVars in binVariables:
             key = (numLabel, denLabel, tuple(binVars))
             yields[key] = den.groupBy(
@@ -156,14 +167,13 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
         return values, sumw2
 
     def get_hist(values, sumw2, edges, overflow=True):
+        hist = bh.Histogram(bh.axis.Variable(edges), storage=bh.storage.Weight())
         if overflow:
-            hist = TH1.from_numpy((values[1:-1], edges))
-            hist[0] = values[0]
-            hist[-1] = values[-1]
-            hist._fSumw2 = sumw2
+            hist.view(flow=True).value = values
+            hist.view(flow=True).variance = sumw2
         else:
-            hist = TH1.from_numpy((values, edges))
-            hist._fSumw2[1:-1] = sumw2
+            hist.view(flow=False).value = values[1:-1]
+            hist.view(flow=False).variance = sumw2[1:-1]
         return hist
 
     # realize each of the yield tables
@@ -233,6 +243,8 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
             for h, hist in sorted(hists.items()):
                 f[h] = hist
 
+    del baseDF
+
 
 def run_all(spark, particle, probe, resonance, era,
             config, shift='Nominal', **kwargs):
@@ -247,7 +259,7 @@ def run_all(spark, particle, probe, resonance, era,
     for subEra in subEras:
         if subEra==None:
             continue
-        if dataOnly and 'Run201' not in subEra:
+        if dataOnly and 'Run20' not in subEra:
             continue
         run_flattening(spark, particle, probe, resonance, era, subEra,
                        config, shift, **kwargs)
@@ -258,7 +270,7 @@ def run_spark(particle, probe, resonance, era, config, **kwargs):
     _useLocalSpark = kwargs.pop('useLocalSpark', False)
 
     local_jars = ','.join([
-        './laurelin-1.0.0.jar',
+        './laurelin-1.6.0.jar',
         './log4j-api-2.13.0.jar',
         './log4j-core-2.13.0.jar',
     ])
@@ -276,6 +288,13 @@ def run_spark(particle, probe, resonance, era, config, **kwargs):
         .config("spark.driver.memory", "6g")\
         .config("spark.executor.memory", "4g")\
         .config("spark.executor.cores", "2")
+    else:
+        spark = spark\
+        .config("spark.sql.broadcastTimeout", "36000")\
+        .config("spark.network.timeout", "600s")\
+        .config("spark.driver.memory", "6g")\
+        .config("spark.executor.memory", "10g")
+
 
     if _useLocalSpark == True:
         spark = spark.master("local")
@@ -286,6 +305,7 @@ def run_spark(particle, probe, resonance, era, config, **kwargs):
     print(sc.getConf().toDebugString())
 
     shiftTypes = config.shifts()
+
     for shiftType in shiftTypes:
         if _shiftType and shiftType not in _shiftType:
             continue

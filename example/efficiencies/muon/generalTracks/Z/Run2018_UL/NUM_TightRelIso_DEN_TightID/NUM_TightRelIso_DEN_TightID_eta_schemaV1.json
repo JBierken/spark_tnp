@@ -1,0 +1,214 @@
+{
+    "schema_version": 1,
+    "corrections": [
+        {
+            "name": "NUM_TightRelIso_DEN_TightID",
+            "description": "NUM_TightRelIso_DEN_TightID",
+            "version": 1,
+            "inputs": [
+                {
+                    "name": "eta",
+                    "type": "real"
+                },
+                {
+                    "name": "uncertainties",
+                    "type": "string"
+                }
+            ],
+            "output": {
+                "name": "weight",
+                "type": "real"
+            },
+            "data": {
+                "nodetype": "binning",
+                "edges": [
+                    -2.4,
+                    -2.1,
+                    -1.6,
+                    -1.2,
+                    -0.9,
+                    -0.3,
+                    -0.2,
+                    0.2,
+                    0.3,
+                    0.9,
+                    1.2,
+                    1.6,
+                    2.1,
+                    2.4
+                ],
+                "content": [
+                    {
+                        "nodetype": "category",
+                        "keys": [
+                            "value",
+                            "stat",
+                            "syst"
+                        ],
+                        "content": [
+                            1.010590286013012,
+                            0.000959639874250384,
+                            0.0
+                        ]
+                    },
+                    {
+                        "nodetype": "category",
+                        "keys": [
+                            "value",
+                            "stat",
+                            "syst"
+                        ],
+                        "content": [
+                            1.0031002441013386,
+                            0.0006273043520641209,
+                            0.0
+                        ]
+                    },
+                    {
+                        "nodetype": "category",
+                        "keys": [
+                            "value",
+                            "stat",
+                            "syst"
+                        ],
+                        "content": [
+                            0.9959563718970729,
+                            0.0006690209845784874,
+                            0.0
+                        ]
+                    },
+                    {
+                        "nodetype": "category",
+                        "keys": [
+                            "value",
+                            "stat",
+                            "syst"
+                        ],
+                        "content": [
+                            0.9883543408223586,
+                            0.0007887228250223731,
+                            0.0
+                        ]
+                    },
+                    {
+                        "nodetype": "category",
+                        "keys": [
+                            "value",
+                            "stat",
+                            "syst"
+                        ],
+                        "content": [
+                            0.9932115852887159,
+                            0.0005390426842264109,
+                            0.0
+                        ]
+                    },
+                    {
+                        "nodetype": "category",
+                        "keys": [
+                            "value",
+                            "stat",
+                            "syst"
+                        ],
+                        "content": [
+                            0.9910065568117917,
+                            0.0012664736723911236,
+                            0.0
+                        ]
+                    },
+                    {
+                        "nodetype": "category",
+                        "keys": [
+                            "value",
+                            "stat",
+                            "syst"
+                        ],
+                        "content": [
+                            0.9945009270552004,
+                            0.0006601415634330545,
+                            0.0
+                        ]
+                    },
+                    {
+                        "nodetype": "category",
+                        "keys": [
+                            "value",
+                            "stat",
+                            "syst"
+                        ],
+                        "content": [
+                            0.9935522237138531,
+                            0.0013713443209191164,
+                            0.0
+                        ]
+                    },
+                    {
+                        "nodetype": "category",
+                        "keys": [
+                            "value",
+                            "stat",
+                            "syst"
+                        ],
+                        "content": [
+                            0.9948766057633885,
+                            0.0005098958018873037,
+                            0.0
+                        ]
+                    },
+                    {
+                        "nodetype": "category",
+                        "keys": [
+                            "value",
+                            "stat",
+                            "syst"
+                        ],
+                        "content": [
+                            0.9889200280507932,
+                            0.0008312777476563981,
+                            0.0
+                        ]
+                    },
+                    {
+                        "nodetype": "category",
+                        "keys": [
+                            "value",
+                            "stat",
+                            "syst"
+                        ],
+                        "content": [
+                            0.9946138551485096,
+                            0.0006648246687317592,
+                            0.0
+                        ]
+                    },
+                    {
+                        "nodetype": "category",
+                        "keys": [
+                            "value",
+                            "stat",
+                            "syst"
+                        ],
+                        "content": [
+                            1.0020847665934265,
+                            0.0006202965181371953,
+                            0.0
+                        ]
+                    },
+                    {
+                        "nodetype": "category",
+                        "keys": [
+                            "value",
+                            "stat",
+                            "syst"
+                        ],
+                        "content": [
+                            1.0078221815793291,
+                            0.0009502448139057681,
+                            0.0
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

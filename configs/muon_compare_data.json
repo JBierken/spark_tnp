@@ -1,0 +1,123 @@
+{
+    "efficiencies": [
+	["TightPFIso", "TightPFIso"]
+    ],
+    "selection": "tag_isTight==1 and tag_pt>26 and tag_abseta<2.4 and tag_HLT_IsoMu24_v==1 and tag_PFIso<0.15 and pair_dR>0.3 and probe_pt>20 and pair_probeMultiplicity",
+    "definitions": {
+	"IP_cuts": "abs(pair_dz)<0.5 and abs(tag_dz) < 0.5 and abs(probe_dz) < 0.5 and abs(tag_dxy) < 0.2 and abs(probe_dxy) < 0.2",
+	"tag_PFIso": "(tag_pfIso04_charged + (0.5 * (((tag_pfIso04_neutral+tag_pfIso04_photon-0.5*tag_pfIso04_sumPU) + (0.0)) + abs((tag_pfIso04_neutral+tag_pfIso04_photon-0.5*tag_pfIso04_sumPU) - (0.0)))))/tag_pt",
+	"probe_PFIso": "(probe_pfIso04_charged + (0.5 * (((probe_pfIso04_neutral+probe_pfIso04_photon-0.5*probe_pfIso04_sumPU) + (0.0)) + abs((probe_pfIso04_neutral+probe_pfIso04_photon-0.5*probe_pfIso04_sumPU) - (0.0)))))/probe_pt",
+        "probe_abseta": "abs(probe_eta)",
+        "tag_abseta": "abs(tag_eta)",
+        "TrackerMuons": "probe_isTracker == 1",
+	"GlobalMuons": "probe_isGlobal == 1",
+	"StandAloneMuons": "probe_isSA == 1",
+        "LooseID": "probe_CutBasedIdLoose == 1",
+        "SoftID": "probe_SoftCutBasedId == 1",
+	"MediumID": "probe_CutBasedIdMedium == 1",
+        "TightID": "probe_CutBasedIdTight == 1",
+        "TightPFIso": "probe_PFIsoTight == 1 and TightID",
+        "LoosePFIso": "probe_PFIsoLoose == 1 and LooseID",
+	"TightID_IP": "probe_CutBasedIdTight == 1 and IP_cuts",
+	"MediumID_IP": "probe_CutBasedIdMedium == 1 and IP_cuts",
+	"TightIDIso_IP": "probe_PFIsoTight == 1 and probe_CutBasedIdTight == 1 and IP_cuts",
+	"MediumIDIso_IP": "probe_PFIsoTight == 1 and probe_CutBasedIdMedium == 1 and IP_cuts"
+    },
+    "binning": {
+        "abseta": [0, 0.9, 1.2, 2.1, 2.4],
+        "mass": "np.array(range(60*4, 140*4+1)) * 0.25",
+        "mcMass": "np.array(range(60*4, 140*4+1)) * 0.25",
+	"eta": "np.linspace(-2.5, 2.5, 51)",
+	"pt": "np.linspace(20, 200, 61)",
+	"probe_dxy": "np.linspace(-0.2, 0.2, 71)",
+	"probe_dz": "np.linspace(-0.2, 0.2, 71)",
+	"pair_dR": "np.linspace(0.0, 5.0, 71)",
+	"nVertices": "np.linspace(0, 100, 101)",
+	"probe_PFIso": "np.linspace(0.0, 1.0, 61)",
+	"probe_pfIso04_charged": "np.linspace(0.0, 1.0, 61)",
+	"probe_pfIso04_neutral": "np.linspace(0.0, 1.0, 61)",
+	"probe_pfIso04_photon": "np.linspace(0.0, 1.0, 61)"
+    },
+    "variables": {
+        "pt": {"variable": "probe_pt", "pretty": "p_{T} (GeV)"},
+        "abseta": {"variable": "probe_abseta", "pretty": "|#eta|"},
+        "eta": {"variable": "probe_eta", "pretty": "#eta"},
+        "mass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"},
+        "mcMass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"},
+	"probe_dxy": {"variable": "probe_dxy", "pretty": "dxy"},
+	"probe_dz": {"variable": "probe_dz", "pretty": "dz"},
+	"pair_dR": {"variable": "pair_dR", "pretty": "dR"},
+	"nVertices": {"variable": "nVertices", "pretty": "PileUp"},
+	"probe_PFIso": {"variable": "probe_PFIso", "pretty": "PF Isolation"},
+	"probe_pfIso04_charged": {"variable": "probe_pfIso04_charged", "pretty": "PF Isolation charged"},
+	"probe_pfIso04_neutral": {"variable": "probe_pfIso04_neutral", "pretty": "PF Isolation neutral"},
+	"probe_pfIso04_photon": {"variable": "probe_pfIso04_photon", "pretty": "PF Isolation photon"}
+    },
+    "fitVariable": "mass",
+    "fitVariableGen": "mcMass",
+    "binVariables": [
+	["pt"],
+	["eta"],
+	["mass"],
+	["probe_dxy"],
+	["probe_dz"],
+	["pair_dR"],
+	["nVertices"],
+	["probe_PFIso"],
+	["probe_pfIso04_charged"],
+	["probe_pfIso04_neutral"],
+	["probe_pfIso04_photon"]
+    ],
+    "shifts": {
+    },
+    "fitShifts": {
+        "massBinUp": {"shiftType": "massBinUp"},
+        "massBinDown": {"shiftType": "massBinDown"}
+    },
+    "systematics" : {
+        "SF": {
+            "fitTypes": [],
+            "shiftTypes": ["massBin"]
+        },
+        "dataEff": {
+            "fitTypes": [],
+            "shiftTypes": ["massBin"]
+        },
+        "mcEff": {
+            "fitTypes": [],
+            "shiftTypes": ["massBin"]
+        }
+
+    },
+    "scaleFactors" : {
+	"TrackerMuons" : "None",
+	"StandAloneMuons" : "None",
+	"GlobalMuons" : "None",
+	"LooseID" : {
+	    "NUM_LooseID_DEN_TrackerMuons" : "/afs/cern.ch/work/s/sblancof/private/MuonPOG/spark_tnp/muonefficiencies/Run3/2022_prompt/2022_Z/ScaleFactors_Muon_trackerMuons_Z_2022EE_Prompt_ID_ISO_schemaV2.json"
+	},
+	"SoftID" : {
+	    "NUM_SoftID_DEN_TrackerMuons" : "/afs/cern.ch/work/s/sblancof/private/MuonPOG/spark_tnp/muonefficiencies/Run3/2022_prompt/2022_Z/ScaleFactors_Muon_trackerMuons_Z_2022EE_Prompt_ID_ISO_schemaV2.json"
+	},
+	"MediumID" : {
+	    "NUM_MediumID_DEN_TrackerMuons" : "/afs/cern.ch/work/s/sblancof/private/MuonPOG/spark_tnp/muonefficiencies/Run3/2022_prompt/2022_Z/ScaleFactors_Muon_trackerMuons_Z_2022EE_Prompt_ID_ISO_schemaV2.json"
+	},
+	"TightID" : {
+	    "NUM_TightID_DEN_TrackerMuons" : "/afs/cern.ch/work/s/sblancof/private/MuonPOG/spark_tnp/muonefficiencies/Run3/2022_prompt/2022_Z/ScaleFactors_Muon_trackerMuons_Z_2022EE_Prompt_ID_ISO_schemaV2.json"
+	},
+	"MediumID_IP" : {
+	    "NUM_MediumID_DEN_TrackerMuons" : "/afs/cern.ch/work/s/sblancof/private/MuonPOG/spark_tnp/muonefficiencies/Run3/2022_prompt/2022_Z/ScaleFactors_Muon_trackerMuons_Z_2022EE_Prompt_ID_ISO_schemaV2.json"
+	},
+	"TightID_IP" : {
+	    "NUM_TightID_DEN_TrackerMuons" : "/afs/cern.ch/work/s/sblancof/private/MuonPOG/spark_tnp/muonefficiencies/Run3/2022_prompt/2022_Z/ScaleFactors_Muon_trackerMuons_Z_2022EE_Prompt_ID_ISO_schemaV2.json"
+	},
+	"TightPFIso" : {
+	    "NUM_TightID_DEN_TrackerMuons" : "/afs/cern.ch/work/s/sblancof/private/MuonPOG/spark_tnp/muonefficiencies/Run3/2022_prompt/2022_Z/ScaleFactors_Muon_trackerMuons_Z_2022EE_Prompt_ID_ISO_schemaV2.json",
+	    "NUM_TightPFIso_DEN_TightID" : "/afs/cern.ch/work/s/sblancof/private/MuonPOG/spark_tnp/muonefficiencies/Run3/2022_prompt/2022_Z/ScaleFactors_Muon_trackerMuons_Z_2022EE_Prompt_ID_ISO_schemaV2.json"
+	},
+	"MediumIDIso_IP" : {
+	    "NUM_MediumID_DEN_TrackerMuons" : "/afs/cern.ch/work/s/sblancof/private/MuonPOG/spark_tnp/muonefficiencies/Run3/2022_prompt/2022_Z/ScaleFactors_Muon_trackerMuons_Z_2022EE_Prompt_ID_ISO_schemaV2.json",	    
+	    "NUM_TightPFIso_DEN_MediumID" : "/afs/cern.ch/work/s/sblancof/private/MuonPOG/spark_tnp/muonefficiencies/Run3/2022_prompt/2022_Z/ScaleFactors_Muon_trackerMuons_Z_2022EE_Prompt_ID_ISO_schemaV2.json"
+	}
+    }
+}
