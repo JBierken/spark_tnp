@@ -17,8 +17,8 @@
         "pt": [2, 3, 4, 5, 6, 7, 8, 9, 10, 30],
         "abseta": [0, 0.9, 1.2, 2.1, 2.4],
         "eta": [-2.4, -2.1, -1.6, -1.2, -0.9, -0.3, -0.2, 0.2, 0.3, 0.9, 1.2, 1.6, 2.1, 2.4],
-        "mass": "np.linspace(2.80, 3.40, 60)",
-        "mcMass": "np.linspace(2.80, 3.40, 60)"
+        "mass": "np.linspace(2.80, 3.40, 330)",
+        "mcMass": "np.linspace(2.80, 3.40, 330)"
     },
     "variables": {
         "pt": {"variable": "probe_pt", "pretty": "p_{T} (GeV)"},
