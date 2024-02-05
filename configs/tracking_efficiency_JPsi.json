@@ -4,7 +4,8 @@
         ["GlobalMuons", "genTracks"],
         ["TrackerMuons", "GlobalMuons"]
     ],
-    "selection":  "tag_pt > 8 and tag_abseta < 2.4 and probe_pt > 3.5 and probe_abseta < 2.4 and HLT_Mu7p5_Track2_Jpsi == 1 and tag_isTight == 1",
+    //"selection":  "tag_pt > 8 and tag_abseta < 2.4 and probe_pt > 3.5 and probe_abseta < 2.4 and tag_HLT_Mu7p5_Track2_Jpsi == 1",
+    "selection":  "tag_pt > 8 and tag_abseta < 2.4 and tag_HLT_Mu7p5_Track2_Jpsi == 1",
     "definitions": {
         "probe_abseta": "abs(probe_eta)",
         "tag_abseta": "abs(tag_eta)",
