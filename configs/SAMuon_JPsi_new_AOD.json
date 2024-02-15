@@ -1,0 +1,61 @@
+{
+    "efficiencies": [
+        ["SAMatched", "StandAloneMuons"],
+        ["SAMatched_fakerate", "StandAloneMuons"]
+    ],
+    "selection": "triggers==1 and tag_pt>8 and tag_isTight==1 and tag_PFIso<0.15 and tag_trigger_match==1 and StandAloneMuons and pair_opposite_charge==1 and pair_mass_window==1",
+    "definitions": {
+        "triggers": "((HLT_Mu8_v==1) or (HLT_Mu17_v==1))",
+        "tag_trigger_match": "(tag_hltL3fL1sMu5L1f0L2f5L3Filtered8==1) and (tag_hltL3fL1sMu5L1f0L2f5L3Filtered8_dr<0.1)",
+        "pair_opposite_charge": "(tag_charge * probe_charge = -1)",
+        "pair_mass_window": "(pair_mass>=2.8) and (pair_mass<=3.5)",
+        "isPositive":"(tag_pfIso04_neutral + tag_pfIso04_photon - tag_pfIso04_sumPU/2) > 0.0",
+	    "tag_PFIso": "((isPositive==1 and (tag_pfIso04_charged + tag_pfIso04_neutral + tag_pfIso04_photon - tag_pfIso04_sumPU/2)/tag_pt < 0.2) or (isPositive==0 and (tag_pfIso04_charged /tag_pt) < 0.2))", 
+        "genTracks": "((probe_pt<20) or (probe_pt>20)) and (probe_relIso04 < 0.1)",
+        "genTracksNoQuality": "(probe_pt<20) or (probe_pt>20)",
+        "TrackerMuons": "probe_isTracker == 1 and probe_pt > 10",
+        "StandAloneMuons": "probe_isSA == 1",
+        "GlobalMuons": "probe_isGlobal == 1",
+        "SAMatched":"(probe_isTrkMatch == 1) and (probe_isSA == 1)",
+        "SAMatched_fakerate":"(probeSA_isTrkMatch == 1) and (probe_isSA == 1)",
+        "dSAMuons": "probe_isdSA == 1",
+        "dSAMuonsMuMatched": "probe_isdSA == 1 and probe_relIso04 < 0.2 and probe_isMuMatched == 1 and (probe_isTracker == 1 or probe_isGlobal == 1)",
+        "SAnotdSA": "probe_isSA == 1 and probe_isdSA == 0 and probe_pt > 15 and probe_relIso04 < 0.1",
+        "probe_abseta": "abs(probe_eta)",
+        "tag_abseta": "abs(tag_eta)"
+    },
+    "binning": {
+        "pt": [2, 3, 4, 5, 6, 7, 8, 9, 10, 30],
+        "pt_onebin":[2,30],
+        "abseta": [0, 0.9, 1.2, 2.1, 2.4],
+        "eta": [-2.4, -2.1, -1.6, -1.2, -0.9, -0.3, -0.2, 0.2, 0.3, 0.9, 1.2, 1.6, 2.1, 2.4],
+        "eta_onebin":[-2.4,2.4],
+        "nvtx": [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 80],
+        "mass": "np.linspace(2.80, 3.40, 60)",
+        "mcMass": "np.linspace(2.80, 3.40, 60)"
+    },
+    "variables": {
+        "pt": {"variable": "probe_pt", "pretty": "muon p_{T} (GeV)"},
+        "eta": {"variable": "probe_eta", "pretty": "muon #eta"},
+        "pt_onebin": {"variable": "probe_pt", "pretty": "muon p_{T} (GeV)"},
+        "eta_onebin": {"variable": "probe_eta", "pretty": "muon #eta"},
+        "nvtx": {"variable": "nVertices", "pretty": "N(primary vertices)"},
+        "mass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"},
+        "mcMass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"},
+        "istlumi": {"variable": "ls", "pretty": "lumi"}
+       
+    },
+    "fitVariable": "mass",
+    "fitVariableGen": "mcMass",
+    "binVariables": [
+        ["abseta", "pt"],
+        ["pt","eta_onebin"],
+        ["nvtx","eta_onebin","pt_onebin"],
+        ["eta", "pt_onebin"],
+        ["istlumi", "pt_onebin","eta_onebin"]
+    ],
+    "shifts": {
+    },
+    "fitShifts": {
+    }
+}

@@ -2,25 +2,30 @@
     "efficiencies": [
         ["TrackerMuons", "genTracks"],
         ["GlobalMuons", "genTracks"],
-        ["TrackerMuons", "GlobalMuons"]
+        ["SAMuMatched", "StandAloneMuons"],
+        ["GlobalMuons", "StandAloneMuons"]
     ],
-    "selection":  "tag_pt>26 and tag_abseta<2.4 and HLT_IsoMu24_v==1 and pair_probeMultiplicity==1 and tag_PFIso<0.2 and IP_cuts" ,
+    "selection":  "triggers==1 and tag_pt>8 and tag_isTight==1 and tag_PFIso<0.15 and StandAloneMuons and pair_opposite_charge==1 and pair_mass_window==1",
     "definitions": {
+        "triggers": "((HLT_Mu8_v==1) or (HLT_Mu17_v==1))",
 	    "IP_cuts": "abs(pair_dz)<0.5 and abs(tag_dz) < 0.5 and abs(probe_dz) < 0.5 and abs(tag_dxy) < 0.2 and abs(probe_dxy) < 0.2",
 	    "tag_PFIso": "(tag_pfIso04_charged + (0.5 * (((tag_pfIso04_neutral+tag_pfIso04_photon-0.5*tag_pfIso04_sumPU) + (0.0)) + abs((tag_pfIso04_neutral+tag_pfIso04_photon-0.5*tag_pfIso04_sumPU) - (0.0)))))/tag_pt",
         "probe_abseta": "abs(probe_eta)",
         "tag_abseta": "abs(tag_eta)",
+        "pair_opposite_charge": "(tag_charge>0 and probe_charge<0) or (tag_charge<0 and probe_charge>0)",
+        "pair_mass_window": "(pair_mass>=2.7) and (pair_mass<=3.5)",
         "genTracks": "((probe_pt<20) or (probe_pt>20))",
         "TrackerMuons": "probe_isTracker == 1",
         "GlobalMuons": "probe_isGlobal == 1",
-        "StandAloneMuons": "probe_isSA == 1"
+        "StandAloneMuons": "probe_isSA == 1",
+        "SAMuMatched": "(probe_isSA==1) and (probe_isMuMatched == 1)"
     },
     "binning": {
-        "pt": [15, 20, 25, 30, 40, 50, 60, 120],
+        "pt": [2, 3, 4, 5, 6, 7, 8, 9, 10, 30],
         "abseta": [0, 0.9, 1.2, 2.1, 2.4],
         "eta": [-2.4, -2.1, -1.6, -1.2, -0.9, -0.3, -0.2, 0.2, 0.3, 0.9, 1.2, 1.6, 2.1, 2.4],
-        "mass": "np.array(range(60*4, 140*4+1)) * 0.25",
-        "mcMass": "np.array(range(60*4, 140*4+1)) * 0.25"
+        "mass": "np.linspace(2.80, 3.40, 60)",
+        "mcMass": "np.linspace(2.80, 3.40, 60)"
     },
     "variables": {
         "pt": {"variable": "probe_pt", "pretty": "p_{T} (GeV)"},
