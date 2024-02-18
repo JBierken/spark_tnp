@@ -1,0 +1,42 @@
+[
+    {
+        "particle": "muon",
+        "resonance": "JPsi",
+        "era": "Run2022_EE",
+        "subEra": "Run2022F",
+        "probe": "standAloneMuons",
+        "dataTier": "MINIAOD",
+        "parquet": ["/user/jbierken/parquet/muon/JPsi/Run2022_EE/MINIAOD/Run2022F/tnp.parquet"],
+        "root": [""], 
+        "treename": "muon/StandAloneEvents",
+        "luminosity": 18.01,
+        "version": 1
+    },
+    {
+        "particle": "muon",
+        "resonance": "JPsi",
+        "era": "Run2022_EE",
+        "subEra": "Run2022G",
+        "probe": "standAloneMuons",
+        "dataTier": "MINIAOD",
+        "parquet": ["/user/jbierken/parquet/muon/JPsi/Run2022_EE/MINIAOD/Run2022G/tnp.parquet"],
+        "root": [""], 
+        "treename": "muon/StandAloneEvents",
+        "luminosity": 3.12,
+        "version": 1
+    },
+    {
+        "particle": "muon",
+        "resonance": "JPsi",
+        "era": "Run2022_EE",
+        "subEra": "JPsi_pythia8",
+        "probe": "standAloneMuons",
+        "dataTier": "MINIAOD",
+        "parquet": ["/user/jbierken/parquet/muon/JPsi/Run2022_EE/MINIAOD/JPsi_pythia8/tnp.parquet"],
+        "root": [""],
+        "treename": "muon/StandAloneEvents",
+        "luminosity": -1,
+        "version": 1
+    }
+
+]

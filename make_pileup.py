@@ -2,7 +2,7 @@
 from __future__ import print_function
 import sys
 import uproot
-import boost_histogram as bh
+from uproot_methods.classes import TH1
 import numpy as np
 import argparse
 
@@ -35,14 +35,21 @@ elif args.era == 'Run2018':
     from SimGeneral\
         .MixingModule\
         .mix_2018_25ns_JuneProjectionFull18_PoissonOOTPU_cfi import mix
+elif args.era == 'Run2022':
+    from SimGeneral\
+        .MixingModule\
+        .2022_LHC_Simulation_10h_2h import mix
+elif args.era == 'Run2022_EE':
+    from SimGeneral\
+        .MixingModule\
+        .2022_LHC_Simulation_10h_2h import mix
 else:
     print('Unrecognized era', args.era)
     sys.exit(0)
 
 values = np.array([float(x) for x in mix.input.nbPileupEvents.probValue])
 edges = np.arange(len(values)+1)
-hist = bh.Histogram(bh.axis.Variable(edges), storage=bh.storage.Weight())
-hist.view(flow=True).value = values
+hist = TH1.from_numpy((values, edges))
 
 with uproot.recreate('pileup/mc/{era}.root'.format(era=args.era)) as f:
     f['pileup'] = hist

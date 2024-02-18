@@ -1,4 +1,5 @@
 [
+
     {
         "particle": "muon",
         "resonance": "Z",
@@ -20,7 +21,7 @@
         "parquet": ["/user/bdanzi/parquet/muon/Z/Run2022/AOD/Run2022B/tnp.parquet"],
         "root": [""], 
         "treename": "muon/StandAloneEvents",
-        "luminosity": 0.0849,
+        "luminosity": 0.08,
         "version": 1
     },
     {
@@ -32,7 +33,7 @@
         "parquet": ["/user/bdanzi/parquet/muon/Z/Run2022/AOD/Run2022C/tnp.parquet"],
         "root": [""], 
         "treename": "muon/StandAloneEvents",
-        "luminosity": 4.94,
+        "luminosity": 4.84,
         "version": 1
     },
     {
@@ -44,7 +45,7 @@
         "parquet": ["/user/bdanzi/parquet/muon/Z/Run2022/AOD/Run2022D/tnp.parquet"],
         "root": [""], 
         "treename": "muon/StandAloneEvents",
-        "luminosity": 2.92,
+        "luminosity": 2.74,
         "version": 1
     },
     {
@@ -62,18 +63,6 @@
     {
         "particle": "muon",
         "resonance": "Z",
-        "era": "Run2022",
-        "subEra": "DY_amcatnlo",
-        "probe": "standAloneMuons",
-        "parquet": ["/user/bdanzi/parquet/muon/Z/Run2022/AOD/DY_amcatnlo/tnp.parquet"],
-        "root": [""],
-        "treename": "muon/StandAloneEvents",
-        "luminosity": -1,
-        "version": 1
-    },
-    {
-        "particle": "muon",
-        "resonance": "Z",
         "era": "Run2022_EE",
         "subEra": "Run2022E",
         "probe": "standAloneMuons",
@@ -81,7 +70,7 @@
         "parquet": ["/user/bdanzi/parquet/muon/Z/Run2022_EE/AOD/Run2022E/tnp.parquet"],
         "root": [""], 
         "treename": "muon/StandAloneEvents",
-        "luminosity": 5.56,
+        "luminosity": 4.74,
         "version": 1
     },
     {
@@ -94,7 +83,7 @@
         "parquet": ["/user/bdanzi/parquet/muon/Z/Run2022_EE/AOD/Run2022F/tnp.parquet"],
         "root": [""], 
         "treename": "muon/StandAloneEvents",
-        "luminosity": 17.61,
+        "luminosity": 8.00,
         "version": 1
     },
     {
@@ -107,7 +96,7 @@
         "parquet": ["/user/bdanzi/parquet/muon/Z/Run2022_EE/AOD/Run2022G/tnp.parquet"],
         "root": [""], 
         "treename": "muon/StandAloneEvents",
-        "luminosity": 3.055,
+        "luminosity": 1.02,
         "version": 1
     },
     {
@@ -122,71 +111,6 @@
         "treename": "muon/StandAloneEvents",
         "luminosity": -1,
         "version": 1
-    },
-    {
-        "particle": "muon",
-        "resonance": "Z",
-        "era": "Run2022_EE",
-        "subEra": "DY_amcatnlo",
-        "probe": "standAloneMuons",
-        "dataTier": "AOD",
-        "parquet": ["/user/bdanzi/parquet/muon/Z/Run2022_EE/AOD/DY_amcatnlo/tnp.parquet"],
-        "root": [""],
-        "treename": "muon/StandAloneEvents",
-        "luminosity": -1,
-        "version": 1
-    },
-    {
-        "particle": "muon",
-        "resonance": "Z",
-        "era": "Run2023",
-        "subEra": "Run2023B",
-        "probe": "generalTracks",
-        "dataTier": "AOD",
-        "parquet": ["/user/bdanzi/parquet/muon/Z/Run2023/AOD/Run2023B/tnp.parquet"],
-        "root": [""],
-        "treename": "muon/StandAloneEvents",
-        "luminosity": 0.67,
-        "version": 1
-    },
-    {
-        "particle": "muon",
-	    "resonance": "Z",
-	    "era": "Run2023",
-	    "subEra": "Run2023C",
-	    "probe": "generalTracks",
-	    "dataTier": "AOD",
-	    "parquet": ["/user/bdanzi/parquet/muon/Z/Run2023/AOD/Run2023C/tnp.parquet"],
-	    "root": [""],
-	    "treename": "muon/StandAloneEvents",
-	    "luminosity": 9.72,
-	    "version": 1
-    },
-    {
-        "particle": "muon",
-	    "resonance": "Z",
-	    "era": "Run2023",
-	    "subEra": "DY_madgraph",
-	    "probe": "generalTracks",
-	    "dataTier": "AOD",
-	    "parquet": ["/user/bdanzi/parquet/muon/Z/Run2023/AOD/DY_madgraph/tnp.parquet"],
-	    "root": [""],
-	    "treename": "muon/StandAloneEvents",
-	    "luminosity": -1,
-	    "version": 1
-    },
-    {
-        "particle": "muon",
-	    "resonance": "Z",
-	    "era": "Run2023",
-	    "subEra": "DY_amcatnlo",
-	    "probe": "generalTracks",
-	    "dataTier": "AOD",
-	    "parquet": ["/user/bdanzi/parquet/muon/Z/Run2023/AOD/DY_amcatnlo/tnp.parquet"], 
-	    "root": [""],
-	    "treename": "muon/StandAloneEvents",
-	    "luminosity": -1,
-	    "version": 1
     }
-]
 
+]

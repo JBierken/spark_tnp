@@ -45,6 +45,8 @@ def get_pileup_condor(resonance, era, subEra):
    '''
    if 'Run2022' in era:
        return None, None
+   if 'Run2022_EE' in era:
+       return None, None
    # get the pileup
    dataPileup = {
        # Note: for now use ReReco version of pileup
@@ -55,7 +57,8 @@ def get_pileup_condor(resonance, era, subEra):
        'Run2018_UL': 'Run2018.root',
        'Run2016': 'Run2016.root',
        'Run2017': 'Run2017.root',
-       'Run2018': 'Run2018.root'
+       'Run2018': 'Run2018.root',
+       #'Run2022': 'Run2018.root'
    }
    mcPileup = {
        # TODO: do the two eras have different profiles?
@@ -65,7 +68,8 @@ def get_pileup_condor(resonance, era, subEra):
        'Run2018_UL': 'Run2018_UL.root',
        'Run2016': 'Run2016.root',
        'Run2017': 'Run2017.root',
-       'Run2018': 'Run2018.root'
+       'Run2018': 'Run2018.root',
+       #'Run2022': 'Run2018_UL.root'
    }
    # get absolute path
    baseDir = os.path.dirname(__file__)
@@ -103,8 +107,6 @@ def get_weighted_dataframe_condor(df, doGen, resonance, era, subEra, shift=None)
    # TODO: implement systematic shifts in the weight such as PDF, pileup, etc.
    # get the pileup
    pileup_ratio, pileup_edges = get_pileup_condor(resonance, era, subEra)
-   if pileup_ratio is None or pileup_edges is None:
-       doGen = False
 
    # build the weights (pileup for MC)
    # TODO: if there is a weight column (ie, gen weight) get that first
@@ -149,9 +151,11 @@ def get_data_pileup(era, era2):
    Get the pileup distribution scalefactors to apply to simulation                                                                                                                                          
    for a given era.                                                                                                                                                                                         
    '''
-   # get the pileup                                                                                                                                                                                         
    if 'Run2022' in era:
        return None, None
+   if 'Run2022_EE' in era:
+       return None, None
+   # get the pileup                                                                                                                                                                                         
    dataPileup = {
        # Note: for now use ReReco version of pileup                                                                                                                                                         
        # TODO: need to redo splitting by 2016 B-F/F-H                                                                                                                                                       
@@ -193,11 +197,6 @@ def get_weighted_data(df, era, era2, shift=None):
                                                                                                                             
    # get the pileup                                                                                                                                                                                         
    pileup_ratio, pileup_edges = get_data_pileup(era, era2)
-   if pileup_ratio is None or pileup_edges is None:
-       weightedDF = df.withColumn('PUweight', F.lit(1.0))
-       weightedDF = weightedDF.withColumn('weight', F.col('PUweight'))
-       weightedDF = weightedDF.withColumn('weight2', F.col('weight') * F.col('weight'))
-       return weightedDF
 
    # build the weights (pileup for Data2)                                                                                                                                               
 
@@ -403,7 +402,7 @@ def compare_one(particle, probe, resonance, era, config_name, muon_ID, _baseDir,
 
     realized = {}
     
-  
+
     ### luminosity 
     lumi = float(lumi)
 
@@ -581,8 +580,10 @@ def compare_one(particle, probe, resonance, era, config_name, muon_ID, _baseDir,
                 CMS_lumi.writeExtraText = True
                 CMS_lumi.extraText = 'Preliminary'
                 if lumi!=-1:
-                    CMS_lumi.lumi = "%0.1f fb^{-1}" % (lumi)
-                CMS_lumi.CMS_lumi(canvas, era, 11)
+                    CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
+                else:
+                    CMS_lumi.lumi_13TeV = ""
+                CMS_lumi.CMS_lumi(canvas, 4, 11)
             
 
                 #
@@ -680,8 +681,10 @@ def compare_one(particle, probe, resonance, era, config_name, muon_ID, _baseDir,
                 CMS_lumi.writeExtraText = True
                 CMS_lumi.extraText = 'Preliminary'
                 if lumi!=-1:
-                    CMS_lumi.lumi = "%0.1f fb^{-1}" % (lumi)
-                CMS_lumi.CMS_lumi(plotPad, era, 11)
+                    CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
+                else:
+                    CMS_lumi.lumi_13TeV = ""
+                CMS_lumi.CMS_lumi(plotPad, 4, 11)
 
 
                 #
@@ -931,8 +934,10 @@ def compare_one(particle, probe, resonance, era, config_name, muon_ID, _baseDir,
                 CMS_lumi.writeExtraText = True
                 CMS_lumi.extraText = 'Preliminary'
                 if lumi!=-1:
-                    CMS_lumi.lumi = "%0.1f fb^{-1}" % (lumi)
-                CMS_lumi.CMS_lumi(canvas, era, 11)
+                    CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
+                else:
+                    CMS_lumi.lumi_13TeV = ""
+                CMS_lumi.CMS_lumi(canvas, 4, 11)
                 
                 # Draw    
                 # Saved as file: ./baseDir/plots/muon/generalTracks/Z/Run2018A_vs_Run2018B/TightID/muon_pt_Run2018A_vs_Run2018B.png 
@@ -1056,8 +1061,10 @@ def compare_one(particle, probe, resonance, era, config_name, muon_ID, _baseDir,
                 CMS_lumi.writeExtraText = True
                 CMS_lumi.extraText = 'Preliminary'
                 if lumi!=-1:
-                    CMS_lumi.lumi = "%0.1f fb^{-1}" % (lumi)
-                CMS_lumi.CMS_lumi(plotPad, era, 11)
+                    CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
+                else:
+                    CMS_lumi.lumi_13TeV = ""
+                CMS_lumi.CMS_lumi(plotPad, 4, 11)
 
 
                 #                                                                                                                                                                                     

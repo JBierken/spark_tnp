@@ -64,8 +64,6 @@ def add_common_multi(parser):
                         help='Prepare condor submit script')
     parser.add_argument('--condorTag', type=str, default='',
                         help='Tag for condor submit script')
-    parser.add_argument('--validate', action='store_true',
-                        help='Scan for problematic fits based on data pulls and probability distributions')
     parser.add_argument('--jobsPerSubmit', '-nj', type=int, default=1,
                         help='Number of jobs to run per submit')
 
@@ -98,8 +96,6 @@ def add_common_fit(parser):
                         help='Filter by efficiency bin')
     parser.add_argument('--recover', action='store_true',
                         help='Auto recover failed fits')
-    parser.add_argument('--doPassPlusFail', action='store_true',
-                        help='Fit total distribution instead of failing')
 
 
 def add_common_prepare(parser):
@@ -111,18 +107,16 @@ def add_common_prepare(parser):
                         help='Skip efficiency plots')
     parser.add_argument('--cutAndCount', action='store_true',
                         help='Use cut and count rather than fits')
-    parser.add_argument('--doPassPlusFail', action='store_true',
-                        help='Efficiency from total distribution instead of failing')
 
-def add_common_interpolate(parser):
+def add_common_prepare_corrected(parser):
     parser.add_argument('--numerator', nargs='*',
                         help='Filter by numerator')
     parser.add_argument('--denominator', nargs='*',
                         help='Filter by denominator')
-    parser.add_argument('--directories', nargs='*',
-                        help='Directories with fit results')
-    parser.add_argument('--workingPoints', nargs='*', 
-                        help='Working points to interpolate')
+    parser.add_argument('--skipPlots', action='store_true',
+                        help='Skip efficiency plots')
+    parser.add_argument('--cutAndCount', action='store_true',
+                        help='Use cut and count rather than fits')
 
 def add_common_compare(parser):
     parser.add_argument('--subera1', default='',
@@ -261,6 +255,21 @@ def parse_command_line(argv):
     add_common_multi(parser_prepare)
     add_common_prepare(parser_prepare)
 
+    parser_prepare_corrected = subparsers.add_parser(
+        'prepare_corrected',
+        help='Prepare efficiencies',
+    )
+    add_common_particle(parser_prepare_corrected)
+    add_common_probe(parser_prepare_corrected)
+    add_common_resonance(parser_prepare_corrected)
+    add_common_era(parser_prepare_corrected)
+    add_common_config(parser_prepare_corrected)
+    if argv[0] != 'convert':
+        add_common_data_tier(parser_prepare_corrected, isPositional=False)
+    add_common_options(parser_prepare_corrected)
+    add_common_multi(parser_prepare_corrected)
+    add_common_prepare_corrected(parser_prepare_corrected)
+
     parser_compare = subparsers.add_parser(
         'compare',
         help='Compare distributions',
@@ -273,19 +282,6 @@ def parse_command_line(argv):
     add_common_options(parser_compare)
     add_common_multi(parser_compare)
     add_common_compare(parser_compare)
-
-    parser_interpolate = subparsers.add_parser(
-        'interpolate',
-        help='Interpolate scale factors',
-    )
-
-    add_common_particle(parser_interpolate)
-    add_common_probe(parser_interpolate)
-    add_common_resonance(parser_interpolate)
-    add_common_era(parser_interpolate)
-    add_common_config(parser_interpolate)
-    add_common_options(parser_interpolate)
-    add_common_interpolate(parser_interpolate)
 
     return parser.parse_args(argv)
 
@@ -350,7 +346,6 @@ def main(argv=None):
             shiftType=args.shiftType,
             efficiencyBin=args.efficiencyBin,
             recover=args.recover,
-            doPassPlusFail=args.doPassPlusFail,
         )
         unit = 'fit'
         desc = 'Fitting'
@@ -370,7 +365,26 @@ def main(argv=None):
             dataTier=args.dataTier,
             ntupleVer=args.ntupleVer,
         )
-        jobs = [job + [args.skipPlots, args.cutAndCount, args.doPassPlusFail] for job in jobs]
+        jobs = [job + [args.skipPlots, args.cutAndCount] for job in jobs]
+        unit = 'efficiency'
+        desc = 'Preparing'
+    elif args.command == 'prepare_corrected':
+        from prepare_corrected import prepare_corrected, build_prepare_corrected_jobs
+        job_fn = prepare_corrected
+        jobs = build_prepare_corrected_jobs(
+            args.particle,
+            args.probe,
+            args.resonance,
+            args.era,
+            Configuration(args.config),
+            numerator=args.numerator,
+            denominator=args.denominator,
+            baseDir=baseDir,
+            registry=args.registry,
+            dataTier=args.dataTier,
+            ntupleVer=args.ntupleVer,
+        )
+        jobs = [job + [args.skipPlots, args.cutAndCount] for job in jobs]
         unit = 'efficiency'
         desc = 'Preparing'
 
@@ -403,23 +417,7 @@ def main(argv=None):
             )
 
         return 0
-
-    elif args.command == 'interpolate':
-        from interpolate import interpolate 
-        interpolate(
-            args.particle,
-            args.probe,
-            args.resonance,
-            args.era,
-            Configuration(args.config), 
-            baseDir=baseDir,
-            num=args.numerator,
-            denom=args.denominator,
-            directories=args.directories, 
-            workingPoints=args.workingPoints,   
-        )
-        return 0
-
+        
     if args.dryrun:
         print('Will run {} {} jobs'.format(len(jobs), args.command))
     elif args.condor:
@@ -461,10 +459,6 @@ def main(argv=None):
         print('Condor submit script written to {}'.format(configpath))
         print('To submit:')
         print('    condor_submit {}'.format(configpath))
-    elif args.validate:
-        from scripts.validateFits import validateFits
-        for job in jobs:
-            validateFits(job[0], baseDir = args.baseDir, resonance=args.resonance, effType=args.config.type() if 'type' in args.config else '', KSCut=0.005, Chi2ProbCut=0.99, nSigFCut=1, nPredvsDataCut=0.02) ##add thresholds on fit failure cuts here
     elif args.workers > 1:
         import concurrent.futures
         with concurrent.futures.ProcessPoolExecutor(args.workers) as executor:
