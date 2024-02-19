@@ -22,12 +22,23 @@ ROOT.gROOT.SetBatch()
 ROOT.gROOT.ProcessLine("gErrorIgnoreLevel = 1001;")
 tdrstyle.setTDRStyle()
 
+def generateClopperPearsonInterval(num,den):
+    confidenceLevel = 0.68
+    alpha = 1 - confidenceLevel
+    
+    lowerLimit = round(ROOT.Math.beta_quantile(alpha/2,num,den-num + 1),4)
+    if num==den:
+        upperLimit=1
+    else:
+        upperLimit = round(ROOT.Math.beta_quantile(1-alpha/2,num + 1,den-num),4)
+    return lowerLimit,upperLimit
+
 def computeEff(n1, n2, e1, e2):
     eff = n1 / (n1 + n2)
-    err = 1 / (n1 + n2) * math.sqrt(
-        e1 * e1 * n2 * n2 + e2 * e2 * n1 * n1) / (n1 + n2)
-    return eff, err
-
+    #err = 1 / (n1 + n2) * math.sqrt(
+    #    e1 * e1 * n2 * n2 + e2 * e2 * n1 * n1) / (n1 + n2)
+    effD, effU = generateClopperPearsonInterval(n1,n1+n2)
+    return eff, effD, effU
 
 def getEff(binName, fname, massRanges, shift=None, cutAndCount=False, resonance='Z'):
     try:
@@ -39,23 +50,8 @@ def getEff(binName, fname, massRanges, shift=None, cutAndCount=False, resonance=
         else:
             hP = tfile.Get('{}_GenPass'.format(binName))
             hF = tfile.Get('{}_GenFail'.format(binName))
-        # hard code Z for now (same as in run_single_fit.py)
-        # AF: TODO make the Z vs JPsi treatment less hacky perhaps
-        if resonance == 'JPsi':
-            if shift == 'massRangeUp':
-                blow, bhigh = 2.96, 3.36
-            elif shift == 'massRangeDown':
-                blow, bhigh = 2.84, 3.24
-            else:
-                blow, bhigh = 2.90, 3.30
-        else:
-            if shift == 'massRangeUp':
-                blow, bhigh = 75, 135
-            elif shift == 'massRangeDown':
-                blow, bhigh = 65, 125
-            else:
-                blow, bhigh = 70, 115
-        #blow, bhigh = massRanges[resonance].get(shift, massRanges[resonance]["nominal"])
+
+        blow, bhigh = massRanges[resonance].get(shift, massRanges[resonance]["nominal"])
 
         bin1 = hP.GetXaxis().FindBin(blow)
         bin2 = hP.GetXaxis().FindBin(bhigh)
@@ -63,102 +59,20 @@ def getEff(binName, fname, massRanges, shift=None, cutAndCount=False, resonance=
         eF = ctypes.c_double(-1.0)
         nP = hP.IntegralAndError(bin1, bin2, eP)
         nF = hF.IntegralAndError(bin1, bin2, eF)
-        eff, err = computeEff(nP, nF, eP.value, eF.value)
+        eff, effD, effU = computeEff(nP, nF, eP.value, eF.value)
+        errD = abs(eff-effD)
+        errU = abs(eff-effU)
         tfile.Close()
-        return eff, err
+        return eff, errD, errU
     except Exception as e:
         print('Exception for getEff', binName)
         print(e)
         # raise e
-        return 1., 0.
-
-
-def getMCEff(binName, fname, massRanges, shift=None, cutAndCount=False, resonance='Z'):
-    # hard code Z for now (same as in run_single_fit.py)
-        # AF: TODO make the Z vs JPsi treatment less hacky perhaps
-    if resonance == 'JPsi':
-        if shift == 'massRangeUp':
-            blow, bhigh = 2.96, 3.36
-        elif shift == 'massRangeDown':
-            blow, bhigh = 2.84, 3.24
-        else:
-            blow, bhigh = 2.90, 3.30
-    else:
-        if shift == 'massRangeUp':
-            blow, bhigh = 75, 135
-        elif shift == 'massRangeDown':
-            blow, bhigh = 65, 125
-        else:
-            blow, bhigh = 70, 115
-    #blow, bhigh = massRanges[resonance].get(shift, massRanges[resonance]["nominal"])
-    try:
-        tfile = ROOT.TFile(fname, 'read')
-        if cutAndCount:
-            hP = tfile.Get('{}_GenPass'.format(binName))
-            hF = tfile.Get('{}_GenFail'.format(binName))
-
-            bin1 = hP.GetXaxis().FindBin(blow)
-            bin2 = hP.GetXaxis().FindBin(bhigh)
-            eP = ctypes.c_double(-1.0)
-            eF = ctypes.c_double(-1.0)
-            nP = hP.IntegralAndError(bin1, bin2, eP)
-            nF = hF.IntegralAndError(bin1, bin2, eF)
-            eff, err = computeEff(nP, nF, eP.value, eF.value)
-        else:
-            fitresP = tfile.Get('{}_resP'.format(binName))
-            fitresF = tfile.Get('{}_resF'.format(binName))
-
-            fitP = fitresP.floatParsFinal().find('nSigP')
-            fitF = fitresF.floatParsFinal().find('nSigF')
-
-            nP = fitP.getVal()
-            nF = fitF.getVal()
-            eP = fitP.getError()
-            eF = fitF.getError()
-
-            hP = tfile.Get('{}_Pass'.format(binName))
-            hF = tfile.Get('{}_Fail'.format(binName))
-
-            bin1 = hP.GetXaxis().FindBin(blow)
-            bin2 = hP.GetXaxis().FindBin(bhigh)
-            ePalt = ctypes.c_double(-1.0)
-            eFalt = ctypes.c_double(-1.0)
-            hP.IntegralAndError(bin1, bin2, ePalt)
-            hF.IntegralAndError(bin1, bin2, eFalt)
-
-            eP = max(eP, ePalt.value)
-            eF = max(eF, eFalt.value)
-            eff, err = computeEff(nP, nF, eP, eF)
-
-        tfile.Close()
-        return eff, err
-
-    except Exception as e:
-        print('Exception for getDataEff', binName)
-        print(e)
-        # raise e
-        return 1., 0.
-
+        return 1., 0., 0.
 
 
 def getDataEff(binName, fname, massRanges, shift=None, cutAndCount=False, resonance='Z'):
-    # hard code Z for now (same as in run_single_fit.py)
-        # AF: TODO make the Z vs JPsi treatment less hacky perhaps
-    if resonance == 'JPsi':
-        if shift == 'massRangeUp':
-            blow, bhigh = 2.96, 3.36
-        elif shift == 'massRangeDown':
-            blow, bhigh = 2.84, 3.24
-        else:
-            blow, bhigh = 2.90, 3.30
-    else:
-        if shift == 'massRangeUp':
-            blow, bhigh = 75, 135
-        elif shift == 'massRangeDown':
-            blow, bhigh = 65, 125
-        else:
-            blow, bhigh = 70, 115
-    #blow, bhigh = massRanges[resonance].get(shift, massRanges[resonance]["nominal"])
+    blow, bhigh = massRanges[resonance].get(shift, massRanges[resonance]["nominal"])
     try:
         tfile = ROOT.TFile(fname, 'read')
         if cutAndCount:
@@ -171,7 +85,7 @@ def getDataEff(binName, fname, massRanges, shift=None, cutAndCount=False, resona
             eF = ctypes.c_double(-1.0)
             nP = hP.IntegralAndError(bin1, bin2, eP)
             nF = hF.IntegralAndError(bin1, bin2, eF)
-            eff, err = computeEff(nP, nF, eP.value, eF.value)
+            eff, effD, effU = computeEff(nP, nF, eP.value, eF.value)
         else:
             fitresP = tfile.Get('{}_resP'.format(binName))
             fitresF = tfile.Get('{}_resF'.format(binName))
@@ -194,71 +108,68 @@ def getDataEff(binName, fname, massRanges, shift=None, cutAndCount=False, resona
             hP.IntegralAndError(bin1, bin2, ePalt)
             hF.IntegralAndError(bin1, bin2, eFalt)
 
-            eP = max(eP, ePalt.value)
-            eF = max(eF, eFalt.value)
-            eff, err = computeEff(nP, nF, eP, eF)
+            eP = min(eP, ePalt.value)
+            eF = min(eF, eFalt.value)
+            eff, effD, effU = computeEff(nP, nF, eP, eF)
 
+        errD = abs(eff-effD)
+        errU = abs(eff-effU)
         tfile.Close()
-        return eff, err
+        return eff, errD, errU
 
     except Exception as e:
         print('Exception for getDataEff', binName)
         print(e)
         # raise e
-        return 1., 0.
+        return 1., 0., 0.
 
 
 def getSF(binName, fname, massRanges, shift=None, resonance='Z'):
-    mcEff, mcErr = getMCEff(binName, fname, massRanges, shift, False, resonance)
-    dataEff, dataErr = getDataEff(binName, fname, massRanges, shift, False, resonance)
+    mcEff, mcErrD, mcErrU = getEff(binName, fname, massRanges, shift, False, resonance)
+    dataEff, dataErrD, dataErrU = getDataEff(binName, fname, massRanges, shift, False, resonance)
     sf = dataEff / mcEff if mcEff else 0.0
     sf_err = 0.0
     if dataEff and mcEff:
+        dataErr = max(dataErrD, dataErrU)
+        mcErr = max(mcErrD, mcErrU)
         sf_err = sf * ((dataErr / dataEff)**2 + (mcErr / mcEff)**2)**0.5
-    return sf, sf_err, dataEff, dataErr, mcEff, mcErr
+    return sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU
+  
 
-def getSF_fitdataMC(binName, fname_data, fname_mc,massRanges, shift=None, resonance='Z'):
-    mcEff, mcErr = getMCEff(binName, fname_mc, massRanges, shift, False, resonance)
-    dataEff, dataErr = getDataEff(binName, fname_data, massRanges, shift, False, resonance)
-    sf = dataEff / mcEff if mcEff else 0.0
-    sf_err = 0.0
-    if dataEff and mcEff:
-        sf_err = sf * ((dataErr / dataEff)**2 + (mcErr / mcEff)**2)**0.5
-    return sf, sf_err, dataEff, dataErr, mcEff, mcErr
 
 def getSF_cutAndCount(binName, fnameData, fnameMC, massRanges, shift=None, resonance='Z'):
-    mcEff, mcErr = getEff(binName, fnameMC, massRanges, shift, True, resonance)
-    dataEff, dataErr = getDataEff(binName, fnameData, massRanges, shift, True, resonance)
+    mcEff, mcErrD, mcErrU = getEff(binName, fnameMC, massRanges, shift, True, resonance)
+    dataEff, dataErrD, dataErrU = getDataEff(binName, fnameData, massRanges, shift, True, resonance)
     sf = dataEff / mcEff if mcEff else 0.0
     sf_err = 0.0
     if dataEff and mcEff:
+        dataErr = max(dataErrD, dataErrU)
+        mcErr = max(mcErrD, mcErrU)
         sf_err = sf * ((dataErr / dataEff)**2 + (mcErr / mcEff)**2)**0.5
-    return sf, sf_err, dataEff, dataErr, mcEff, mcErr
+    return sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU
 
 
-#def getSyst(binName, fname, fitTypes, shiftTypes, massRanges, resonance='Z'):
-#    sf, sf_err, dataEff, dataErr, mcEff, mcErr = getSF(binName, fname, massRanges, resonance=resonance)
-def getSyst(binName, fname_data, fname_mc,fitTypes, shiftTypes, massRanges, resonance='Z'):
-    sf, sf_err, dataEff, dataErr, mcEff, mcErr = getSF_fitdataMC(binName, fname_data, fname_mc, massRanges, resonance=resonance)
+def getSyst(binName, fname, fitTypes, shiftTypes, massRanges, resonance='Z'):
+    sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU = getSF(binName, fname, massRanges, resonance=resonance)
 
     syst = {}
     for isyst in fitTypes:
         systfname = fname.replace('Nominal', isyst)
-        # sf, sf_err, dataEff, dataErr, mcEff, mcErr
+        # sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU
         tmp = getSF(binName, systfname, massRanges, isyst, resonance=resonance)
         syst[isyst] = {
             'sf': tmp[0],
             'err': abs(tmp[0]-sf),
             'dataEff': tmp[2],
             'dataErr': abs(tmp[2]-dataEff),
-            'mcEff': tmp[4],
-            'mcErr': abs(tmp[4]-mcEff),
+            'mcEff': tmp[5],
+            'mcErr': abs(tmp[5]-mcEff),
         }
 
     for isyst in shiftTypes:
         systUpfname = fname.replace('Nominal', isyst+'Up')
         systDnfname = fname.replace('Nominal', isyst+'Down')
-        # sf, sf_err, dataEff, dataErr, mcEff, mcErr
+        # sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU
         tmpUp = getSF(binName, systUpfname, massRanges, isyst+'Up'  , resonance=resonance)
         tmpDn = getSF(binName, systDnfname, massRanges, isyst+'Down', resonance=resonance)
         tmp = [
@@ -266,8 +177,8 @@ def getSyst(binName, fname_data, fname_mc,fitTypes, shiftTypes, massRanges, reso
             (abs(tmpUp[0]-sf)+abs(tmpDn[0]-sf))/2,
             (tmpUp[2]+tmpDn[2])/2,
             (abs(tmpUp[2]-dataEff)+abs(tmpDn[2]-dataEff))/2,
-            (tmpUp[4]+tmpDn[4])/2,
-            (abs(tmpUp[4]-mcEff)+abs(tmpDn[4]-mcEff))/2,
+            (tmpUp[5]+tmpDn[5])/2,
+            (abs(tmpUp[5]-mcEff)+abs(tmpDn[5]-mcEff))/2,
         ]
         syst[isyst] = {
             'sf': tmp[0],
@@ -282,38 +193,38 @@ def getSyst(binName, fname_data, fname_mc,fitTypes, shiftTypes, massRanges, reso
             'err': abs(tmpUp[0]-sf),
             'dataEff': tmpUp[2],
             'dataErr': abs(tmpUp[2]-dataEff),
-            'mcEff': tmpUp[4],
-            'mcErr': abs(tmpUp[4]-mcEff),
+            'mcEff': tmpUp[5],
+            'mcErr': abs(tmpUp[5]-mcEff),
         }
         syst[isyst+'Down'] = {
             'sf': tmpDn[0],
             'err': abs(tmpDn[0]-sf),
             'dataEff': tmpDn[2],
             'dataErr': abs(tmpDn[2]-dataEff),
-            'mcEff': tmpDn[4],
-            'mcErr': abs(tmpDn[4]-mcEff),
+            'mcEff': tmpDn[5],
+            'mcErr': abs(tmpDn[5]-mcEff),
         }
 
     return syst
 
 
 def getSyst_cutAndCount(binName, fnameData, fnameMC, fitTypes, shiftTypes, massRanges, resonance='Z'):
-    sf, sf_err, dataEff, dataErr, mcEff, mcErr = getSF_cutAndCount(
+    sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU = getSF_cutAndCount(
         binName, fnameData, fnameMC, massRanges, resonance=resonance)
 
     syst = {}
     for isyst in fitTypes:
         systfnameData = fnameData.replace('Nominal', isyst)
         systfnameMC = fnameMC.replace('Nominal', isyst)
-        # sf, sf_err, dataEff, dataErr, mcEff, mcErr
+        # sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU
         tmp = getSF_cutAndCount(binName, systfnameData, systfnameMC, massRanges, isyst, resonance=resonance)
         syst[isyst] = {
             'sf': tmp[0],
             'err': abs(tmp[0]-sf),
             'dataEff': tmp[2],
             'dataErr': abs(tmp[2]-dataEff),
-            'mcEff': tmp[4],
-            'mcErr': abs(tmp[4]-mcEff),
+            'mcEff': tmp[5],
+            'mcErr': abs(tmp[5]-mcEff),
         }
 
     for isyst in shiftTypes:
@@ -321,7 +232,7 @@ def getSyst_cutAndCount(binName, fnameData, fnameMC, fitTypes, shiftTypes, massR
         systDnfnameData = fnameData.replace('Nominal', isyst+'Down')
         systUpfnameMC = fnameMC.replace('Nominal', isyst+'Up')
         systDnfnameMC = fnameMC.replace('Nominal', isyst+'Down')
-        # sf, sf_err, dataEff, dataErr, mcEff, mcErr
+        # sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU
         tmpUp = getSF_cutAndCount(binName, systUpfnameData,
                                   systUpfnameMC, massRanges, isyst+'Up'  , resonance=resonance)
         tmpDn = getSF_cutAndCount(binName, systDnfnameData,
@@ -331,8 +242,8 @@ def getSyst_cutAndCount(binName, fnameData, fnameMC, fitTypes, shiftTypes, massR
             (abs(tmpUp[0]-sf)+abs(tmpDn[0]-sf))/2,
             (tmpUp[2]+tmpDn[2])/2,
             (abs(tmpUp[2]-dataEff)+abs(tmpDn[2]-dataEff))/2,
-            (tmpUp[4]+tmpDn[4])/2,
-            (abs(tmpUp[4]-mcEff)+abs(tmpDn[4]-mcEff))/2,
+            (tmpUp[5]+tmpDn[5])/2,
+            (abs(tmpUp[5]-mcEff)+abs(tmpDn[5]-mcEff))/2,
         ]
         syst[isyst] = {
             'sf': tmp[0],
@@ -347,16 +258,16 @@ def getSyst_cutAndCount(binName, fnameData, fnameMC, fitTypes, shiftTypes, massR
             'err': abs(tmpUp[0]-sf),
             'dataEff': tmpUp[2],
             'dataErr': abs(tmpUp[2]-dataEff),
-            'mcEff': tmpUp[4],
-            'mcErr': abs(tmpUp[4]-mcEff),
+            'mcEff': tmpUp[5],
+            'mcErr': abs(tmpUp[5]-mcEff),
         }
         syst[isyst+'Down'] = {
             'sf': tmpDn[0],
             'err': abs(tmpDn[0]-sf),
             'dataEff': tmpDn[2],
             'dataErr': abs(tmpDn[2]-dataEff),
-            'mcEff': tmpDn[4],
-            'mcErr': abs(tmpDn[4]-mcEff),
+            'mcEff': tmpDn[5],
+            'mcErr': abs(tmpDn[5]-mcEff),
         }
 
     return syst
@@ -372,14 +283,14 @@ def prepare(baseDir, particle, probe, resonance, era,
     effName = get_eff_name(num, denom)
     extEffName = get_extended_eff_name(num, denom, variableLabels)
     binning = config.binning()
-    dataSubEra, mcSubEra = get_data_mc_sub_eras(resonance, era)
+    dataSubEra, mcSubEra, mcSubEraAlt = get_data_mc_sub_eras(resonance, era)
 
     systList = config.get('systematics',
                           {x: {'fitTypes': [],
                                'shiftTypes': []}
                            for x in ['SF', 'dataEff', 'mcEff']})
 
-    massRanges = config.get("massRanges") # Start from a sensible default, but allow customization
+    massRanges = config.massRanges() # Start from a sensible default, but allow customization
 
     def get_variable_name_pretty(variableLabel):
         variables = config.variables()
@@ -424,6 +335,8 @@ def prepare(baseDir, particle, probe, resonance, era,
         hist_dataEff.GetYaxis().SetTitle('Efficiency')
     if nVars == 2:
         hist_dataEff.GetZaxis().SetTitle('Efficiency')
+    hist_dataEff_errD = hist_dataEff.Clone(extEffName+'_efficiencyData_errD')
+    hist_dataEff_errU = hist_dataEff.Clone(extEffName+'_efficiencyData_errU')
     hist_dataEff_stat = hist_dataEff.Clone(extEffName+'_efficiencyData_stat')
     hist_dataEff_syst = hist_dataEff.Clone(extEffName+'_efficiencyData_syst')
     histList_dataEff_syst = {
@@ -433,6 +346,8 @@ def prepare(baseDir, particle, probe, resonance, era,
     if nVars == 2:
         histList_dataEff_syst['combined_syst'].GetZaxis().SetTitle('Uncertainty')
     hist_mcEff = hist_dataEff.Clone(extEffName+'_efficiencyMC')
+    hist_mcEff_errD = hist_dataEff.Clone(extEffName+'_efficiencyMC_errD')
+    hist_mcEff_errU = hist_dataEff.Clone(extEffName+'_efficiencyMC_errU')
     hist_mcEff_stat = hist_dataEff.Clone(extEffName+'_efficiencyMC_stat')
     hist_mcEff_syst = hist_dataEff.Clone(extEffName+'_efficiencyMC_syst')
     histList_mcEff_syst = {
@@ -505,11 +420,6 @@ def prepare(baseDir, particle, probe, resonance, era,
                                     resonance, era,
                                     fitType, effName,
                                     binName + '.root')
-        mcFNameFit = os.path.join(baseDir, 'fits_mc',
-                                    particle, probe,
-                                    resonance, era,
-                                    fitType, effName,
-                                    binName + '.root')
         dataFNameCNC = os.path.join(baseDir, 'flat',
                                     particle, probe,
                                     resonance, era,
@@ -520,14 +430,16 @@ def prepare(baseDir, particle, probe, resonance, era,
                                   resonance, era,
                                   mcSubEra, 'Nominal',
                                   extEffName + '.root')
+        # sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU
         if cutAndCount:
-            sf, sf_stat, dataEff, dataStat, mcEff, mcStat = getSF_cutAndCount(
+            sf, sf_stat, dataEff, dataStatD, dataStatU, mcEff, mcStatD, mcStatU = getSF_cutAndCount(
                 binName, dataFNameCNC, mcFNameCNC, massRanges, resonance=resonance)
         else:
-            #sf, sf_stat, dataEff, dataStat, mcEff, mcStat = getSF(
-            #    binName, dataFNameFit, massRanges, resonance=resonance)
-            sf, sf_stat, dataEff, dataStat, mcEff, mcStat = getSF_fitdataMC(
-                binName, dataFNameFit, mcFNameFit, massRanges, shift=None,resonance=resonance)
+            sf, sf_stat, dataEff, dataStatD, dataStatU, mcEff, mcStatD, mcStatU = getSF(
+                binName, dataFNameFit, massRanges, resonance=resonance)
+        #As statistical error, we take the maximum between up and down asym. errors
+        dataStat = max(dataStatD, dataStatU)
+        mcStat = max(mcStatD, mcStatU)
         fitTypes = set(systList['SF']['fitTypes']
                        + systList['dataEff']['fitTypes']
                        + systList['mcEff']['fitTypes'])
@@ -538,10 +450,9 @@ def prepare(baseDir, particle, probe, resonance, era,
             sf_syst = getSyst_cutAndCount(binName, dataFNameCNC, mcFNameCNC,
                                           fitTypes, shiftTypes, massRanges, resonance=resonance)
         else:
-            #sf_syst = getSyst(binName, dataFNameFit,
-            #                  fitTypes, shiftTypes, massRanges, resonance=resonance)
-            sf_syst = getSyst(binName, dataFNameFit, mcFNameFit,
-                                fitTypes,shiftTypes,massRanges,resonance=resonance)
+            sf_syst = getSyst(binName, dataFNameFit,
+                              fitTypes, shiftTypes, massRanges, resonance=resonance)
+
         combined_syst = {}
         for kind in ['SF', 'dataEff', 'mcEff']:
             combined_syst[kind] = 0
@@ -554,10 +465,13 @@ def prepare(baseDir, particle, probe, resonance, era,
                                      systList[kind]['shiftTypes']):
                 combined_syst[kind] += sf_syst[t][errKey]**2
             combined_syst[kind] = combined_syst[kind]**0.5
-
         sf_err = (sf_stat**2 + combined_syst['SF']**2)**0.5
         dataErr = (dataStat**2 + combined_syst['dataEff']**2)**0.5
+        dataErrD = (dataStatD**2 + combined_syst['dataEff']**2)**0.5
+        dataErrU = (dataStatU**2 + combined_syst['dataEff']**2)**0.5
         mcErr = (mcStat**2 + combined_syst['mcEff']**2)**0.5
+        mcErrD = (mcStatD**2 + combined_syst['mcEff']**2)**0.5
+        mcErrU = (mcStatU**2 + combined_syst['mcEff']**2)**0.5
         _out['value'] = sf
         _out['stat'] = sf_stat
         _out['syst'] = combined_syst['SF']
@@ -582,11 +496,15 @@ def prepare(baseDir, particle, probe, resonance, era,
         set_bin(histList_syst['combined_syst'], index,
                 combined_syst['SF'], -1)
         set_bin(hist_dataEff, index, dataEff, dataErr)
+        set_bin(hist_dataEff_errD, index, dataEff, dataErrD)
+        set_bin(hist_dataEff_errU, index, dataEff, dataErrU)
         set_bin(hist_dataEff_stat, index, dataEff, dataStat)
         set_bin(hist_dataEff_syst, index, dataEff, combined_syst['dataEff'])
         set_bin(histList_dataEff_syst['combined_syst'], index,
                 combined_syst['dataEff'], -1)
         set_bin(hist_mcEff, index, mcEff, mcErr)
+        set_bin(hist_mcEff_errD, index, mcEff, mcErrD)
+        set_bin(hist_mcEff_errU, index, mcEff, mcErrU)
         set_bin(hist_mcEff_stat, index, mcEff, mcStat)
         set_bin(hist_mcEff_syst, index, mcEff, combined_syst['mcEff'])
         set_bin(histList_mcEff_syst['combined_syst'], index,
@@ -614,9 +532,13 @@ def prepare(baseDir, particle, probe, resonance, era,
     hists[extEffName+'_stat'] = hist_stat
     hists[extEffName+'_syst'] = hist_syst
     hists[extEffName+'_efficiencyData'] = hist_dataEff
+    hists[extEffName+'_efficiencyData_errD'] = hist_dataEff_errD
+    hists[extEffName+'_efficiencyData_errU'] = hist_dataEff_errU
     hists[extEffName+'_efficiencyData_stat'] = hist_dataEff_stat
     hists[extEffName+'_efficiencyData_syst'] = hist_dataEff_syst
     hists[extEffName+'_efficiencyMC'] = hist_mcEff
+    hists[extEffName+'_efficiencyMC_errD'] = hist_mcEff_errD
+    hists[extEffName+'_efficiencyMC_errU'] = hist_mcEff_errU
     hists[extEffName+'_efficiencyMC_stat'] = hist_mcEff_stat
     hists[extEffName+'_efficiencyMC_syst'] = hist_mcEff_syst
     for iKey in histList_syst.keys():
@@ -736,9 +658,7 @@ def prepare(baseDir, particle, probe, resonance, era,
             CMS_lumi.cmsText = 'CMS'
             CMS_lumi.writeExtraText = True
             CMS_lumi.extraText = 'Preliminary'
-            #CMS_lumi.extraText = 'Work in progress'
-            #CMS_lumi.lumi_13TeV = "%0.2f fb^{-1}" % (lumi)
-            CMS_lumi.lumi_13p6TeV = "%0.2f fb^{-1}" % (lumi)
+            CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
             CMS_lumi.CMS_lumi(canvas, 4, 0)
 
             if effType == 'trig':
@@ -795,10 +715,8 @@ def prepare(baseDir, particle, probe, resonance, era,
 
                     CMS_lumi.cmsText = 'CMS'
                     CMS_lumi.writeExtraText = True
-                    #CMS_lumi.extraText = 'Preliminary'
-                    CMS_lumi.extraText = 'Work in progress'
-                    #CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
-                    CMS_lumi.lumi_13p6TeV = "%0.2f fb^{-1}" % (lumi)
+                    CMS_lumi.extraText = 'Preliminary'
+                    CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
                     CMS_lumi.CMS_lumi(canvas, 4, 0)
 
                     if effType == 'trig':
@@ -815,20 +733,27 @@ def prepare(baseDir, particle, probe, resonance, era,
 
     # gets a graph projection of an ND histogram for a given axis
     # with axis index (ie x,y,z = 0,1,2) and other dimensions ind
-    def get_graph(hist, axis, axis_ind, *ind):
+    # takes as input two histograms to account for asymmetric errors
+    def get_graph(histD, histU, axis, axis_ind, *ind):
         ind = list(ind)
         ni = axis.GetNbins()
         xvals = [axis.GetBinCenter(i+1) for i in range(ni)]
         xvals_errLow = [xvals[i]-axis.GetBinLowEdge(i+1) for i in range(ni)]
         xvals_errHigh = [axis.GetBinUpEdge(i+1)-xvals[i] for i in range(ni)]
         yvals = [
-            hist.GetBinContent(
+            histD.GetBinContent(
                 *ind[:axis_ind]
                 + [i+1]
                 + ind[axis_ind:]
             ) for i in range(ni)]
-        yvals_err = [
-            hist.GetBinError(
+        yvals_errLow = [
+            histD.GetBinError(
+                *ind[:axis_ind]
+                + [i+1]
+                + ind[axis_ind:]
+            ) for i in range(ni)]
+        yvals_errHigh = [
+            histU.GetBinError(
                 *ind[:axis_ind]
                 + [i+1]
                 + ind[axis_ind:]
@@ -839,17 +764,16 @@ def prepare(baseDir, particle, probe, resonance, era,
             array('d', yvals),
             array('d', xvals_errLow),
             array('d', xvals_errHigh),
-            array('d', yvals_err),
-            array('d', yvals_err),
+            array('d', yvals_errLow),
+            array('d', yvals_errHigh),
         )
         return graph
 
     # plot the efficiencies
     # some default colors for plots
-    #colors = [ROOT.kBlack, ROOT.kViolet-2,ROOT.kBlue, ROOT.kRed, ROOT.kGreen+2, #for trackeronlyseed
-    colors = [ROOT.kBlack, ROOT.kMagenta, ROOT.kViolet-2, ROOT.kRed, ROOT.kGreen+2, #for alltracks
+    colors = [ROOT.kBlack, ROOT.kBlue, ROOT.kRed, ROOT.kGreen+2,
               ROOT.kMagenta+1, ROOT.kOrange+1, ROOT.kTeal-1,
-              ROOT.kRed-3, ROOT.kBlue]
+              ROOT.kRed-3, ROOT.kCyan+2]
 
     def plot_1d_eff(savename, graphs,
                     labels=['Data', 'Simulation'],
@@ -861,77 +785,26 @@ def prepare(baseDir, particle, probe, resonance, era,
         for gi in range(ng):
             graphs[gi].SetLineColor(colors[gi])
             graphs[gi].SetMarkerColor(colors[gi])
-            if gi == 1:
-                graphs[gi].SetMarkerStyle(21)
-            graphs[gi].SetLineWidth(2)
-            mg.Add(graphs[gi],'AP0')
-        #graphs[0].SetLineColor(colors[0])
-        #graphs[0].SetMarkerColor(colors[0])
-        #graphs[0].SetLineWidth(2)
-        #mg.Add(graphs[0],'AP0')
-        #graphs[1].SetLineColor(colors[1])
-        #graphs[1].SetFillColor(colors[1])
-        #graphs[1].SetLineWidth(2)
-        #mg.Add(graphs[1],'AE2')
-        
+            mg.Add(graphs[gi])
+
         canvas = ROOT.TCanvas(savename, savename, 800, 800)
-        # Added
-        ########################
-        #ratio = graphs[0].Clone()
-        #ratio.Divide(graphs[0],graphs[1], opt ="pois")
-        #ratio.SetTitle("")
-        #ratio.GetXaxis().SetLabelSize(0.12)
-        #ratio.GetXaxis().SetTitleSize(0.12)
-        #ratio.GetYaxis().SetLabelSize(0.1)
-        #ratio.GetYaxis().SetTitleSize(0.15)
-        #ratio.GetYaxis().SetTitle(" Data /MC")
-        #ratio.GetYaxis().SetTitleOffset(0.3)
-        #canvas.Clear()
-        #canvas.cd()
-        #pad2 = ROOT.TPad(" pad2 "," pad2 " ,0 ,0.05 ,1 ,0.3)
-        #pad2.SetTopMargin(0)
-        #pad2.SetBottomMargin(0.25)
-        #pad2.Draw()
-        #pad1 = ROOT.TPad(" pad1 "," pad1 " ,0 ,0.3 ,1 ,1)
-        #pad1.SetBottomMargin(0)
-        #pad1.Draw()
-        #pad1.cd()
-        ##graphs[0].Draw('AP0')
-        ##graphs[1].Draw('AE2 same')
-        #mg.GetXaxis().SetLabelSize(0)
-        #mg.GetXaxis().SetTitleSize(0)
-        #mg.GetYaxis().SetTitleSize(0.05)
-        #######################
-        #mg.Draw('A')
         mg.Draw('AP0')
         mg.GetXaxis().SetTitle(xlabel)
         if xRange:
             mg.GetXaxis().SetLimits(*xRange)
-            mg.GetXaxis().SetLabelSize(0.04)
-            mg.GetXaxis().SetLabelOffset(0.01)
-            mg.GetXaxis().SetTitleSize(0.05)
-            mg.GetXaxis().SetTitleOffset(1)
             mg.GetXaxis().SetRangeUser(*xRange)
         mg.GetYaxis().SetTitle(ylabel)
-        mg.GetYaxis().SetTitleSize(0.05)
-        mg.GetYaxis().SetLabelSize(0.04)
-        mg.GetYaxis().SetLabelOffset(0.01)
-        mg.GetYaxis().SetTitleOffset(1.5)
         if effType == 'trig':
             mg.GetYaxis().SetRangeUser(0.6, 1.20)
         else:
-            mg.GetYaxis().SetRangeUser(0.75, 1.10)
-        legend = ROOT.TLegend(0.55, 0.30, 0.94, 0.5)
+            mg.GetYaxis().SetRangeUser(0.8, 1.10)
+        legend = ROOT.TLegend(0.5, 0.70, 0.92, 0.92)
         legend.SetTextFont(42)
-        legend.SetTextSize(0.03)
-        legend.SetBorderSize(1)
+        legend.SetBorderSize(0)
         legend.SetFillColor(0)
         for gi in range(ng):
-            legend.AddEntry(graphs[gi], labels[gi], 'LP')
-        #legend.AddEntry(graphs[0], labels[0], 'LP')
-        #legend.AddEntry(graphs[1], labels[1], 'f')
-        #legend.SetHeader('Tracker-only Seeded Tracks','C')# {} / {}'.format(num, denom)) #trackeronly
-        legend.SetHeader('All Tracks','C')# {} / {}'.format(num, denom)) #alltracks 
+            legend.AddEntry(graphs[gi], labels[gi], 'l')
+        legend.SetHeader('{} / {}'.format(num, denom))
         legend.Draw()
 
         if additional_text:
@@ -949,19 +822,10 @@ def prepare(baseDir, particle, probe, resonance, era,
 
         CMS_lumi.cmsText = 'CMS'
         CMS_lumi.writeExtraText = True
-        #CMS_lumi.extraText = 'Preliminary'
-        CMS_lumi.extraText = 'Work in progress'
-        CMS_lumi.lumi_13p6TeV = "%0.2f fb^{-1}" % (lumi)
-        #CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
+        CMS_lumi.extraText = 'Preliminary'
+        CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
         CMS_lumi.CMS_lumi(canvas, 4, 11)
 
-        #######Added####
-        #pad2.cd()
-        #ratio.GetYaxis().SetRangeUser(0.5 ,1.5)
-        #ratio.GetYaxis().SetNdivisions(207)
-        #ratio.GetYaxis().GetGridy()
-        #ratio.Draw("AP0")
-        #########
         canvas.Modified()
         canvas.Update()
         canvas.Print('{}.png'.format(savename))
@@ -990,9 +854,11 @@ def prepare(baseDir, particle, probe, resonance, era,
                    for vl in otherVariableLabels]
         if indices:
             for index in itertools.product(*indices):
-                graph_data = get_graph(hists[extEffName+'_efficiencyData'],
+                graph_data = get_graph(hists[extEffName+'_efficiencyData_errD'],
+                                       hists[extEffName+'_efficiencyData_errU'],
                                        axes[vi], vi, *index)
-                graph_mc = get_graph(hists[extEffName+'_efficiencyMC'],
+                graph_mc = get_graph(hists[extEffName+'_efficiencyMC_errD'],
+                                     hists[extEffName+'_efficiencyMC_errU'],
                                      axes[vi], vi, *index)
                 xlabel = get_variable_name_pretty(variableLabel)
                 ylabel = 'Efficiency'
@@ -1021,13 +887,15 @@ def prepare(baseDir, particle, probe, resonance, era,
                             xRange=xRange, additional_text=additional_text)
 
                 # dataEfficiency systs
-                graphs = [get_graph(hists[extEffName+'_efficiencyData'],
+                graphs = [get_graph(hists[extEffName+'_efficiencyData_errD'],
+                                    hists[extEffName+'_efficiencyData_errU'],
                                     axes[vi], vi, *index)]
                 labels = ['Nominal']
                 for iSyst in itertools.chain(
                         systList['dataEff']['fitTypes'],
                         systList['dataEff']['shiftTypes']):
                     graphs += [get_graph(
+                        hists[extEffName+'_efficiencyData_'+iSyst],
                         hists[extEffName+'_efficiencyData_'+iSyst],
                         axes[vi], vi, *index)]
                     labels += [iSyst]
@@ -1043,13 +911,15 @@ def prepare(baseDir, particle, probe, resonance, era,
                             xRange=xRange, additional_text=additional_text)
 
                 # mcEfficiency systs
-                graphs = [get_graph(hists[extEffName+'_efficiencyMC'],
+                graphs = [get_graph(hists[extEffName+'_efficiencyMC_errD'],
+                                    hists[extEffName+'_efficiencyMC_errU'],
                                     axes[vi], vi, *index)]
                 labels = ['Nominal']
                 for iSyst in itertools.chain(
                         systList['mcEff']['fitTypes'],
                         systList['mcEff']['shiftTypes']):
                     graphs += [get_graph(
+                        hists[extEffName+'_efficiencyMC_'+iSyst],
                         hists[extEffName+'_efficiencyMC_'+iSyst],
                         axes[vi], vi, *index)]
                     labels += [iSyst]
@@ -1066,9 +936,11 @@ def prepare(baseDir, particle, probe, resonance, era,
 
         # if no indices, easier, just itself
         else:
-            graph_data = get_graph(hists[extEffName+'_efficiencyData'],
+            graph_data = get_graph(hists[extEffName+'_efficiencyData_errD'],
+                                   hists[extEffName+'_efficiencyData_errU'],
                                    axes[vi], vi)
-            graph_mc = get_graph(hists[extEffName+'_efficiencyMC'],
+            graph_mc = get_graph(hists[extEffName+'_efficiencyMC_errD'],
+                                 hists[extEffName+'_efficiencyMC_errU'],
                                  axes[vi], vi)
 
             xlabel = get_variable_name_pretty(variableLabel)

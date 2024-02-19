@@ -6,7 +6,7 @@
         ["LoosePFIso", "LooseID"],
         ["TightPFIso", "TightID"]
     ],
-    "selection": "tag_isTight==1 and tag_pt>26 and tag_abseta<2.4 and tag_HLT_IsoMu24_v==1 and tag_PFIso<0.2 and pair_probeMultiplicity and IP_cuts",
+    "selection": "tag_isTight==1 and tag_pt>26 and tag_abseta<2.4 and tag_HLT_IsoMu24_v==1 and tag_PFIso<0.2 and pair_probeMultiplicity==1 and IP_cuts",
     "definitions": {
 	"IP_cuts": "abs(pair_dz)<0.5 and abs(tag_dz) < 0.5 and abs(probe_dz) < 0.5 and abs(tag_dxy) < 0.2 and abs(probe_dxy) < 0.2",
 	"tag_PFIso": "(tag_pfIso04_charged + (0.5 * (((tag_pfIso04_neutral+tag_pfIso04_photon-0.5*tag_pfIso04_sumPU) + (0.0)) + abs((tag_pfIso04_neutral+tag_pfIso04_photon-0.5*tag_pfIso04_sumPU) - (0.0)))))/tag_pt",

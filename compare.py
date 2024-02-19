@@ -40,11 +40,10 @@ def get_data_pileup(era, era2):
    Get the pileup distribution scalefactors to apply to simulation                                                                                                                                          
    for a given era.                                                                                                                                                                                         
    '''
+   # get the pileup                                                                                                                                                                                         
    if 'Run2022' in era:
        return None, None
-   if 'Run2022_EE' in era:
-       return None, None
-   # get the pileup                                                                                                                                                                                         
+
    dataPileup = {
        # Note: for now use ReReco version of pileup                                                                                                                                                         
        # TODO: need to redo splitting by 2016 B-F/F-H                                                                                                                                                       
@@ -311,7 +310,6 @@ def compare(particle, probe, resonance, era, config, **kwargs):
 
     if _FullEra:
         
-
         use_Data = False
         use_MC = False
         
@@ -355,7 +353,6 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                 realized[subEra] = run_files(particle, probe, resonance, era, subEra, config, spark, muon_ID, False, '')
             
                 
-            
             #binning = config['binning']
             #variables = config['variables']
             #binVariables = config['binVariables']
@@ -456,7 +453,7 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                     canvas = ROOT.TCanvas(cName, cName, 900, 800)
                     ROOT.gStyle.SetPaintTextFormat("5.3f")
                     #ROOT.gStyle.SetPaintTextFormat("4.1f")
-                    canvas.SetRightMargin(0.04)
+                    canvas.SetRightMargin(0.24)
                 
                 
                     # Make up 
@@ -533,22 +530,22 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                         
                     canvas.Draw()        
                     canvas.SaveAs(_baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" +
-                                  era + "/" + muon_ID + "/c_" + var_name + "_muon_val.pdf")  #Save .png file 
+                                  era + "/" + muon_ID + "/c_" + var_name + "_muon_val.png")  #Save .png file 
                 
                 
                     print("\n")
                     print(str(var_name) + " distribution saved at: " + _baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" +
-                          era + "/" + muon_ID + "/c_" + var_name + "_muon_val.pdf")
+                          era + "/" + muon_ID + "/c_" + var_name + "_muon_val.png")
                     
                     
                     canvas.SetLogy()
                     canvas.Update()
                     canvas.Draw()
                     canvas.SaveAs(_baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" +
-                                  era + "/" + muon_ID + "/log_c_" + var_name + "_muon_val.pdf")  #Save .png file 
+                                  era + "/" + muon_ID + "/log_c_" + var_name + "_muon_val.png")  #Save .png file 
 
                     print(str(var_name) + " distribution saved at: " + _baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" +
-                          era + "/" + muon_ID + "/log_c_" + var_name + "_muon_val.pdf")
+                          era + "/" + muon_ID + "/log_c_" + var_name + "_muon_val.png")
                     
                     print("\n")
                     
@@ -661,11 +658,11 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                     
                     
                     rcanvas.Draw()
-                    rcanvas.SaveAs(_baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" + era + "/" + muon_ID + "/c_ratio_" + var_name + "_muon_val.pdf")  #Save .png file           
+                    rcanvas.SaveAs(_baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" + era + "/" + muon_ID + "/c_ratio_" + var_name + "_muon_val.png")  #Save .png file           
                     
                     print("\n")
                     print(str(var_name) + " distribution saved at: " + _baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" +
-                          era + "/" + muon_ID + "/c_ratio" + var_name + "_muon_val.pdf")
+                          era + "/" + muon_ID + "/c_ratio" + var_name + "_muon_val.png")
                     
 
                     rcanvas.cd(1)
@@ -674,10 +671,10 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                     rcanvas.Update()
                     rcanvas.Draw()
                     
-                    rcanvas.SaveAs(_baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" + era + "/" + muon_ID +  "/log_c_ratio_" + var_name + "_muon_val.pdf")  #Save .png file           
+                    rcanvas.SaveAs(_baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" + era + "/" + muon_ID +  "/log_c_ratio_" + var_name + "_muon_val.png")  #Save .png file           
 
                     print(str(var_name) + " distribution saved at: " + _baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" +
-                          era + "/" + muon_ID + "/log_c_ratio" + var_name + "_muon_val.pdf")
+                          era + "/" + muon_ID + "/log_c_ratio" + var_name + "_muon_val.png")
 
                     print("\n")
                     
@@ -792,7 +789,7 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                     cName = var_name
                     canvas = ROOT.TCanvas(cName, cName, 900, 800)
                     ROOT.gStyle.SetPaintTextFormat("5.3f")
-                    canvas.SetRightMargin(0.04)
+                    canvas.SetRightMargin(0.24)
                     
                     
                     # Normalize histograms
@@ -855,7 +852,7 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                         
                         
                     legend = ROOT.TLegend(0.9, 0.9, 0.7, 0.78)
-                    #legend = ROOT.TLegend(0.5, 0.70, 0.92, 0.92)
+                    
                     
                     if subera1_isMC and not subera2_isMC:
                         legend.AddEntry(hist, _subera1, "l")
@@ -896,11 +893,11 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                         
                     canvas.Draw()        
                     canvas.SaveAs(_baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" +
-                                  _subera1 + "_vs_" + _subera2 + "/" + muon_ID + "/c_" + var_name + "_" + _subera1 + "_vs_" + _subera2 + "_muon_val.pdf")  #Save .png file 
+                                  _subera1 + "_vs_" + _subera2 + "/" + muon_ID + "/c_" + var_name + "_" + _subera1 + "_vs_" + _subera2 + "_muon_val.png")  #Save .png file 
                 
                     print("\n")
                     print(str(var_name) + " distribution saved at: " + _baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" +
-                          _subera1 + "_vs_" + _subera2 + "/" + muon_ID  + "/c_" + var_name + "_" + _subera1 + "_vs_" + _subera2 + "_muon_val.pdf")
+                          _subera1 + "_vs_" + _subera2 + "/" + muon_ID  + "/c_" + var_name + "_" + _subera1 + "_vs_" + _subera2 + "_muon_val.png")
 
                     
                     canvas.SetLogy()
@@ -908,10 +905,10 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                     canvas.Draw()
                     
                     canvas.SaveAs(_baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" +
-                                  _subera1 + "_vs_" + _subera2 + "/" + muon_ID  + "/log_c_" + var_name + "_" + _subera1 + "_vs_" + _subera2 + "_muon_val.pdf")
+                                  _subera1 + "_vs_" + _subera2 + "/" + muon_ID  + "/log_c_" + var_name + "_" + _subera1 + "_vs_" + _subera2 + "_muon_val.png")
                     
                     print(str(var_name) + " distribution saved at: " + _baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" +
-                          _subera1 + "_vs_" + _subera2 + "/" + muon_ID + "/log_c_" + var_name + "_" + _subera1 + "_vs_" + _subera2 + "_muon_val.pdf")
+                          _subera1 + "_vs_" + _subera2 + "/" + muon_ID + "/log_c_" + var_name + "_" + _subera1 + "_vs_" + _subera2 + "_muon_val.png")
                     
                     print("\n")
 
@@ -1067,11 +1064,11 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                     
                     rcanvas.Draw()
                     rcanvas.SaveAs(_baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" + _subera1 + "_vs_" + _subera2 + "/" + muon_ID  
-                                   + "/c_ratio_" + var_name + "_" + _subera1 + "_vs_" + _subera2 + "_muon_val.pdf")  #Save .png file
+                                   + "/c_ratio_" + var_name + "_" + _subera1 + "_vs_" + _subera2 + "_muon_val.png")  #Save .png file
                     
                     print("\n")
                     print(str(var_name) + " distribution saved at: " + _baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" +
-                          _subera1 + "_vs_" + _subera2 + "/" + muon_ID  + "/c_ratio_" + var_name + "_" + _subera1 + "_vs_" + _subera2 + "_muon_val.pdf")
+                          _subera1 + "_vs_" + _subera2 + "/" + muon_ID  + "/c_ratio_" + var_name + "_" + _subera1 + "_vs_" + _subera2 + "_muon_val.png")
                     
                     
                     rcanvas.cd(1)
@@ -1081,10 +1078,10 @@ def compare(particle, probe, resonance, era, config, **kwargs):
                     rcanvas.Draw()
                     
                     rcanvas.SaveAs(_baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" + _subera1 + "_vs_" + _subera2 + "/" +  muon_ID  + "/log_c_ratio_" 
-                                   + var_name + "_" + _subera1 + "_vs_" + _subera2 + "_muon_val.pdf")
+                                   + var_name + "_" + _subera1 + "_vs_" + _subera2 + "_muon_val.png")
                     
                     print(str(var_name) + " distribution saved at: " + _baseDir + "/plots/" + particle + "/" + probe + "/" + resonance + "/" +
-                          _subera1 + "_vs_" + _subera2 + "/" + muon_ID  + "/log_c_ratio_" + var_name + "_" + _subera1 + "_vs_" + _subera2 + "_muon_val.pdf")
+                          _subera1 + "_vs_" + _subera2 + "/" + muon_ID  + "/log_c_ratio_" + var_name + "_" + _subera1 + "_vs_" + _subera2 + "_muon_val.png")
                     
                     print("\n")
 

@@ -106,12 +106,14 @@ def build_fit_jobs(particle, probe, resonance, era,
     _recoverMode = kwargs.pop('recoverMode', 'simple')
     doData = (not _sampleType) or ('data' in _sampleType)
     doMC = (not _sampleType) or ('mc' in _sampleType) 
+    #PassPlusFail = kwargs.pop('doPassPlusFail', False)
 
     # defining type of efficiency for initializing nominal and alternative
     # fit functions, initial parameters, mass binning, etc
     effType = config.type() if 'type' in config else ''
-
-    dataSubEra, mcSubEra = get_data_mc_sub_eras(resonance, era)
+    #doPassPlusFail = str(_doPassPlusFail)
+                         
+    dataSubEra, mcSubEra, mcSubEraAlt = get_data_mc_sub_eras(resonance, era)
 
     def process(outFName):
         if _recover and _recoverMode == 'simple':

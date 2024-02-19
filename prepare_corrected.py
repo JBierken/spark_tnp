@@ -623,7 +623,7 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
         mcErr = (mcStat**2 + combined_syst['mcEff']**2)**0.5
         #mcErrD = (mcStatD**2 + combined_syst['mcEff']**2)**0.5
         #mcErrU = (mcStatU**2 + combined_syst['mcEff']**2)**0.5
-        mcErrD = dataStatD
+        mcErrD = mcStatD
         #print("dataEff:")
         #print(dataEff)
         #print("dataEffU:")
@@ -942,8 +942,8 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
 
     # plot the efficiencies
     # some default colors for plots
-    colors = [ROOT.kBlack, ROOT.kViolet-2,ROOT.kViolet-2, ROOT.kRed, ROOT.kGreen+2, #for trackeronlyseed
-    #colors = [ROOT.kBlack, 65, 62, ROOT.kRed, ROOT.kGreen+2, #for alltracks
+    #colors = [ROOT.kBlack, ROOT.kViolet-2,ROOT.kViolet-2, ROOT.kRed, ROOT.kGreen+2, #for trackeronlyseed
+    colors = [ROOT.kBlack, 65, 62, ROOT.kRed, ROOT.kGreen+2, #for alltracks
               ROOT.kMagenta+1, ROOT.kOrange+1, ROOT.kTeal-1,
               ROOT.kRed-3, ROOT.kBlue]
 
@@ -1061,14 +1061,14 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
             #dims = [0.55, 0.52, 0.93, 0.28]
             #dims = [0.55, 0.65-nother*0.04-0.02, 0.75+nother*0.055+0.02, 0.3]
             if not 'fake' in savename:
-                #dims = [0.57, 0.3, 0.85, 0.5]#alltracks
-                dims = [0.56, 0.3, 0.85, 0.5] # trackeronly
+                dims = [0.57, 0.3, 0.85, 0.5]#alltracks
+                #dims = [0.56, 0.3, 0.85, 0.5] # trackeronly
             else:
-                dims = [0.56, 0.6, 0.85, 0.8] # trackeronly
-                #dims = [0.56, 0.6, 0.85, 0.8] #alltracks
+                #dims = [0.56, 0.6, 0.85, 0.8] # trackeronly
+                dims = [0.56, 0.6, 0.85, 0.8] #alltracks
             text = ROOT.TPaveText(*dims+['NB NDC'])
-            #text.AddText("All Tracks") #alltracks
-            text.AddText("Tracker-only Tracks") #trackeronly
+            text.AddText("All Tracks") #alltracks
+            #text.AddText("Tracker-only Tracks") #trackeronly
             text.SetTextSize(0.04)
             text.SetTextAlign(12)
             text.SetTextFont(61)

@@ -1,0 +1,69 @@
+[
+    {
+        "particle": "muon",
+        "resonance": "Z",
+        "era": "Run2022_EE",
+        "subEra": "Run2022F",
+        "probe": "standAloneMuons",
+        "dataTier": "MINIAOD",
+        "parquet": ["/user/jbierken/parquet/muon/Z/Run2022_EE/MINIAOD/Run2022F/tnp.parquet"],
+        "root": [""], 
+        "treename": "muon/StandAloneEvents",
+        "luminosity": 17.61,
+        "version": 1
+    },
+    {
+        "particle": "muon",
+        "resonance": "Z",
+        "era": "Run2022_EE",
+        "subEra": "Run2022G",
+        "probe": "standAloneMuons",
+        "dataTier": "MINIAOD",
+        "parquet": ["/user/jbierken/parquet/muon/Z/Run2022_EE/MINIAOD/Run2022F/tnp.parquet"],
+        "root": [""], 
+        "treename": "muon/StandAloneEvents",
+        "luminosity": 3.055,
+        "version": 1
+    },
+    {
+        "particle": "muon",
+        "resonance": "Z",
+        "era": "Run2022_EE",
+        "subEra": "DY_madgraph",
+        "probe": "standAloneMuons",
+        "dataTier": "MINIAOD",
+        "parquet": ["/user/jbierken/parquet/muon/Z/Run2022_EE/MINIAOD/DY_madgraph/tnp.parquet"],
+        "root": [""],
+        "treename": "muon/StandAloneEvents",
+        "luminosity": -1,
+        "version": 1
+    },
+    {
+        "particle": "muon",
+        "resonance": "Z",
+        "era": "Run2022_EE",
+        "subEra": "DY_amcatnlo",
+        "probe": "standAloneMuons",
+        "dataTier": "MINIAOD",
+        "parquet": ["/user/jbierken/parquet/muon/Z/Run2022_EE/MINIAOD/DY_amcatnlo/tnp.parquet"],
+        "root": [""],
+        "treename": "muon/StandAloneEvents",
+        "luminosity": -1,
+        "version": 1
+    },
+    {
+        "particle": "muon",
+        "resonance": "Z",
+        "era": "Run2022_EE",
+        "subEra": "DY_powheg",
+        "probe": "standAloneMuons",
+        "dataTier": "MINIAOD",
+        "parquet": ["/user/jbierken/parquet/muon/Z/Run2022_EE/MINIAOD/DY_powheg/tnp.parquet"],
+        "root": [""],
+        "treename": "muon/StandAloneEvents",
+        "luminosity": -1,
+        "version": 1
+    }
+
+
+]
