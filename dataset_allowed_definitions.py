@@ -155,7 +155,7 @@ def get_data_mc_sub_eras(resonance, era):
             # rereco (i.e. legacy)
             'Run2016': ['Run2016', 'DY_madgraph', None],
             'Run2017': ['Run2017', 'DY_madgraph', None],
-            'Run2018': ['Run2018', 'DY_madgraph', None],
+            'Run2018': ['Run2018', 'DY_madgraph', 'DY_madgraph'],
             # Run2022
             'Run2022': ['Run2022', 'DY_madgraph', 'DY_amcatnlo'],
             'Run2022_EE': ['Run2022_EE', 'DY_madgraph', 'DY_amcatnlo'],
@@ -173,9 +173,9 @@ def get_data_mc_sub_eras(resonance, era):
             # rereco (i.e. legacy)
             'Run2016': ['Run2016', 'JPsi_pythia8', None],
             'Run2017': ['Run2017', 'JPsi_pythia8', None],
-            'Run2018': ['Run2018', 'JPsi_pythia8', None],
+            'Run2018': ['Run2018', 'JPsi_pythia8', 'JPsi_pythia8'],
             # Run2022
-            'Run2022'   : ['Run2022', 'JPsi_pythia8', None],
+            'Run2022'   : ['Run2022', 'JPsi_pythia8', 'JPsi_pythia8'],
             'Run2022_EE': ['Run2022', 'JPsi_pythia8', None],
             # Run2023
             'Run2023'     : ['Run2023', 'JPsi_pythia8', None],

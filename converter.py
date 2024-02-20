@@ -103,7 +103,7 @@ def run_all(particle, resonance, era, dataTier, subEra=None, customDir='', baseD
         subEras.remove(era)
 
     local_jars = ','.join([
-        './laurelin-1.0.0.jar',
+        './laurelin-1.6.0.jar',
         './log4j-api-2.13.0.jar',
         './log4j-core-2.13.0.jar',
     ])
@@ -120,7 +120,8 @@ def run_all(particle, resonance, era, dataTier, subEra=None, customDir='', baseD
         .config("spark.sql.shuffle.partitions", "500")\
         .config("spark.executor.cores", "1")\
         .config("spark.sql.broadcastTimeout", "36000")\
-        .config("spark.network.timeout", "600s")
+        .config("spark.network.timeout", "600s")\
+        .config("spark.sql.debug.maxToStringFields","1000")
     
     if use_local is True:
         spark = spark.master("local")

@@ -26,16 +26,12 @@ relExtraDY = 1.2
 
 extraOverCmsTextSize = 0.76
 
-lumi_14TeV = "20.1 fb^{-1}"
-lumi_13TeV = "20.1 fb^{-1}"
-lumi_8TeV = "19.7 fb^{-1}"
-lumi_7TeV = "5.1 fb^{-1}"
-lumi_sqrtS = ""
+lumi = ""
 
 drawLogo = False
 
 
-def CMS_lumi(pad, iPeriod, iPosX):
+def CMS_lumi(pad, era, iPosX):
     outOfFrame = False
     if (iPosX//10 == 0):
         outOfFrame = True
@@ -63,27 +59,19 @@ def CMS_lumi(pad, iPeriod, iPosX):
 
     pad.cd()
 
-    # period int is a bit map:
-    # 0: 7 TeV, 1: 8 TeV, 2: 13 TeV, 3: 14 TeV
-    lumiText = ""
-    lumis = [
-        (lumi_7TeV, '7 TeV'),
-        (lumi_8TeV, '8 TeV'),
-        (lumi_13TeV, '13 TeV'),
-        (lumi_14TeV, '14 TeV'),
-    ]
-    nlumis = 0
-    for i, (lumi, sqrts) in enumerate(lumis):
-        if iPeriod & 1 << i:
-            nlumis += 1
-            if lumiText:
-                lumiText += " + "
-            lumiText += lumi
-            lumiText += " (" + sqrts + ")"
-    if outOfFrame and nlumis > 2:
-        lumiText = "#scale[0.85]{" + lumiText + "}"
-    if (iPeriod == 0):
-        lumiText = lumi_sqrtS
+    # find correct sqrt(s) from era
+    sqrtS = {
+    '2016': '13 TeV', 
+    '2017': '13 TeV',
+    '2018': '13 TeV',
+    '2022': '13.6 TeV',
+    '2023': '13.6 TeV',
+    }
+
+    lumiText = ''
+    for year in sqrtS:
+        if year in era:
+            lumiText = lumi + ' (' + sqrtS[year] + ')'
 
     latex = rt.TLatex()
     latex.SetNDC()

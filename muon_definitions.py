@@ -4,7 +4,8 @@ import itertools
 from pyspark.sql import functions as F
 from pyspark.sql import types as T
 from pyspark.ml.feature import Bucketizer
-
+from pyspark.sql.functions import pandas_udf
+import correctionlib
 
 def get_pileup(resonance, era, subEra):
    '''
@@ -14,53 +15,59 @@ def get_pileup(resonance, era, subEra):
 
    # get the pileup
    dataPileup = {
-       # Note: for now use ReReco version of pileup
-       # TODO: need to redo splitting by 2016 B-F/F-H
-       'Run2016_UL_HIPM': 'pileup/data/Run2016.root',
-       'Run2016_UL': 'pileup/data/Run2016.root',
-       'Run2017_UL': 'pileup/data/Run2017.root',
-       'Run2018_UL': 'pileup/data/Run2018.root',
-       # Double muon PD
-       'Run2016_UL_HIPM_DM': 'pileup/data/Run2016.root',
-       'Run2016_UL_DM': 'pileup/data/Run2016.root',
-       'Run2017_UL_DM': 'pileup/data/Run2017.root',
-       'Run2018_UL_DM': 'pileup/data/Run2018.root',
-       'Run2016': 'pileup/data/Run2016.root',
-       'Run2017': 'pileup/data/Run2017.root',
-       'Run2018': 'pileup/data/Run2018.root',
-       # Run2022 (nVertices profile got privately by Pedro over our BCD merged ntuples. To be updated in the future)
-       'Run2022': 'pileup/data/Run2022.root',
-       'Run2022_EE': 'pileup/data/Run2022EE.root'
+      # Note: for now use ReReco version of pileup
+      # TODO: need to redo splitting by 2016 B-F/F-H
+      'Run2016_UL_HIPM': 'pileup/data/Run2016.root',
+      'Run2016_UL': 'pileup/data/Run2016.root',
+      'Run2017_UL': 'pileup/data/Run2017.root',
+      'Run2018_UL': 'pileup/data/Run2018.root',
+      # Double muon PD
+      'Run2016_UL_HIPM_DM': 'pileup/data/Run2016.root',
+      'Run2016_UL_DM': 'pileup/data/Run2016.root',
+      'Run2017_UL_DM': 'pileup/data/Run2017.root',
+      'Run2018_UL_DM': 'pileup/data/Run2018.root',
+      'Run2016': 'pileup/data/Run2016.root',
+      'Run2017': 'pileup/data/Run2017.root',
+      'Run2018': 'pileup/data/Run2018.root',
+      # Run2022 : Centrally produced ROOT files by LUMI POG (https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData#Centrally_produced_ROOT_histogra)
+      'Run2022': 'pileup/data/Run2022_LUM.root',
+      'Run2022_EE': 'pileup/data/Run2022_LUM.root',
+      # Run2023 
+      'Run2023': 'pileup/data/Run2023_LUM.root',
+      'Run2023_BPix': 'pileup/data/Run2023_LUM.root',
    }
    mcPileup = {
-       # TODO: do the two eras have different profiles?
-       'Run2016_UL_HIPM': 'pileup/mc/Run2016_UL.root',
-       'Run2016_UL': 'pileup/mc/Run2016_UL.root',
-       'Run2017_UL': 'pileup/mc/Run2017_UL.root',
-       'Run2018_UL': 'pileup/mc/Run2018_UL.root',
-       # Double muon PD
-       'Run2016_UL_HIPM_DM': 'pileup/mc/Run2016_UL.root',
-       'Run2016_UL_DM': 'pileup/mc/Run2016_UL.root',
-       'Run2017_UL_DM': 'pileup/mc/Run2017_UL.root',
-       'Run2018_UL_DM': 'pileup/mc/Run2018_UL.root',
-       'Run2016': 'pileup/mc/Run2016.root',
-       'Run2017': 'pileup/mc/Run2017.root',
-       'Run2018': 'pileup/mc/Run2018.root',
-       # Run2022 (nVertices profile got privately by Pedro over our MC ntuples. To be updated in the future)
-       'Run2022': 'pileup/mc/Run2022.root',
-       'Run2022_EE': 'pileup/mc/Run2022EE.root'
+      # TODO: do the two eras have different profiles?
+      'Run2016_UL_HIPM': 'pileup/mc/Run2016_UL.root',
+      'Run2016_UL': 'pileup/mc/Run2016_UL.root',
+      'Run2017_UL': 'pileup/mc/Run2017_UL.root',
+      'Run2018_UL': 'pileup/mc/Run2018_UL.root',
+      # Double muon PD
+      'Run2016_UL_HIPM_DM': 'pileup/mc/Run2016_UL.root',
+      'Run2016_UL_DM': 'pileup/mc/Run2016_UL.root',
+      'Run2017_UL_DM': 'pileup/mc/Run2017_UL.root',
+      'Run2018_UL_DM': 'pileup/mc/Run2018_UL.root',
+      'Run2016': 'pileup/mc/Run2016.root',
+      'Run2017': 'pileup/mc/Run2017.root',
+      'Run2018': 'pileup/mc/Run2018.root',
+      # Run2022 (nTrueInteractions profile got privately by Sergio over our MC ntuples.)
+      'Run2022': 'pileup/mc/Run2022.root',
+      'Run2022_EE': 'pileup/mc/Run2022EE.root',
+      # Run2023 (nTrueInteractions profile got privately by Sergio over our MC ntuples.)
+      'Run2023': 'pileup/mc/Run2023.root',
+      'Run2023_BPix': 'pileup/mc/Run2023_BPix.root',
    }
    # get absolute path
    baseDir = os.path.dirname(__file__)
    dataPileup = {k: os.path.join(baseDir, dataPileup[k]) for k in dataPileup}
    mcPileup = {k: os.path.join(baseDir, mcPileup[k]) for k in mcPileup}
    with uproot.open(dataPileup[era]) as f:
-       data_edges = f['pileup'].edges
-       data_pileup = f['pileup'].values
+       data_edges = f['pileup'].axis(0).edges()
+       data_pileup = f['pileup'].values()
        data_pileup /= sum(data_pileup)
    with uproot.open(mcPileup[era]) as f:
-       mc_edges = f['pileup'].edges
-       mc_pileup = f['pileup'].values
+       mc_edges = f['pileup'].axis(0).edges()
+       mc_pileup = f['pileup'].values()
        mc_pileup /= sum(mc_pileup)
    pileup_edges = data_edges if len(data_edges) < len(mc_edges) else mc_edges
    pileup_ratio = [d/m if m else 1.0 for d, m in zip(
@@ -152,14 +159,20 @@ def get_weighted_dataframe(df, doGen, resonance, era, subEra, shift=None):
            [F.lit(x) for x in itertools.chain(*pileupMap.items())])
        # M.Oh: temporary solution for missing true PU branch in the new ntuples
        if 'pair_truePileUp' in df.columns:
+           #weightedDF = df.withColumn(
+           #    'PUweight', mapping_expr.getItem(F.round('pair_truePileUp')))
            weightedDF = df.withColumn(
-               'PUweight', mapping_expr.getItem(F.round('pair_truePileUp')))
+               'PUweight', mapping_expr[F.round('pair_truePileUp')])
        elif 'nTrueInteractions' in df.columns:
+           #weightedDF = df.withColumn(
+           #    'PUweight', mapping_expr.getItem(F.round('nTrueInteractions')))
            weightedDF = df.withColumn(
-               'PUweight', mapping_expr.getItem(F.round('nTrueInteractions')))
+               'PUweight', mapping_expr[F.round('nTrueInteractions')])
        elif 'nVertices' in df.columns:
+           #weightedDF = df.withColumn(
+           #   'PUweight', mapping_expr.getItem(F.col('nVertices')))
            weightedDF = df.withColumn(
-               'PUweight', mapping_expr.getItem(F.col('nVertices')))
+               'PUweight', mapping_expr[F.col('nVertices')])
        else:
            weightedDF = df.withColumn('PUweight', F.lit(1.0))
        # apply gen weights
@@ -190,6 +203,28 @@ def get_binned_dataframe(df, bin_name, variable_name, edges):
    binnedDF = bucketizer.transform(df)
    return binnedDF
 
+def get_corrected_dataframe(df, doGen=False, label="", jsonpath="", minpt=15.0001, maxpt=199.999):
+   
+   if not os.path.exists(jsonpath) or not doGen:
+      df = df.withColumn("SF_"+label, F.lit(1.0))
+   else:
+      print("working point: " + label)
+      print("Json file: " + jsonpath)
+      print("\n")
+      
+      ceval = correctionlib.CorrectionSet.from_file(jsonpath)
+
+      getScaleFactors = F.udf(lambda eta, pt: ceval[label].evaluate(min(2.399, abs(eta)), min(minpt, max(maxpt, pt)), "nominal"), T.FloatType())
+      df = df.withColumn("SF_" + label, getScaleFactors(df.probe_eta, df.probe_pt))
+
+   if "weight" in df.columns:
+      df = df.withColumn("weight", F.col("weight")*F.col("SF_"+label))
+      df = df.withColumn('weight2', F.col('weight') * F.col('weight'))
+   else:
+      df = df.withColumn("weight", F.col("SF_"+label))
+      df = df.withColumn('weight2', F.col('weight') * F.col('weight'))
+
+   return df
 
 def get_selection_dataframe(df, selection_name, selection_func):
    '''

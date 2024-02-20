@@ -19,7 +19,7 @@
         "subEra": "Run2022G",
         "probe": "standAloneMuons",
         "dataTier": "MINIAOD",
-        "parquet": ["/user/jbierken/parquet/muon/Z/Run2022_EE/MINIAOD/Run2022F/tnp.parquet"],
+        "parquet": ["/user/jbierken/parquet/muon/Z/Run2022_EE/MINIAOD/Run2022G/tnp.parquet"],
         "root": [""], 
         "treename": "muon/StandAloneEvents",
         "luminosity": 3.055,

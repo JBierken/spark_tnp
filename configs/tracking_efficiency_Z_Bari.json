@@ -1,45 +1,55 @@
 {
     "efficiencies": [
-        ["TrackerMuons", "genTracks"],
-        ["GlobalMuons", "genTracks"],
-        ["SAMuMatched", "StandAloneMuons"],
-        ["GlobalMuons", "StandAloneMuons"]
+        ["GlobalMuons", "StandAloneMuons"],
+        ["SAMatched", "StandAloneMuons"],
+        ["SAMatched_fakerate", "StandAloneMuons"]
     ],
-    "selection":  "triggers==1 and tag_pt>27 and tag_isTight==1 and tag_trigger_match and tag_PFIso<0.15 and StandAloneMuons and pair_opposite_charge==1 and pair_mass_window==1",
+    "selection":  "triggers==1 and tag_pt>27 and tag_isTight==1 and tag_trigger_match==1 and tag_PFIso==1 and pair_opposite_charge==1 and pair_mass_window==1",
     "definitions": {
         "triggers": "((HLT_IsoMu24_v==1) or (HLT_Mu50_v==1))",
-	    "IP_cuts": "abs(pair_dz)<0.5 and abs(tag_dz) < 0.5 and abs(probe_dz) < 0.5 and abs(tag_dxy) < 0.2 and abs(probe_dxy) < 0.2",
-	    "tag_PFIso": "(tag_pfIso04_charged + (0.5 * (((tag_pfIso04_neutral+tag_pfIso04_photon-0.5*tag_pfIso04_sumPU) + (0.0)) + abs((tag_pfIso04_neutral+tag_pfIso04_photon-0.5*tag_pfIso04_sumPU) - (0.0)))))/tag_pt",
+        "tag_trigger_match": "((tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q==1) and (tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q_dr<0.1))",
+        "isPositive":"(tag_pfIso04_neutral + tag_pfIso04_photon - tag_pfIso04_sumPU/2) > 0.0",
+	    "tag_PFIso": "((isPositive==1 and (tag_pfIso04_charged + tag_pfIso04_neutral + tag_pfIso04_photon - tag_pfIso04_sumPU/2)/tag_pt < 0.15) or (isPositive==0 and (tag_pfIso04_charged /tag_pt) < 0.15))",
+        "pair_opposite_charge": "(tag_charge * probe_charge = -1)",
+        "pair_mass_window": "(pair_mass>=40) and (pair_mass<=150)",
         "probe_abseta": "abs(probe_eta)",
         "tag_abseta": "abs(tag_eta)",
-        "pair_opposite_charge": "(tag_charge>0 and probe_charge<0) or (tag_charge<0 and probe_charge>0)",
-        "pair_mass_window": "(pair_mass>=40) and (pair_mass<=150)",
-        "tag_trigger_match": "((tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q==1) and (tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q_dr<0.1))",
         "genTracks": "((probe_pt<20) or (probe_pt>20))",
         "TrackerMuons": "probe_isTracker == 1",
         "GlobalMuons": "probe_isGlobal == 1",
         "StandAloneMuons": "probe_isSA == 1",
-        "SAMuMatched": "(probe_isSA==1) and (probe_isMuMatched == 1)"
+        "SAMatched":"probe_pt > 10 and  ( probe_isTrkMatch == 1) and (probe_isSA == 1)",
+        "SAMatched_fakerate":"probe_pt > 10 and  ( probeSA_isTrkMatch == 1) and (probe_isSA == 1)"
     },
     "binning": {
-        "pt": [2, 3, 4, 5, 6, 7, 8, 9, 10, 30],
+        "pt": [15, 20, 25, 30, 40, 50, 60, 120],
         "abseta": [0, 0.9, 1.2, 2.1, 2.4],
+        "pt_onebin":[10,120],
         "eta": [-2.4, -2.1, -1.6, -1.2, -0.9, -0.3, -0.2, 0.2, 0.3, 0.9, 1.2, 1.6, 2.1, 2.4],
-        "mass": "np.linspace(2.80, 3.40, 330)",
-        "mcMass": "np.linspace(2.80, 3.40, 330)"
+        "eta_onebin":[-2.4,2.4],
+        "probe_minDR": [0.0,0.2,0.4,0.6],
+        "nvtx": [0.5,15.5,20.5,25.5,30.5,35.5,40.5,45.5,50.5,70.5],
+        "mass": [40.0, 41.125, 42.25, 43.375, 44.5, 45.625, 46.75, 47.875, 49.0, 50.125, 51.25, 52.375, 53.5, 54.625, 55.75, 56.875, 58.0, 59.125, 60.25, 61.375, 62.5, 63.625, 64.75, 65.875, 67.0, 68.125, 69.25, 70.375, 71.5, 72.625, 73.75, 74.875, 76.0, 77.125, 78.25, 79.375, 80.5, 81.625, 82.75, 83.875, 85.0, 86.125, 87.25, 88.375, 89.5, 90.625, 91.75, 92.875, 94.0, 95.125, 96.25, 97.375, 98.5, 99.625, 100.75, 101.875, 103.0, 104.125, 105.25, 106.375, 107.5, 108.625, 109.75, 110.875, 112.0, 113.125, 114.25, 115.375, 116.5, 117.625, 118.75, 119.875, 121.0, 122.125, 123.25, 124.375, 125.5, 126.625, 127.75, 128.875, 130.0, 131.125, 132.25, 133.375, 134.5, 135.625, 136.75, 137.875, 139.0, 140.125, 141.25, 142.375, 143.5, 144.625, 145.75, 146.875, 148.0, 149.125, 150.0],
+        "mcMass": [40.0, 41.125, 42.25, 43.375, 44.5, 45.625, 46.75, 47.875, 49.0, 50.125, 51.25, 52.375, 53.5, 54.625, 55.75, 56.875, 58.0, 59.125, 60.25, 61.375, 62.5, 63.625, 64.75, 65.875, 67.0, 68.125, 69.25, 70.375, 71.5, 72.625, 73.75, 74.875, 76.0, 77.125, 78.25, 79.375, 80.5, 81.625, 82.75, 83.875, 85.0, 86.125, 87.25, 88.375, 89.5, 90.625, 91.75, 92.875, 94.0, 95.125, 96.25, 97.375, 98.5, 99.625, 100.75, 101.875, 103.0, 104.125, 105.25, 106.375, 107.5, 108.625, 109.75, 110.875, 112.0, 113.125, 114.25, 115.375, 116.5, 117.625, 118.75, 119.875, 121.0, 122.125, 123.25, 124.375, 125.5, 126.625, 127.75, 128.875, 130.0, 131.125, 132.25, 133.375, 134.5, 135.625, 136.75, 137.875, 139.0, 140.125, 141.25, 142.375, 143.5, 144.625, 145.75, 146.875, 148.0, 149.125, 150.0]
     },
     "variables": {
         "pt": {"variable": "probe_pt", "pretty": "p_{T} (GeV)"},
+        "pt_onebin": {"variable": "probe_pt", "pretty": "muon p_{T} (GeV)"},
         "abseta": {"variable": "probe_abseta", "pretty": "|#eta|"},
         "eta": {"variable": "probe_eta", "pretty": "#eta"},
+        "eta_onebin": {"variable": "probe_eta", "pretty": "muon #eta"},
+        "probe_minDR":{"variable":"probe_minDR", "pretty": "min #DeltaR(j,#mu)"},
+        "nvtx": {"variable": "nVertices", "pretty": "N(primary vertices)"},
         "mass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"},
         "mcMass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"}
     },
     "fitVariable": "mass",
     "fitVariableGen": "mcMass",
     "binVariables": [
-        ["abseta", "pt"],
-        ["eta"]
+        ["pt", "eta_onebin"],
+        ["nvtx","eta_onebin","pt_onebin"],
+        ["probe_minDR","eta_onebin","pt_onebin"],
+        ["eta", "pt_onebin"]
     ],
     "shifts": {
     },

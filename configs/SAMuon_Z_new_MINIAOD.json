@@ -4,19 +4,16 @@
     ],
     "selection": "pair_mass > 70 and pair_mass < 115 and tag_pt > 27 and tag_HLT_IsoMu24_v == 1 and tag_isTight == 1 and (tag_charge * probe_charge = -1) and pair_dz < 4. and tag_pfIso04_charged/tag_pt < 0.2",
     "definitions": {
-        "genTracks": "((probe_pt > 15)) and probe_relIso04 < 0.1",
         "SAMatched":"probe_pt > 10 and  ( probeSA_isTrkMatch == 1) and (probe_isSA == 1)",
         "genTracksNoQuality": "probe_pt > 15",
         "TrackerMuons": "probe_isTracker == 1",
         "StandAloneMuons": "probe_pt > 10 and probe_isSA == 1",
-        "SAnotdSA": "probe_isSA == 1 and probe_isdSA == 0 and probe_pt > 15 and probe_relIso04 < 0.1",
         "GlobalMuons": "probe_isGlobal == 1",
         "TightID": "probe_isTight == 1",
         "LooseID": "probe_isLoose == 1",
         "dSAMuons": "probe_isdSA == 1",
         "dSAMuonsMuMatched": "probe_isdSA == 1 and probe_relIso04 < 0.2 and probe_isMuMatched == 1 and (probe_isTracker == 1 or probe_isGlobal == 1)",
-        "probe_abseta": "abs(probe_eta)",
-        "tag_abseta": "abs(tag_eta)"
+        "probe_abseta": "abs(probe_eta)"
     },
     "binning": {
         "pt": [10, 15, 20, 25, 30, 40, 50, 60, 120, 200],
