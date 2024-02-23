@@ -8,12 +8,14 @@
         "isPositive":"(tag_pfIso04_neutral + tag_pfIso04_photon - tag_pfIso04_sumPU/2) > 0.0",
         "SAMatched_fakerate":"probe_pt > 10 and  ( probeSA_isTrkMatch == 1) and (probe_isSA == 1)",
         "SAMatched":"probe_pt > 10 and  ( probe_isTrkMatch == 1) and (probe_isSA == 1)",
+        "probe_abseta": "abs(probe_eta)",
         "StandAloneMuons": "probe_pt > 10 and probe_isSA == 1"
     },
     "binning": {
         "pt": [10, 25, 30, 40, 50, 120, 200],
         "eta": [-2.4, -1.6, -1.1, -0.6, -0.3,-0.2, 0.2, 0.3, 0.6, 1.1, 1.6, 2.4],
         "pt_onebin":[10,120],
+        "abseta": [0, 0.9, 1.2, 2.1, 2.4],
         "eta_onebin":[-2.4,2.4],
         "probe_minDR": [0.0,0.2,0.4,0.6],
         "nvtx": [0.5,15.5,20.5,25.5,30.5,35.5,40.5,45.5,50.5,70.5],

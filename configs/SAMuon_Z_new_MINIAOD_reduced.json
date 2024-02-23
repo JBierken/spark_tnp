@@ -16,14 +16,14 @@
         "LooseID": "probe_isLoose == 1",
         "dSAMuons": "probe_isdSA == 1",
         "dSAMuonsMuMatched": "probe_isdSA == 1 and probe_relIso04 < 0.2 and probe_isMuMatched == 1 and (probe_isTracker == 1 or probe_isGlobal == 1)",
-        "probe_abseta": "abs(probe_eta)",
-        "tag_abseta": "abs(tag_eta)"
+        "probe_abseta": "abs(probe_eta)"
     },
     "binning": {
         "pt": [10, 15, 20, 25, 30, 40, 50, 60, 120, 200],
         "eta": [-2.4, -2.1, -1.6, -1.1, -0.9, -0.6, -0.3,-0.2, 0.2, 0.3, 0.6, 0.9, 1.1, 1.6, 2.1, 2.4],
         "pt_onebin":[10,120],
         "eta_onebin":[-2.4,2.4],
+        "abseta": [0, 0.9, 1.2, 2.1, 2.4],
         "nvtx": [0.5,5.5,10.5,15.5,20.5,25.5,30.5,35.5,40.5,45.5,50.5,55.5,60.5,65.5,70.5],
         "mass": [70,71.125,72.25,73.375,74.5,75.625,76.75,77.875,79,80.125,81.25,82.375,83.5,84.625,85.75,86.875,88,89.125,90.25,91.375,92.5,93.625,94.75,95.875,97,98.125,99.25,100.375,101.5,102.625,103.75,104.875,106,107.125,108.25,109.375,110.5,111.625,112.75,113.875,115],
         "mcMass": [70,71.125,72.25,73.375,74.5,75.625,76.75,77.875,79,80.125,81.25,82.375,83.5,84.625,85.75,86.875,88,89.125,90.25,91.375,92.5,93.625,94.75,95.875,97,98.125,99.25,100.375,101.5,102.625,103.75,104.875,106,107.125,108.25,109.375,110.5,111.625,112.75,113.875,115]
@@ -34,6 +34,7 @@
         "eta": {"variable": "probe_eta", "pretty": "muon #eta"},
         "pt_onebin": {"variable": "probe_pt", "pretty": "muon p_{T} (GeV)"},
         "eta_onebin": {"variable": "probe_eta", "pretty": "muon #eta"},
+        "abseta": {"variable": "probe_abseta", "pretty": "|#eta|"},
         "nvtx": {"variable": "nVertices", "pretty": "N(primary vertices)"},
         "mass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"},
         "mcMass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"}
