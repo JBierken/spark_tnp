@@ -36,8 +36,7 @@
         "eta_onebin": {"variable": "probe_eta", "pretty": "muon #eta"},
         "nvtx": {"variable": "nVertices", "pretty": "N(primary vertices)"},
         "mass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"},
-        "mcMass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"},
-       
+        "mcMass": {"variable": "pair_mass", "pretty": "m(#mu#mu) (GeV)"}
     },
     "fitVariable": "mass",
     "fitVariableGen": "mcMass",

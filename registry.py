@@ -82,8 +82,8 @@ _jsons = [
     # Muon POG standAloneMuon probes
     #'data/registry_muon_Z_standAloneMuons.json',
     #'data/registry_muon_JPsi_standAloneMuons_MINIAOD.json',
-    'data/registry_muon_Z_standAloneMuons_MINIAOD_mine.json'
-    #'data/registry_muon_Z_standAloneMuons_AOD_mine.json'
+    #'data/registry_muon_Z_standAloneMuons_MINIAOD_mine.json'
+    'data/registry_muon_Z_standAloneMuons_AOD_mine.json'
     #'data/registry_muon_Z_standAloneMuons_AOD.json'
 
 
