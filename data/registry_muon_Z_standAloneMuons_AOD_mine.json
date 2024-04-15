@@ -46,22 +46,9 @@
         "probe": "standAloneMuons",
         "dataTier": "AOD",
         "parquet": ["/user/jbierken/parquet/muon/Z/Run2022/AOD/DY_madgraph/tnp.parquet"],
-        "root": [""],
+        "root": ["/user/bdanzi/parquet/muon/Z/Run2022/AOD/DY_madgraph_all/tnp.parquet"],
         "treename": "muon/StandAloneEvents",
         "luminosity": -1,
-        "version": 1
-    },
-    {
-        "particle": "muon",
-        "resonance": "Z",
-        "era": "Run2023",
-        "subEra": "Run2023B",
-        "probe": "standAloneMuons",
-        "dataTier": "AOD",
-        "parquet": ["/user/jbierken/parquet/muon/Z/Run2023/AOD/Run2023B/tnp.parquet"],
-        "root": [""],
-        "treename": "muon/StandAloneEvents",
-        "luminosity": 0.67,
         "version": 1
     },
     {
@@ -88,6 +75,32 @@
         "root": [""],
         "treename": "muon/StandAloneEvents",
         "luminosity": 9.72,
+        "version": 1
+    },
+    {
+        "particle": "muon",
+        "resonance": "Z",
+        "era": "Run2023",
+        "subEra": "Run2023D",
+        "probe": "standAloneMuons",
+        "dataTier": "AOD",
+        "parquet": ["/user/jbierken/parquet/muon/Z/Run2023/AOD/Run2023D/tnp.parquet"],
+        "root": [""],
+        "treename": "muon/StandAloneEvents",
+        "luminosity": 9.2,
+        "version": 1
+    },
+    {
+        "particle": "muon",
+        "resonance": "Z",
+        "era": "Run2023",
+        "subEra": "DY_madgraph",
+        "probe": "standAloneMuons",
+        "dataTier": "AOD",
+	    "parquet": ["/user/bdanzi/parquet/muon/Z/Run2023/AOD/DY_madgraph/tnp.parquet"],
+        "root": [""],
+        "treename": "muon/StandAloneEvents",
+        "luminosity": -1,
         "version": 1
     }
 ]

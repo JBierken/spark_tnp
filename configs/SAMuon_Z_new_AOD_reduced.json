@@ -3,23 +3,13 @@
         ["SAMatched", "StandAloneMuons"],
         ["SAMatched_fakerate", "StandAloneMuons"]
     ],
-    "selection": "pair_mass > 70 and pair_mass < 115 and tag_pt > 27 and tag_isTight == 1 and (tag_charge * probe_charge = -1) and ((isPositive==1 and (tag_pfIso04_charged + tag_pfIso04_neutral + tag_pfIso04_photon - tag_pfIso04_sumPU/2)/tag_pt < 0.2) or (isPositive==0 and (tag_pfIso04_charged /tag_pt) < 0.2)) and tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q and tag_hltL3crIsoL1sSingleMu22L1f0L2f10QL3f24QL3trkIsoFiltered0p07 ==1 and (HLT_IsoMu24_v==1 or HLT_IsoMu27_v==1 or HLT_Mu50_v==1 or HLT_IsoMu20_v==1)",
+    "selection": "pair_mass > 70 and pair_mass < 115 and tag_pt > 27 and tag_isTight == 1 and (tag_charge * probe_charge = -1) and ((isPositive==1 and (tag_pfIso04_charged + tag_pfIso04_neutral + tag_pfIso04_photon - tag_pfIso04_sumPU/2)/tag_pt < 0.2) or (isPositive==0 and (tag_pfIso04_charged /tag_pt) < 0.2)) and tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q and tag_hltL3crIsoL1sSingleMu22L1f0L2f10QL3f24QL3trkIsoFiltered0p07 ==1 and (HLT_IsoMu24_v==1 or HLT_Mu27_v==1 or HLT_Mu50_v==1 or HLT_IsoMu20_v==1)",
     "definitions": {
         "isPositive":"(tag_pfIso04_neutral + tag_pfIso04_photon - tag_pfIso04_sumPU/2) > 0.0",
-        "genTracks": "((probe_pt > 15)) and probe_relIso04 < 0.1",
         "SAMatched_fakerate":"probe_pt > 10 and  ( probeSA_isTrkMatch == 1) and (probe_isSA == 1)",
         "SAMatched":"probe_pt > 10 and  ( probe_isTrkMatch == 1) and (probe_isSA == 1)",
-        "genTracksNoQuality": "probe_pt > 15",
-        "TrackerMuons": "probe_isTracker == 1 and probe_pt > 10",
-        "StandAloneMuons": "probe_pt > 10 and probe_isSA == 1",
-        "SAnotdSA": "probe_isSA == 1 and probe_isdSA == 0 and probe_pt > 15 and probe_relIso04 < 0.1",
-        "GlobalMuons": "probe_isGlobal == 1",
-        "TightID": "probe_isTight == 1",
-        "LooseID": "probe_isLoose == 1",
-        "dSAMuons": "probe_isdSA == 1",
-        "dSAMuonsMuMatched": "probe_isdSA == 1 and probe_relIso04 < 0.2 and probe_isMuMatched == 1 and (probe_isTracker == 1 or probe_isGlobal == 1)",
-        "probe_abseta": "abs(probe_eta)",
-        "tag_abseta": "abs(tag_eta)"
+        "StandAloneMuons": "probe_pt > 10 and probe_isSA == 1"
+
     },
     "binning": {
         "pt": [10, 15, 20, 25, 30, 40, 50, 60, 130],

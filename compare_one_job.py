@@ -403,7 +403,7 @@ def compare_one(particle, probe, resonance, era, config_name, muon_ID, _baseDir,
 
     realized = {}
     
-  
+
     ### luminosity 
     lumi = float(lumi)
 
@@ -581,8 +581,10 @@ def compare_one(particle, probe, resonance, era, config_name, muon_ID, _baseDir,
                 CMS_lumi.writeExtraText = True
                 CMS_lumi.extraText = 'Preliminary'
                 if lumi!=-1:
-                    CMS_lumi.lumi = "%0.1f fb^{-1}" % (lumi)
-                CMS_lumi.CMS_lumi(canvas, era, 11)
+                    CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
+                else:
+                    CMS_lumi.lumi_13TeV = ""
+                CMS_lumi.CMS_lumi(canvas, 4, 11)
             
 
                 #
@@ -680,8 +682,10 @@ def compare_one(particle, probe, resonance, era, config_name, muon_ID, _baseDir,
                 CMS_lumi.writeExtraText = True
                 CMS_lumi.extraText = 'Preliminary'
                 if lumi!=-1:
-                    CMS_lumi.lumi = "%0.1f fb^{-1}" % (lumi)
-                CMS_lumi.CMS_lumi(plotPad, era, 11)
+                    CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
+                else:
+                    CMS_lumi.lumi_13TeV = ""
+                CMS_lumi.CMS_lumi(plotPad, 4, 11)
 
 
                 #
@@ -931,8 +935,10 @@ def compare_one(particle, probe, resonance, era, config_name, muon_ID, _baseDir,
                 CMS_lumi.writeExtraText = True
                 CMS_lumi.extraText = 'Preliminary'
                 if lumi!=-1:
-                    CMS_lumi.lumi = "%0.1f fb^{-1}" % (lumi)
-                CMS_lumi.CMS_lumi(canvas, era, 11)
+                    CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
+                else:
+                    CMS_lumi.lumi_13TeV = ""
+                CMS_lumi.CMS_lumi(canvas, 4, 11)
                 
                 # Draw    
                 # Saved as file: ./baseDir/plots/muon/generalTracks/Z/Run2018A_vs_Run2018B/TightID/muon_pt_Run2018A_vs_Run2018B.png 
@@ -1056,8 +1062,10 @@ def compare_one(particle, probe, resonance, era, config_name, muon_ID, _baseDir,
                 CMS_lumi.writeExtraText = True
                 CMS_lumi.extraText = 'Preliminary'
                 if lumi!=-1:
-                    CMS_lumi.lumi = "%0.1f fb^{-1}" % (lumi)
-                CMS_lumi.CMS_lumi(plotPad, era, 11)
+                    CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
+                else:
+                    CMS_lumi.lumi_13TeV = ""
+                CMS_lumi.CMS_lumi(plotPad, 4, 11)
 
 
                 #                                                                                                                                                                                     

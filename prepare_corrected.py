@@ -89,7 +89,7 @@ def getEff(binName, fname, massRanges, shift=None, cutAndCount=False, resonance=
     except Exception as e:
         print('Exception for getEff', binName)
         print(e)
-        # raise e
+        #raise e
         return 1., 0., 0.
 
 
@@ -160,7 +160,7 @@ def getMCEff(binName, fname, massRanges, shift=None, cutAndCount=False, resonanc
         print('Exception for getMCEff', binName)
         print(e)
         # raise e
-        return 1., 1., 1.
+        return 1., 0., 0.
 
 
 
@@ -231,7 +231,7 @@ def getDataEff(binName, fname, massRanges, shift=None, cutAndCount=False, resona
         print('Exception for getDataEff', binName)
         print(e)
         # raise e
-        return 1., 1., 1.
+        return 1., 0., 0.
 
 
 def getSF(binName, fname, massRanges, shift=None, resonance='Z'):
@@ -249,6 +249,14 @@ def getSF(binName, fname, massRanges, shift=None, resonance='Z'):
 def getSF_fitdataMC(binName, fname_data, fname_mc,massRanges, shift=None, resonance='Z'):
     mcEff, mcErrD, mcErrU = getMCEff(binName, fname_mc, massRanges, shift, False, resonance)
     dataEff, dataErrD, dataErrU = getDataEff(binName, fname_data, massRanges, shift, False, resonance)
+    #inizializzo le variabili corrette ai valori non corretti, altrimenti la funzione cerca di ritornare valori condizionali (verrebbero referenziati nell'if)
+    mcEff_corr = mcEff
+    mcErrU_corr = mcErrU
+    mcErrD_corr = mcErrD
+    dataEff_corr = dataEff
+    dataErrU_corr = dataErrU
+    dataErrD_corr = dataErrD
+    
     if not 'Matched_fakerate_' in fname_data:
         fname_mc_fake = '%s' % fname_mc
         fname_data_fake = '%s' % fname_data
@@ -258,20 +266,58 @@ def getSF_fitdataMC(binName, fname_data, fname_mc,massRanges, shift=None, resona
         binName_fake = binName_fake.replace('Matched_', 'Matched_fakerate_')
         mcEff_fake, mcErr_fakeD, mcErr_fakeU  = getMCEff(binName_fake, fname_mc_fake, massRanges, shift, False, resonance)
         dataEff_fake, dataErr_fakeD, dataErr_fakeU = getDataEff(binName_fake, fname_data_fake, massRanges, shift, False, resonance)
+        
         if mcEff_fake != 1 and dataEff_fake != 1 :
-            mcEff = (mcEff - mcEff_fake)/(1 - mcEff_fake) #(   y   -    yf   )/(1-    yf   )
-            mcErrU =   ((mcEff+mcErrU)-(mcEff_fake-mcErr_fakeD))/(1-(mcEff_fake-mcErr_fakeD)) - mcEff
-            mcErrD =   mcEff - ((mcEff-mcErrD)-(mcEff_fake+mcErr_fakeU))/(1-(mcEff_fake+mcErr_fakeU)) #double ycorr_lo = ((y-eyl)-(yf+eyhf))/(1-(yf+eyhf));
-            dataEff = (dataEff - dataEff_fake)/(1 - dataEff_fake) 
-            dataErrU =   ((dataEff+dataErrU)-(dataEff_fake-dataErr_fakeD))/(1-(dataEff_fake-dataErr_fakeD)) - dataEff
-            dataErrD =   dataEff - ((dataEff-dataErrD)-(dataEff_fake+dataErr_fakeU))/(1-(dataEff_fake+dataErr_fakeU))
-    sf = dataEff / mcEff if mcEff else 0.0
+
+            mcEff_corr = (mcEff - mcEff_fake)/(1 - mcEff_fake) #(   y   -    yf   )/(1-    yf   )
+            mcErrU_corr =   ((mcEff+mcErrU)-(mcEff_fake-mcErr_fakeD))/(1-(mcEff_fake-mcErr_fakeD)) - mcEff_corr
+            mcErrD_corr =   mcEff_corr - ((mcEff-mcErrD)-(mcEff_fake+mcErr_fakeU))/(1-(mcEff_fake+mcErr_fakeU)) #double ycorr_lo = ((y-eyl)-(yf+eyhf))/(1-(yf+eyhf));
+
+            dataEff_corr = (dataEff - dataEff_fake)/(1 - dataEff_fake) 
+            dataErrU_corr =  ((dataEff+dataErrU)-(dataEff_fake-dataErr_fakeD))/(1-(dataEff_fake-dataErr_fakeD)) - dataEff_corr
+            dataErrD_corr =   dataEff_corr - ((dataEff-dataErrD)-(dataEff_fake+dataErr_fakeU))/(1-(dataEff_fake+dataErr_fakeU))
+
+            if(dataErrU_corr < 0):
+                dataErrU_corr = 0
+
+            if(dataErrD_corr < 0):
+                dataErrD_corr = 0
+
+            if(mcErrD_corr < 0):
+                mcErrD_corr = 0
+                
+            if(mcErrU_corr < 0):
+                mcErrU_corr = 0  
+
+            print("")
+            print("dataEff non corretta:")
+            print(dataEff)
+            print("dataErrU non corretto:")
+            print(dataErrU)
+            print("dataErrD non corretto:")
+            print(dataErrU)
+            print("dataEff_fake:")
+            print(dataEff_fake)
+            print("dataEff corretta:")
+            print(dataEff_corr)
+            print("dataErr_fakeD")
+            print(dataErr_fakeD)
+            print("dataErrU corretto:")
+            print(dataErrU_corr)
+            print("dataErr_fakeU:")
+            print(dataErr_fakeU)         
+            print("dataErrD corretto:")
+            print(dataErrD_corr)
+            print("")
+                
+    sf = dataEff_corr / mcEff_corr if mcEff_corr else 0.0
     sf_err = 0.0
-    if dataEff and mcEff:
-        dataErr = max(dataErrD, dataErrU)
-        mcErr = max(mcErrD, mcErrU)
-        sf_err = sf * ((dataErr / dataEff)**2 + (mcErr / mcEff)**2)**0.5
-    return sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU
+    
+    if dataEff_corr and mcEff_corr:
+        dataErr = max(dataErrD_corr, dataErrU_corr)
+        mcErr = max(mcErrD_corr, mcErrU_corr)
+        sf_err = sf * ((dataErr / dataEff_corr)**2 + (mcErr / mcEff_corr)**2)**0.5
+    return sf, sf_err, dataEff_corr, dataErrD_corr, dataErrU_corr, mcEff_corr, mcErrD_corr, mcErrU_corr
 
 
 def getSF_cutAndCount(binName, fnameData, fnameMC, massRanges, shift=None, resonance='Z'):
@@ -624,16 +670,27 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
         #mcErrD = (mcStatD**2 + combined_syst['mcEff']**2)**0.5
         #mcErrU = (mcStatU**2 + combined_syst['mcEff']**2)**0.5
         mcErrD = mcStatD
-        #print("dataEff:")
-        #print(dataEff)
-        #print("dataEffU:")
-        #print(dataErrU)
-        #print("dataEffD:")
-        #print(dataErrD)
+
         if (mcEff + mcStatU) >= 1.0:
             mcErrU = 1.0 - mcEff
         else:
             mcErrU = mcStatU
+        
+        #print("dataEff:")
+        #print(dataEff)
+        #print("dataErrU:")
+        #print(dataErrU)
+        #print("dataErrD:")
+        #print(dataErrD)
+        #print("mcEff:")
+        #print(mcEff)
+        #print("mcErrU:")
+        #print(mcErrU)
+        #print("mcErrD:")
+        #print(mcErrD)
+
+        
+
         _out['value'] = sf
         _out['stat'] = sf_stat
         _out['syst'] = combined_syst['SF']
@@ -765,16 +822,22 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
                 "edges": edges,
                 "content": content
             })
+        inputs = [
+            {"name": vl, "description": f"descrizione_{vl}", "type": "real"} for vl in variableLabels
+            ] + [ 
+            {"name": "uncertainties", "description": "descrizione_uncertainties", "type": "string"},
+        ]
 
-        inputs = [{"name": vl, "type": "real"} for vl in variableLabels]
-        inputs += [{"name": "uncertainties", "type": "string"}]
+        output = {"name": "weight", "description": "descrizione_weight", "type": "real"}
+        #inputs = [{"name": vl, "type": "real"} for vl in variableLabels]
+        #inputs += [{"name": "uncertainties", "type": "string"}]
 
         corr = schemav1.Correction.parse_obj({
                 "version": 1,
                 "name": effName,
                 "description": effName,
                 "inputs": inputs,
-                "output": {"name": "weight", "type": "real"},
+                "output": output,
                 "data": build_schema(1, tuple([1]*len(variableLabels)))
         })
         cset = schemav1.CorrectionSet.parse_obj({
@@ -784,7 +847,8 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
 
         # Write out schema json
         with open('{}_schemaV1.json'.format(effPath), "w") as fout:
-            fout.write(cset.json(exclude_unset=True, indent=4))
+            #fout.write(cset.json(exclude_unset=True, indent=4))
+            json.dump(cset.dict(exclude_unset=True), fout, indent=4)
 
     else:
         print("Warning: correctionlib not installed. Not producing schema jsons.")
@@ -829,7 +893,7 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
                 setLog(canvas, hists[h])
 
             canvas.Print('{}.png'.format(plotPath))
-            canvas.Print('{}.pdf'.format(plotPath))
+            #canvas.Print('{}.pdf'.format(plotPath))
             canvas.Print('{}.root'.format(plotPath))
 
         elif nVars == 3:
@@ -889,7 +953,7 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
                         setLog(canvas, hist_proj)
 
                     canvas.Print('{}.png'.format(plotPath))
-                    canvas.Print('{}.pdf'.format(plotPath))
+                    #canvas.Print('{}.pdf'.format(plotPath))
                     canvas.Print('{}.root'.format(plotPath))
 
     tfile.Close()
@@ -942,9 +1006,9 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
 
     # plot the efficiencies
     # some default colors for plots
-    #colors = [ROOT.kBlack, ROOT.kViolet-2,ROOT.kViolet-2, ROOT.kRed, ROOT.kGreen+2, #for trackeronlyseed
-    colors = [ROOT.kBlack, 65, 62, ROOT.kRed, ROOT.kGreen+2, #for alltracks
-              ROOT.kMagenta+1, ROOT.kOrange+1, ROOT.kTeal-1,
+    colors = [ROOT.kBlack, ROOT.kViolet-2,ROOT.kViolet-2, ROOT.kRed, ROOT.kGreen+2, #for trackeronlyseed
+    #colors = [ROOT.kBlack, 65, 62, ROOT.kRed, ROOT.kGreen+2, #for alltracks 
+             ROOT.kMagenta+1, ROOT.kOrange+1, ROOT.kTeal-1,
               ROOT.kRed-3, ROOT.kBlue]
 
     def plot_1d_eff(savename, graphs,
@@ -970,11 +1034,12 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
                 meaneff_MC = graphs[gi].GetMean(2)
                 meaneff_MC = meaneff_MC*100
                 meaneff_MC = "%.2f" % meaneff_MC
-            if  MCfilled: #gi == 0:
+            if  MCfilled: #gi == 0:    #not MCfilled per avere le bande mc in primo piano
                 mg.Add(graphs[0],'AP0')
                 graphs[0].SetLineColor(colors[0])
                 graphs[0].SetMarkerColor(colors[0])
-                graphs[0].SetMarkerSize(1.6)
+                #graphs[0].SetMarkerSize(1.6)
+                graphs[0].SetMarkerSize(1.2)
                 graphs[0].SetLineWidth(2)
                 meaneff_data = graphs[0].GetMean(2)
                 meaneff_data = meaneff_data*100
@@ -1025,10 +1090,12 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
                 mg.GetYaxis().SetRangeUser(0.85, 1.10)
                 #mg.GetYaxis().SetRangeUser(0.97, 1.02 )
             else:
-                mg.GetYaxis().SetRangeUser(0.000001, 0.4)
-                ROOT.gPad.SetLogy()
+                mg.GetYaxis().SetRangeUser(0.0001, 0.7)
+                #ROOT.gPad.SetLogy()
         if not 'fake' in savename:
-            legend = ROOT.TLegend(0.20, 0.3, 0.5, 0.45)
+            #legend = ROOT.TLegend(0.20, 0.3, 0.5, 0.45)
+            legend = ROOT.TLegend(0.70, 0.75, 0.90, 0.90)
+
         else:
             legend = ROOT.TLegend(0.20, 0.6, 0.5, 0.75)
         legend.SetTextFont(42)
@@ -1126,7 +1193,7 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
         canvas.Modified()
         canvas.Update()
         canvas.Print('{}.png'.format(savename))
-        canvas.Print('{}.pdf'.format(savename))
+        #canvas.Print('{}.pdf'.format(savename))
         canvas.Print('{}.root'.format(savename))
 
         # save each graph
@@ -1232,7 +1299,6 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
                             labels=labels,
                             xlabel=xlabel, ylabel=ylabel,
                             xRange=xRange, additional_text=additional_text)
-
         # if no indices, easier, just itself
         else:
             

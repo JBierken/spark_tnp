@@ -1,0 +1,93 @@
+{
+    "NUM_SAMatched_DEN_StandAloneMuons": {
+        "pt_eta_onebin": {
+            "binning": [
+                {
+                    "binning": [
+                        10,
+                        15,
+                        20,
+                        25,
+                        30,
+                        40,
+                        50,
+                        60,
+                        120,
+                        200
+                    ],
+                    "variable": "pt"
+                },
+                {
+                    "binning": [
+                        -2.4,
+                        2.4
+                    ],
+                    "variable": "eta_onebin"
+                }
+            ],
+            "pt:[10,15]": {
+                "eta_onebin:[-2.4,2.4]": {
+                    "stat": 0.0,
+                    "syst": 0.0,
+                    "value": 1.0
+                }
+            },
+            "pt:[120,200]": {
+                "eta_onebin:[-2.4,2.4]": {
+                    "stat": 0.0,
+                    "syst": 0.0,
+                    "value": 1.0
+                }
+            },
+            "pt:[15,20]": {
+                "eta_onebin:[-2.4,2.4]": {
+                    "stat": 0.0,
+                    "syst": 0.0,
+                    "value": 1.0
+                }
+            },
+            "pt:[20,25]": {
+                "eta_onebin:[-2.4,2.4]": {
+                    "stat": 0.0,
+                    "syst": 0.0,
+                    "value": 1.0
+                }
+            },
+            "pt:[25,30]": {
+                "eta_onebin:[-2.4,2.4]": {
+                    "stat": 0.0,
+                    "syst": 0.0,
+                    "value": 1.0
+                }
+            },
+            "pt:[30,40]": {
+                "eta_onebin:[-2.4,2.4]": {
+                    "stat": 0.0,
+                    "syst": 0.0,
+                    "value": 1.0
+                }
+            },
+            "pt:[40,50]": {
+                "eta_onebin:[-2.4,2.4]": {
+                    "stat": 0.0,
+                    "syst": 0.0,
+                    "value": 1.0
+                }
+            },
+            "pt:[50,60]": {
+                "eta_onebin:[-2.4,2.4]": {
+                    "stat": 0.0,
+                    "syst": 0.0,
+                    "value": 1.0
+                }
+            },
+            "pt:[60,120]": {
+                "eta_onebin:[-2.4,2.4]": {
+                    "stat": 0.0,
+                    "syst": 0.0,
+                    "value": 1.0
+                }
+            }
+        }
+    }
+}

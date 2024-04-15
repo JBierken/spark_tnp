@@ -81,11 +81,12 @@ _jsons = [
     # 'data/registry_muon_JPsi_generalTracks_oldNtuples.json',
     # Muon POG standAloneMuon probes
     #'data/registry_muon_Z_standAloneMuons.json',
-    #'data/registry_muon_JPsi_standAloneMuons_MINIAOD.json',
-    #'data/registry_muon_Z_standAloneMuons_MINIAOD_mine.json'
-    'data/registry_muon_Z_standAloneMuons_AOD_mine.json'
-    #'data/registry_muon_Z_standAloneMuons_AOD.json'
 
+    #'data/registry_muon_Z_standAloneMuons_MINIAOD.json',
+    #'data/registry_muon_Z_standAloneMuons_AOD.json'
+    'data/registry_muon_JPsi_standAloneMuons_MINIAOD.json'
+    #'data/registry_muon_Z_standAloneMuons_MINIAOD_mine.json'
+    #'data/registry_muon_Z_standAloneMuons_AOD_mine.json'
 
     # Muon POG displaced StandAlone muon probes for displaced ID measurements
     #'data/registry_muon_Z_dSAMuons.json',

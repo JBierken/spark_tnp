@@ -6,74 +6,91 @@ from pyspark.sql import types as T
 from pyspark.ml.feature import Bucketizer
 from pyspark.sql.functions import pandas_udf
 import correctionlib
+import numpy as np
 
-def get_pileup(resonance, era, subEra):
-   '''
-   Get the pileup distribution scalefactors to apply to simulation
-   for a given era.
-   '''
 
-   # get the pileup
-   dataPileup = {
-      # Note: for now use ReReco version of pileup
-      # TODO: need to redo splitting by 2016 B-F/F-H
-      'Run2016_UL_HIPM': 'pileup/data/Run2016.root',
-      'Run2016_UL': 'pileup/data/Run2016.root',
-      'Run2017_UL': 'pileup/data/Run2017.root',
-      'Run2018_UL': 'pileup/data/Run2018.root',
-      # Double muon PD
-      'Run2016_UL_HIPM_DM': 'pileup/data/Run2016.root',
-      'Run2016_UL_DM': 'pileup/data/Run2016.root',
-      'Run2017_UL_DM': 'pileup/data/Run2017.root',
-      'Run2018_UL_DM': 'pileup/data/Run2018.root',
-      'Run2016': 'pileup/data/Run2016.root',
-      'Run2017': 'pileup/data/Run2017.root',
-      'Run2018': 'pileup/data/Run2018.root',
-      # Run2022 : Centrally produced ROOT files by LUMI POG (https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData#Centrally_produced_ROOT_histogra)
-      'Run2022': 'pileup/data/Run2022_LUM.root',
-      'Run2022_EE': 'pileup/data/Run2022_LUM.root',
-      # Run2023 
-      'Run2023': 'pileup/data/Run2023_LUM.root',
-      'Run2023_BPix': 'pileup/data/Run2023_LUM.root',
-   }
-   mcPileup = {
-      # TODO: do the two eras have different profiles?
-      'Run2016_UL_HIPM': 'pileup/mc/Run2016_UL.root',
-      'Run2016_UL': 'pileup/mc/Run2016_UL.root',
-      'Run2017_UL': 'pileup/mc/Run2017_UL.root',
-      'Run2018_UL': 'pileup/mc/Run2018_UL.root',
-      # Double muon PD
-      'Run2016_UL_HIPM_DM': 'pileup/mc/Run2016_UL.root',
-      'Run2016_UL_DM': 'pileup/mc/Run2016_UL.root',
-      'Run2017_UL_DM': 'pileup/mc/Run2017_UL.root',
-      'Run2018_UL_DM': 'pileup/mc/Run2018_UL.root',
-      'Run2016': 'pileup/mc/Run2016.root',
-      'Run2017': 'pileup/mc/Run2017.root',
-      'Run2018': 'pileup/mc/Run2018.root',
-      # Run2022 (nTrueInteractions profile got privately by Sergio over our MC ntuples.)
-      'Run2022': 'pileup/mc/Run2022.root',
-      'Run2022_EE': 'pileup/mc/Run2022EE.root',
-      # Run2023 (nTrueInteractions profile got privately by Sergio over our MC ntuples.)
-      'Run2023': 'pileup/mc/Run2023.root',
-      'Run2023_BPix': 'pileup/mc/Run2023_BPix.root',
-   }
-   # get absolute path
-   baseDir = os.path.dirname(__file__)
-   dataPileup = {k: os.path.join(baseDir, dataPileup[k]) for k in dataPileup}
-   mcPileup = {k: os.path.join(baseDir, mcPileup[k]) for k in mcPileup}
-   with uproot.open(dataPileup[era]) as f:
-       data_edges = f['pileup'].axis(0).edges()
-       data_pileup = f['pileup'].values()
-       data_pileup /= sum(data_pileup)
-   with uproot.open(mcPileup[era]) as f:
-       mc_edges = f['pileup'].axis(0).edges()
-       mc_pileup = f['pileup'].values()
-       mc_pileup /= sum(mc_pileup)
-   pileup_edges = data_edges if len(data_edges) < len(mc_edges) else mc_edges
-   pileup_ratio = [d/m if m else 1.0 for d, m in zip(
-       data_pileup[:len(pileup_edges)-1], mc_pileup[:len(pileup_edges)-1])]
-
-   return pileup_ratio, pileup_edges
+#def get_pileup(resonance, era, subEra):
+   #'''
+   #Get the pileup distribution scalefactors to apply to simulation
+   #for a given era.
+   #'''
+#
+   ## get the pileup
+   #dataPileup = {
+   #   # Note: for now use ReReco version of pileup
+   #   # TODO: need to redo splitting by 2016 B-F/F-H
+   #   'Run2016_UL_HIPM': 'pileup/data/Run2016.root',
+   #   'Run2016_UL': 'pileup/data/Run2016.root',
+   #   'Run2017_UL': 'pileup/data/Run2017.root',
+   #   'Run2018_UL': 'pileup/data/Run2018.root',
+   #   # Double muon PD
+   #   'Run2016_UL_HIPM_DM': 'pileup/data/Run2016.root',
+   #   'Run2016_UL_DM': 'pileup/data/Run2016.root',
+   #   'Run2017_UL_DM': 'pileup/data/Run2017.root',
+   #   'Run2018_UL_DM': 'pileup/data/Run2018.root',
+   #   'Run2016': 'pileup/data/Run2016.root',
+   #   'Run2017': 'pileup/data/Run2017.root',
+   #   'Run2018': 'pileup/data/Run2018.root',
+   #   # Run2022 : Centrally produced ROOT files by LUMI POG (https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData#Centrally_produced_ROOT_histogra)
+   #   'Run2022': 'pileup/data/Run2022_LUM.root',
+   #   'Run2022_EE': 'pileup/data/Run2022_LUM.root',
+   #   # Run2023 
+   #   #'Run2023': 'pileup/data/Run2023D.root',
+   #   #'Run2023': 'pileup/data/Run2023_LUM.root',
+   #   'Run2022': 'pileup/data/pileupHistogram-Cert_Collisions2022_355100_357900_eraBCD_GoldenJson-13p6TeV-69200ub-99bins.root',
+   #   #'Run2023': 'pileup/data/pileupHistogram-Cert_Collisions2023_369803_370790_eraD_GoldenJson-13p6TeV-69200ub-99bins.root',
+   #   'Run2023': 'pileup/data/data_nVertices.root',
+   #}
+   #mcPileup = {
+   #   # TODO: do the two eras have different profiles?
+   #   'Run2016_UL_HIPM': 'pileup/mc/Run2016_UL.root',
+   #   'Run2016_UL': 'pileup/mc/Run2016_UL.root',
+   #   'Run2017_UL': 'pileup/mc/Run2017_UL.root',
+   #   'Run2018_UL': 'pileup/mc/Run2018_UL.root',
+   #   # Double muon PD
+   #   'Run2016_UL_HIPM_DM': 'pileup/mc/Run2016_UL.root',
+   #   'Run2016_UL_DM': 'pileup/mc/Run2016_UL.root',
+   #   'Run2017_UL_DM': 'pileup/mc/Run2017_UL.root',
+   #   'Run2018_UL_DM': 'pileup/mc/Run2018_UL.root',
+   #   'Run2016': 'pileup/mc/Run2016.root',
+   #   'Run2017': 'pileup/mc/Run2017.root',
+   #   'Run2018': 'pileup/mc/Run2018.root',
+   #   # Run2022 (nTrueInteractions profile got privately by Sergio over our MC ntuples.)
+   #   'Run2022': 'pileup/mc/Run2022.root',
+   #   'Run2022_EE': 'pileup/mc/Run2022EE.root',
+   #   # Run2023 (nTrueInteractions profile got privately by Sergio over our MC ntuples.)
+   #   #'Run2023': 'pileup/mc/Run2023_BPix.root',
+   #   'Run2023': 'pileup/mc/mc_nVertices.root',
+ #
+   #}
+   #
+   ## get absolute path
+   #baseDir = os.path.dirname(__file__)
+   #dataPileup = {k: os.path.join(baseDir, dataPileup[k]) for k in dataPileup}
+   #mcPileup = {k: os.path.join(baseDir, mcPileup[k]) for k in mcPileup}
+   #with uproot.open(dataPileup[era]) as f:
+   #    data_edges = f['pileup'].axis(0).edges()
+   #    data_pileup = f['pileup'].values()
+   #    #data_pileup = np.ones_like(data_pileup)
+   #    #data_pileup /= sum(data_pileup)
+   #with uproot.open(mcPileup[era]) as f:
+   #    mc_edges = f['pileup'].axis(0).edges()
+   #    mc_pileup = f['pileup'].values()
+   #    #mc_pileup /= sum(mc_pileup)
+   #pileup_edges = data_edges if len(data_edges) < len(mc_edges) else mc_edges
+   #pileup_ratio = [d/m if m else 1.0 for d, m in zip(                     
+   #    data_pileup[:len(pileup_edges)-1], mc_pileup[:len(pileup_edges)-1])]
+   #
+   #print(data_pileup)
+   #print(mc_pileup)
+   #print(pileup_edges)
+   #print(pileup_ratio)
+   #
+   #multiply=[d*m for d, m in zip(pileup_ratio, mc_pileup)]
+   #
+   #print(multiply)
+#
+   #return pileup_ratio, pileup_edges
 
 
 def get_tag_dataframe(df, resonance, era, subEra, shift=None):
@@ -133,63 +150,167 @@ def get_miniIso_dataframe(df):
                                           miniIsoDF.pt))
    return miniIsoDF
 
+from pyspark.sql import functions as F
+from pyspark.sql import SparkSession
+from pyspark.sql import functions as F
+
+spark = SparkSession.builder.appName("YourAppName").getOrCreate()
+
+def check_and_fill_missing_passing(doGen, passing_data_counts):
+
+    all_values_df = spark.range(1, 101).select(F.col("id").alias("nVertices"))
+    missing_values_df = all_values_df.join(passing_data_counts, on="nVertices", how="left_outer")
+    if not doGen:
+        filled_df = missing_values_df.fillna(0, subset=['passing_data'])
+    else:
+        filled_df = missing_values_df.fillna(0, subset=['passing_mc'])
+    return filled_df.orderBy('nVertices')
+
+def check_and_fill_missing_failing(doGen, passing_data_counts):
+
+    all_values_df = spark.range(1, 101).select(F.col("id").alias("nVertices"))
+    missing_values_df = all_values_df.join(passing_data_counts, on="nVertices", how="left_outer")
+    if not doGen:
+        filled_df = missing_values_df.fillna(0, subset=['failing_data'])
+    else: 
+        filled_df = missing_values_df.fillna(0, subset=['failing_mc'])
+    return filled_df.orderBy('nVertices')
+
+def check_and_fill_missing_fake(doGen, passing_data_counts):
+
+    all_values_df = spark.range(1, 101).select(F.col("id").alias("nVertices"))
+    missing_values_df = all_values_df.join(passing_data_counts, on="nVertices", how="left_outer")
+    if not doGen:
+        filled_df = missing_values_df.fillna(0, subset=['fake_data'])
+    else: 
+        filled_df = missing_values_df.fillna(0, subset=['fake_mc'])
+    return filled_df.orderBy('nVertices')
+
+def get_data_passing(df, doGen, resonance, era, subEra, shift=None):
+   
+    passing_data_counts = df.filter((F.col('probe_isTrkMatch') == True) & (F.col('probeSA_isTrkMatch') == False)) \
+                            .groupBy('nVertices').count().withColumnRenamed('count', 'passing_data').orderBy('nVertices')  
+    
+    passing_data_counts = check_and_fill_missing_passing(doGen, passing_data_counts)
+    
+    return passing_data_counts
+
+def get_data_failing(df, doGen, resonance, era, subEra, shift=None):
+
+    failing_data_counts = df.filter((F.col('probe_isTrkMatch') == False) & (F.col('probeSA_isTrkMatch') == False)) \
+                            .groupBy('nVertices').count().withColumnRenamed('count', 'failing_data').orderBy('nVertices')
+
+    failing_data_counts = check_and_fill_missing_failing(doGen, failing_data_counts)
+    return failing_data_counts
+
+def get_data_fake(df, doGen, resonance, era, subEra, shift=None):
+
+    fake_data_counts = df.filter((F.col('probe_isTrkMatch') == True) & (F.col('probeSA_isTrkMatch') == True)) \
+                            .groupBy('nVertices').count().withColumnRenamed('count', 'fake_data').orderBy(F.col('nVertices'))
+
+    fake_data_counts = check_and_fill_missing_fake(doGen, fake_data_counts)
+    return fake_data_counts    
+
+def save_to_parquet(nVertices_dist, filename):
+    nVertices_dist.write.mode("overwrite").parquet(filename)
+ 
+def read_from_parquet(spark, filename):
+    return spark.read.parquet(filename)
 
 def get_weighted_dataframe(df, doGen, resonance, era, subEra, shift=None):
-   '''
-   Produces a dataframe with a weight and weight2 column
-   with weight corresponding to:
-       1 for data
-   or
-       pileup for mc
-   The optional shift parameter allows for a different
-   systematic shift to the weights
-   '''
-   # TODO: implement systematic shifts in the weight such as PDF, pileup, etc.
-   # get the pileup
-   pileup_ratio, pileup_edges = get_pileup(resonance, era, subEra)
 
-   if pileup_ratio is None or pileup_edges is None:
-       doGen = False
 
-   # build the weights (pileup for MC)
-   # TODO: if there is a weight column (ie, gen weight) get that first
-   if doGen:
-       pileupMap = {e: r for e, r in zip(pileup_edges[:-1], pileup_ratio)}
-       mapping_expr = F.create_map(
-           [F.lit(x) for x in itertools.chain(*pileupMap.items())])
-       # M.Oh: temporary solution for missing true PU branch in the new ntuples
-       if 'pair_truePileUp' in df.columns:
-           #weightedDF = df.withColumn(
-           #    'PUweight', mapping_expr.getItem(F.round('pair_truePileUp')))
-           weightedDF = df.withColumn(
-               'PUweight', mapping_expr[F.round('pair_truePileUp')])
-       elif 'nTrueInteractions' in df.columns:
-           #weightedDF = df.withColumn(
-           #    'PUweight', mapping_expr.getItem(F.round('nTrueInteractions')))
-           weightedDF = df.withColumn(
-               'PUweight', mapping_expr[F.round('nTrueInteractions')])
-       elif 'nVertices' in df.columns:
-           #weightedDF = df.withColumn(
-           #   'PUweight', mapping_expr.getItem(F.col('nVertices')))
-           weightedDF = df.withColumn(
-               'PUweight', mapping_expr[F.col('nVertices')])
-       else:
-           weightedDF = df.withColumn('PUweight', F.lit(1.0))
-       # apply gen weights
-       if 'genWeight' in weightedDF.columns:
-           weightedDF = weightedDF.withColumn('genWeightSign', F.signum('genWeight'))
-           weightedDF = weightedDF.withColumn('weight', F.col('genWeightSign') * F.col('PUweight'))
-       elif 'pair_genWeight' in weightedDF.columns:
-           weightedDF = weightedDF.withColumn('genWeightSign', F.signum('pair_genWeight'))
-           weightedDF = weightedDF.withColumn('weight', F.col('genWeightSign') * F.col('PUweight'))
-       else:
-           weightedDF = weightedDF.withColumn('weight', F.col('PUweight'))
-   else:
-       weightedDF = df.withColumn('weight', F.lit(1.0))
-   weightedDF = weightedDF.withColumn(
-       'weight2', F.col('weight') * F.col('weight'))
+    #df = df.withColumn('isPositive',(F.col('tag_pfIso04_neutral') + F.col('tag_pfIso04_photon') - F.col('tag_pfIso04_sumPU') / 2) > 0.0)
+#
+    #selections = (
+    #(F.col('pair_mass_corr') > 70) &
+    #(F.col('pair_mass_corr') < 115) &
+    #(F.col('tag_pt') > 27) &
+    #(F.col('tag_isTight') == 1) &
+    #(F.col('tag_charge') * F.col('probe_charge') == -1) &
+    #(
+    #    (F.col('isPositive') == 1) &
+    #    ((F.col('tag_pfIso04_charged') + F.col('tag_pfIso04_neutral') + F.col('tag_pfIso04_photon') - F.col('tag_pfIso04_sumPU') / 2) / F.col('tag_pt') < 0.15)
+    #    |
+    #    (F.col('isPositive') == 0) &
+    #    ((F.col('tag_pfIso04_charged') / F.col('tag_pt')) < 0.15)
+    #) &
+    #(
+    #    (F.col('HLT_IsoMu24_v') == 1) |
+    #    (F.col('HLT_Mu50_v') == 1)
+    #) &
+    #(F.col('tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q') == 1) &
+    #(F.col('tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q_dr') < 0.1)
+#
+    #& (F.col('probe_pt') > 10) & (F.col('probe_isSA') ==1 )    )
+    global_filter = ((F.col('probe_dxy') != -99.0) & (F.col('probe_dz') != -99.0))
+    #global_filter = selections & ((F.col('probe_dxy') != -99.0) & (F.col('probe_dz') != -99.0) & (F.col('nVertices') <= 80) )
+    df = df.filter(global_filter)
 
-   return weightedDF
+    data_passing_filename = 'data_passing.parquet'
+    data_failing_filename = 'data_failing.parquet'
+    data_fake_filename = 'data_fake.parquet'
+    
+    if not doGen:  # data
+        passing_data_counts = get_data_passing(df, doGen, resonance, era, subEra, shift=None)
+        failing_data_counts = get_data_failing(df, doGen, resonance, era, subEra, shift=None)
+        fake_data_counts = get_data_fake(df, doGen, resonance, era, subEra, shift=None)
+        passing_data_counts.show(120)
+        failing_data_counts.show(120)
+        save_to_parquet(passing_data_counts, data_passing_filename)
+        save_to_parquet(failing_data_counts, data_failing_filename)
+        save_to_parquet(fake_data_counts, data_fake_filename)
+
+        weightedDF = df.withColumn('weight', F.lit(1.0))
+
+    else:   # mc
+        print("MC elaboration")
+        passing_data_counts = read_from_parquet(spark,data_passing_filename)
+        failing_data_counts = read_from_parquet(spark, data_failing_filename)
+        fake_data_counts = read_from_parquet(spark, data_fake_filename)
+
+        passing_mc_counts = df.filter((F.col('probe_isTrkMatch') == True) & (F.col('probeSA_isTrkMatch') == False)) \
+                              .groupBy('nVertices').count().withColumnRenamed('count', 'passing_mc').orderBy('nVertices')
+        
+        passing_mc_counts = check_and_fill_missing_passing(doGen, passing_mc_counts)
+        
+        passing_mc_counts.show(120)
+
+        failing_mc_counts = df.filter((F.col('probe_isTrkMatch') == False) & (F.col('probeSA_isTrkMatch') == False)) \
+                             .groupBy('nVertices').count().withColumnRenamed('count', 'failing_mc').orderBy('nVertices')
+        
+        failing_mc_counts = check_and_fill_missing_failing(doGen, failing_mc_counts)
+
+        failing_mc_counts.show(120)
+
+        fake_mc_counts = df.filter((F.col('probe_isTrkMatch') == True) & (F.col('probeSA_isTrkMatch') == True)) \
+                             .groupBy('nVertices').count().withColumnRenamed('count', 'fake_mc').orderBy('nVertices') 
+                       
+        fake_mc_counts = check_and_fill_missing_fake(doGen, fake_mc_counts)
+
+        weights_expr_passing = F.when(passing_mc_counts['passing_mc'] != 0, passing_data_counts['passing_data'] / passing_mc_counts['passing_mc']).otherwise(passing_data_counts['passing_data'] )
+        
+        weights_expr_failing = F.when(failing_mc_counts['failing_mc'] != 0, failing_data_counts['failing_data'] / failing_mc_counts['failing_mc']).otherwise(failing_data_counts['failing_data'])
+
+        weights_expr_fake = F.when(fake_mc_counts['fake_mc'] != 0, fake_data_counts['fake_data'] / fake_mc_counts['fake_mc']).otherwise(fake_data_counts['fake_data'])
+
+        weightedDF = df.join(passing_data_counts, 'nVertices', 'left') \
+                       .join(failing_data_counts, 'nVertices', 'left') \
+                       .join(passing_mc_counts, 'nVertices', 'left') \
+                       .join(failing_mc_counts, 'nVertices', 'left') \
+                       .join(fake_data_counts, 'nVertices', 'left') \
+                       .join(fake_mc_counts, 'nVertices', 'left') \
+                       .withColumn('weight', F.when((F.col('probe_isTrkMatch') == True) & (F.col('probeSA_isTrkMatch') == False), weights_expr_passing)
+                                           .when((F.col('probe_isTrkMatch') == False) & (F.col('probeSA_isTrkMatch') == False), weights_expr_failing)
+                                           .when((F.col('probe_isTrkMatch') == True) & (F.col('probeSA_isTrkMatch') == True), weights_expr_fake)
+                                           .otherwise(F.lit(1.0)))
+
+    weightedDF = weightedDF.withColumn('weight2', F.col('weight') * F.col('weight'))
+    
+    # to show the df with some filters
+    #weightedDF.filter((F.col('probe_isTrkMatch') == False) & (F.col('probeSA_isTrkMatch') == False)).select('event','nVertices', 'weight', 'pair_mass_corr' ,'probe_isTrkMatch', 'probeSA_isTrkMatch', 'tag_dxy', 'probe_dxy', 'probe_dz').show(200)
+    
+    return weightedDF
 
 
 def get_binned_dataframe(df, bin_name, variable_name, edges):
@@ -203,28 +324,6 @@ def get_binned_dataframe(df, bin_name, variable_name, edges):
    binnedDF = bucketizer.transform(df)
    return binnedDF
 
-def get_corrected_dataframe(df, doGen=False, label="", jsonpath="", minpt=15.0001, maxpt=199.999):
-   
-   if not os.path.exists(jsonpath) or not doGen:
-      df = df.withColumn("SF_"+label, F.lit(1.0))
-   else:
-      print("working point: " + label)
-      print("Json file: " + jsonpath)
-      print("\n")
-      
-      ceval = correctionlib.CorrectionSet.from_file(jsonpath)
-
-      getScaleFactors = F.udf(lambda eta, pt: ceval[label].evaluate(min(2.399, abs(eta)), min(minpt, max(maxpt, pt)), "nominal"), T.FloatType())
-      df = df.withColumn("SF_" + label, getScaleFactors(df.probe_eta, df.probe_pt))
-
-   if "weight" in df.columns:
-      df = df.withColumn("weight", F.col("weight")*F.col("SF_"+label))
-      df = df.withColumn('weight2', F.col('weight') * F.col('weight'))
-   else:
-      df = df.withColumn("weight", F.col("SF_"+label))
-      df = df.withColumn('weight2', F.col('weight') * F.col('weight'))
-
-   return df
 
 def get_selection_dataframe(df, selection_name, selection_func):
    '''

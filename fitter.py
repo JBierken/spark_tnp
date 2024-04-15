@@ -12,20 +12,21 @@ from muon_definitions import (get_full_name, get_eff_name,
 # This is (a lot) slower since every subprocess has to load ROOT.
 # However, it has the benefit of allowing us to redirect the output to a file
 # on a per fit basis.
-def run_single_fit(outFName, inFName, binName, templateFName,
+def run_single_fit(outFName, inFName, binName, templateFName, plotDir,
                    fitType, histType, shiftType='Nominal', resonance='Z',
-                   doPassPlusFail='False', effType=''):
+                   effType=''):
 
     os.makedirs(os.path.dirname(outFName), exist_ok=True)
+
     try:
         # this allows us to save the output to a txt file
         # but is slower since each job loads ROOT
-        #txtFName = outFName.replace('.root', '.log')
+        # txtFName = outFName.replace('.root', '.log')
         txtFName = '/dev/null'
         with open(txtFName, 'w') as f:
             subprocess.check_call([
                 './run_single_fit.py', outFName, inFName, binName,
-                templateFName, fitType, histType, shiftType, resonance, doPassPlusFail, effType
+                templateFName, plotDir, fitType, histType, shiftType, resonance, effType
                 ])#, stdout=f)
     except BaseException:
         print('Error processing', binName, fitType, histType)
@@ -35,13 +36,11 @@ def build_condor_submit(joblist, test=False, jobsPerSubmit=1, njobs=1):
 
     # for now, hard coded for lxplus
     args = ['outFName', 'inFName', 'binName', 'templateFName',
-            'version', 'histType', 'shiftType', 'resonance', 'doPassPlusFail', 'effType']
+            'plotDir', 'version', 'histType', 'shiftType', 'resonance', 'effType']
     files = ['env.sh', 'TagAndProbeFitter.py',
              'run_single_fit.py',
              'RooCMSShape.cc', 'RooCMSShape.h',
-             'tdrstyle.py', 'CMS_lumi.py','RooCruijff.cxx',
-             'RooDCBShape.cxx','RooCruijff.h','RooDCBShape.h',
-             'RooErfExp.cc','RooErfExp.h','binning.pkl']
+             'tdrstyle.py', 'CMS_lumi.py']
 
     if jobsPerSubmit > 1:
         arguments = './run_multiple_fits.sh {} {} {}'.format(
@@ -62,25 +61,22 @@ def build_condor_submit(joblist, test=False, jobsPerSubmit=1, njobs=1):
         )
         flavour = 'espresso'
 
-    output = 'condor/job.$(ClusterId).$(ProcId).out' if test else '/dev/null'
-    error = 'condor/job.$(ClusterId).$(ProcId).err' if test else '/dev/null'
+    output = 'condor/job.$(ClusterId).$(ProcId).out' if test else './log.out'
+    error = 'condor/job.$(ClusterId).$(ProcId).err' if test else './log.err'
     log = 'condor/job.$(ClusterId).$(ProcId).log' if test else '/dev/null'
 
-    if "lxplus7" in os.environ['HOSTNAME']:
-        lineToAdd = 'MY.WantOS = "el7"'
-    else:
-        lineToAdd = ''
-    
+#previous version: the following line was required within the config:
+#environment = "SINGULARITY_BINDPATH='/cvmfs,/cvmfs/grid.cern.ch/etc/grid-security/vomses:/etc/vomses,/cvmfs/grid.cern.ch/etc/grid-security:/etc/grid-security'"
+#+SingularityImage = "/cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmssw/el9:x86_64"
+
     config = '''universe    = vanilla
-executable  = condor_wrapper.sh
+executable  = condor_wrapper.sh  
 arguments   = {arguments}
 transfer_input_files = {files}
 output      = {output}
 error       = {error}
 log         = {log}
 +JobFlavour = "{flavour}"
-{lineToAdd}
-requirements = (OpSysAndVer =?= "AlmaLinux9")
 {queue}'''.format(
         arguments=arguments,
         files=','.join(files),
@@ -88,7 +84,6 @@ requirements = (OpSysAndVer =?= "AlmaLinux9")
         error=error,
         log=log,
         flavour=flavour,
-        lineToAdd=lineToAdd,
         queue=queue,
     )
 
@@ -114,15 +109,13 @@ def build_fit_jobs(particle, probe, resonance, era,
     _recover = kwargs.pop('recover', False)
     _recoverMode = kwargs.pop('recoverMode', 'simple')
     doData = (not _sampleType) or ('data' in _sampleType)
-    doMC = (not _sampleType) or ('mc' in _sampleType)
-    _doPassPlusFail = kwargs.pop('doPassPlusFail', False)
+    doMC = (not _sampleType) or ('mc' in _sampleType) 
 
     # defining type of efficiency for initializing nominal and alternative
     # fit functions, initial parameters, mass binning, etc
     effType = config.type() if 'type' in config else ''
-    doPassPlusFail = str(_doPassPlusFail)
- 
-    dataSubEra, mcSubEra, mcSubEraAlt = get_data_mc_sub_eras(resonance, era)
+
+    dataSubEra, mcSubEra = get_data_mc_sub_eras(resonance, era)
 
     def process(outFName):
         if _recover and _recoverMode == 'simple':
@@ -173,15 +166,15 @@ def build_fit_jobs(particle, probe, resonance, era,
                                            resonance, era,
                                            dataSubEra, inType,
                                            extEffName+'.root')
-
-                    # AltSig: Use Alternative MC template (third element in get_data_mc_sub_eras)
-                    if fitType in ['AltSig']:
-                        templateFName = templateFName.replace(mcSubEra, mcSubEraAlt)
-
+                    plotDir = os.path.join(_baseDir, 'plots',
+                                           particle, probe,
+                                           resonance, era,
+                                           'fits_data',
+                                           outType, effName)
                     if doData and process(outFName):
                         os.makedirs(os.path.dirname(outFName), exist_ok=True)
                         _jobs += [(outFName, inFName, binName, templateFName,
-                                   fitType, 'data', shiftType, resonance, doPassPlusFail, effType)]
+                                   plotDir, fitType, 'data', shiftType, resonance, effType)]
                     
                     # MC
                     outFName = os.path.join(_baseDir, 'fits_mc',
@@ -194,14 +187,19 @@ def build_fit_jobs(particle, probe, resonance, era,
                                            resonance, era,
                                            mcSubEra, inType,
                                            extEffName+'.root')
+                    plotDir = os.path.join(_baseDir, 'plots',
+                                           particle, probe,
+                                           resonance, era,
+                                           'fits_mc',
+                                           outType, effName)
                     # there is no need to fit MC for templates
                     # PDF based fits are:
                     #   NominalOld, AltSigOld
                     if doMC and process(outFName) and\
-                            fitType in ['NominalOld', 'AltSigOld']:
+                            fitType in ['Nominal','NominalOld', 'AltSigOld']:
                         os.makedirs(os.path.dirname(outFName), exist_ok=True)
                         _jobs += [(outFName, inFName, binName, templateFName,
-                                   fitType, 'mc', shiftType, resonance, effType)]
+                                   plotDir, fitType, 'mc', shiftType, resonance, effType)]
                         
                     return _jobs
 

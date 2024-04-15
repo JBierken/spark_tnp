@@ -6,9 +6,9 @@ from glob import glob
 import numpy as np
 import pandas as pd
 import uproot
+#from uproot_methods.classes import TH1
 import pickle
 import boost_histogram as bh
-
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
@@ -30,8 +30,6 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
     _baseDir = kwargs.pop('baseDir', '')
     _testing = kwargs.pop('testing', False)
     _registry = kwargs.pop('registry', None)
-
-    doProbeMultiplicity = False
 
     print('Running flattening for', particle, probe, resonance, era, subEra, shift)
 
@@ -59,7 +57,7 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
         jobPath = os.path.join(_baseDir, jobPath)
     os.makedirs(jobPath, exist_ok=True)
 
-    doGen = subEra in ['DY_madgraph', 'DY_powheg', 'DY_amcatnlo', 'JPsi_pythia8']
+    doGen = subEra in ['DY_madgraph', 'DY_powheg', 'JPsi_pythia8', 'DY_amcatnlo']
 
     # default numerator/denominator defintions
     efficiencies = config.efficiencies()
@@ -77,18 +75,22 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
         baseDF = spark.read.format("root")\
                       .option('tree', treename)\
                       .load(fnames)
+    # create the miniIsolation columns
+    # Need miniIsolation in new ntuples to restore this (coming soon)
+    miniIsoDF = baseDF #get_miniIso_dataframe(baseDF)
 
     # create the definitions columns
     definitions = config.definitions()
 
+    defDF = miniIsoDF
     for d in definitions:
         baseDF = baseDF.withColumn(d, F.expr(definitions[d]))
 
     # select tags
     selection = config.selection()
-    if "pair_probeMultiplicity" in selection:
-        doProbeMultiplicity = True
-        selection = selection.split("and pair_probeMultiplicity")[0] + selection.split("and pair_probeMultiplicity")[1]
+    #if "pair_probeMultiplicity" in selection:
+    #    doProbeMultiplicity = True
+    #    selection = selection.split("and pair_probeMultiplicity")[0] + selection.split("and pair_probeMultiplicity")[1]
     baseDF = baseDF.filter(selection)
 
     if doGen:
@@ -99,9 +101,10 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
             baseDF = baseDF.filter(config.data_selection())
 
     # build the weights (pileup for MC)
+
     baseDF = get_weighted_dataframe(
         baseDF, doGen, resonance, era, subEra, shift=shift)
- 
+
     # create the binning structure
     fitVariable = config.fitVariable()
     binningSet = set([fitVariable])
@@ -132,10 +135,10 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
 
     for numLabel, denLabel in efficiencies:
         den = baseDF.filter(denLabel)
-        if doProbeMultiplicity:
-            count = den.groupBy("tag_pt", "event").count()
-            den = den.join(count, on=["tag_pt", "event"])
-            den = den.filter("count==1")
+        #if doProbeMultiplicity:
+        #    count = den.groupBy("tag_pt", "event").count()
+        #    den = den.join(count, on=["tag_pt", "event"])
+        #    den = den.filter("count==1")
         for binVars in binVariables:
             key = (numLabel, denLabel, tuple(binVars))
             yields[key] = den.groupBy(
@@ -174,6 +177,8 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
         else:
             hist.view(flow=False).value = values[1:-1]
             hist.view(flow=False).variance = sumw2[1:-1]
+        print(values)
+        print(edges) 
         return hist
 
     # realize each of the yield tables
@@ -213,6 +218,8 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
             if not sum(values):
                 print('Warning: integral = 0 for', binname, 'Fail')
             edges = binning[fitVariable]
+            #print(values)
+            #print(edges)
             hists[binname+'_Fail'] = get_hist(values, sumw2, edges)
 
         if doGen:
@@ -237,15 +244,16 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
                 if not sum(values):
                     print('Warning: integral = 0 for', binname, 'Fail_Gen')
                 edges = binning[fitVariableGen]
+                #print(values)
                 hists[binname+'_Fail_Gen'] = get_hist(values, sumw2, edges)
 
         with uproot.recreate(eff_outname) as f:
             for h, hist in sorted(hists.items()):
                 f[h] = hist
 
+    #baseDF.filter((F.col('probe_isTrkMatch') == False) & (F.col('probeSA_isTrkMatch') == False) & (F.col('probe_isSA')==1)).select('event','nVertices', 'weight', 'pair_mass_corr' ,'probe_isTrkMatch', 'probeSA_isTrkMatch', 'tag_dxy', 'probe_dxy', 'probe_dz').show(200)
     del baseDF
-
-
+    
 def run_all(spark, particle, probe, resonance, era,
             config, shift='Nominal', **kwargs):
     # data only option
@@ -275,6 +283,13 @@ def run_spark(particle, probe, resonance, era, config, **kwargs):
         './log4j-core-2.13.0.jar',
     ])
 
+    java_home = "/cvmfs/sft.cern.ch/lcg/releases/java/8u362-88cd4/x86_64-el9-gcc13-opt/"
+    #if "lxplus7" in os.environ['HOSTNAME']:
+    #    java_home = "/cvmfs/sft.cern.ch/lcg/releases/java/8u362-88cd4/x86_64-centos7-gcc12-opt/"
+    #else:
+    #    java_home = "/cvmfs/sft.cern.ch/lcg/releases/java/8u362-88cd4/x86_64-el9-gcc13-opt/"
+
+
     spark = SparkSession\
         .builder\
         .appName("TnP")
@@ -293,9 +308,9 @@ def run_spark(particle, probe, resonance, era, config, **kwargs):
         .config("spark.sql.broadcastTimeout", "36000")\
         .config("spark.network.timeout", "600s")\
         .config("spark.driver.memory", "6g")\
-        .config("spark.executor.memory", "10g")
-
-
+        .config("spark.executor.memory", "10g")\
+        .config("spark.executorEnv.JAVA_HOME", java_home)\
+        .config("spark.yarn.appMasterEnv.JAVA_HOME", java_home)
     if _useLocalSpark == True:
         spark = spark.master("local")
 
@@ -305,7 +320,6 @@ def run_spark(particle, probe, resonance, era, config, **kwargs):
     print(sc.getConf().toDebugString())
 
     shiftTypes = config.shifts()
-
     for shiftType in shiftTypes:
         if _shiftType and shiftType not in _shiftType:
             continue
