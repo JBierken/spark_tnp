@@ -84,10 +84,6 @@ def run_convert(spark, particle, resonance, era, dataTier, subEra, customDir='',
                          .option('tree', treename)\
                          .load(current)
 
-        rootfiles = rootfiles.select("run","event","pair_mass", "tag_pt","tag_eta","tag_phi", "tag_isTight","tag_charge","probe_charge","tag_pfIso04_neutral","tag_pfIso04_photon","tag_pfIso04_sumPU","tag_pfIso04_charged","tag_hltL3crIsoL1sSingleMu22L1f0L2f10QL3f24QL3trkIsoFiltered","tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q","probe_pt","probe_isTrkMatch","probe_isSA","probeSA_isTrkMatch","probe_eta","nVertices","ls","probe_minDR","istlumi","HLT_IsoMu24_v","HLT_Mu50_v","tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q_dr","probe_phi","probe_trkPt","probe_trkEta","probe_trkPhi","tag_dxy","tag_dz","probe_dxy","probe_dz","probe_pixelLayers","probe_trackerLayers","probe_trkStripHits","probe_trkPixelHits","probe_trkHits","probe_pixelHits") #selection of variables for AOD                
-       
-       # Adding a new column "pair_mass_corrected" based on the condition
-        rootfiles = rootfiles.withColumn("pair_mass_corr", when((col("probe_isTrkMatch")  & ~col("probeSA_isTrkMatch")) , sqrt(2*col("tag_pt")*col("probe_trkPt")*(cosh(col("tag_eta")-col("probe_trkEta"))-cos((col("tag_phi")-(col("probe_trkPhi"))))))).otherwise(col("pair_mass")))                     
         # merge rootfiles. chosen to make files of 8-32 MB (input)
         # become at most 1 GB (parquet recommendation)
         # https://parquet.apache.org/documentation/latest/
@@ -118,10 +114,17 @@ def run_all(particle, resonance, era, dataTier, subEra=None, customDir='', baseD
     
     import os
 
-    # java8 
-    java_home = "/cvmfs/sft.cern.ch/lcg/releases/java/8u362-88cd4/x86_64-el9-gcc13-opt/"
-
+    if "lxplus7" in os.environ['HOSTNAME']:
+        java_home = "/cvmfs/sft.cern.ch/lcg/releases/java/11.0.21p9-cabd2/x86_64-centos7-gcc12-opt/"
+        #java_home = "/cvmfs/sft.cern.ch/lcg/releases/java/8u362-88cd4/x86_64-centos7-gcc12-opt/"
+    else:
+        #java_home = "/cvmfs/sft.cern.ch/lcg/releases/java/8u362-88cd4/x86_64-el9-gcc13-opt/"
+        java_home = "/cvmfs/sft.cern.ch/lcg/releases/java/11.0.21p9-cabd2/x86_64-el9-gcc13-opt/"
     
+    #java_home = "/cvmfs/sft.cern.ch/lcg/releases/java/8u362-88cd4/x86_64-centos7-gcc12-opt/"
+
+    KRB5CCNAME="FILE:$XDG_RUNTIME_DIR/krb5cc"
+
     spark = SparkSession\
         .builder\
         .appName("TnP")\
@@ -136,7 +139,11 @@ def run_all(particle, resonance, era, dataTier, subEra=None, customDir='', baseD
         .config("spark.sql.broadcastTimeout", "36000")\
         .config("spark.network.timeout", "600s")\
         .config("spark.executorEnv.JAVA_HOME", java_home)\
-        .config("spark.yarn.appMasterEnv.JAVA_HOME", java_home)
+        .config("spark.yarn.appMasterEnv.JAVA_HOME", java_home)\
+        .config("spark.executorEnv.PYTHONPATH", os.environ.get('PYTHONPATH'))\
+        .config("spark.executorEnv.LD_LIBRARY_PATH", os.environ.get('LD_LIBRARY_PATH'))\
+        .config("spark.kerberos.access.hadoopFileSystems", "nxcals")\
+        .config("spark.yarn.appMasterEnv.KRB5CCNAME", KRB5CCNAME)
         
     
     if use_local is True:

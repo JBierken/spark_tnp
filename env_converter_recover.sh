@@ -17,7 +17,6 @@ if [[ "$HOSTNAME" == *"ithdp"* ]]; then
      export JAVA_HOME=/cvmfs/sft.cern.ch/lcg/releases/java/8u362-88cd4/x86_64-el9-gcc13-opt/
      source /cvmfs/sft.cern.ch/lcg/views/LCG_105_swan/x86_64-el9-gcc13-opt/setup.sh
      source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix 3.2 spark3
-     pyspark --conf spark.executorEnv.JAVA_HOME=$JAVA_HOME --conf spark.yarn.appMasterEnv.JAVA_HOME=$JAVA_HOME
      #pyspark --conf spark.executorEnv.PYTHONPATH=$CC7_PYTHONPATH --conf spark.executorEnv.LD_LIBRARY_PATH=$CC7_LD_LIBRARY_PATH 
     echo "Done!"
 #elif [[ "$1" == *"lxplus"* ]]; then
@@ -46,6 +45,7 @@ elif [[ "$HOSTNAME" == *"lxplus"* ]]; then
     source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix 3.2 spark3
     #export JAVA_HOME=/cvmfs/sft.cern.ch/lcg/releases/java/8u362-88cd4/x86_64-el9-gcc13-opt/ù
     export KRB5CCNAME=FILE:$XDG_RUNTIME_DIR/krb5cc
+     kinit
     #pyspark
 
     echo "Done!"
@@ -70,6 +70,19 @@ if [ ! -f RooDCBShape_cxx.so ]; then
     echo ""
     echo "Did not detect a RooDCBShape shared object file. Compiling with ACLiC... (should be needed only once)"
     root -l -b -q -e '.L RooDCBShape.cxx+'
+    echo "Done!"
+fi
+
+if [ ! -f RooErfExp_cc.so ]; then
+    echo ""
+    echo "Did not detect a RooErfExp shared object file. Compiling with ACLiC... (should be needed only once)"
+    root -l -b -q -e '.L RooErfExp.cc+'
+    echo "Done!"
+fi
+if [ ! -f RooCruijff_cxx.so ]; then
+    echo ""
+    echo "Did not detect a RooCruijff shared object file. Compiling with ACLiC... (should be needed only once)"
+    root -l -b -q -e '.L RooCruijff.cxx+'
     echo "Done!"
 fi
 

@@ -5,6 +5,7 @@
     ],
     "selection": "pair_mass_corr > 70 and pair_mass_corr < 115 and tag_pt > 27 and tag_isTight == 1 and (tag_charge * probe_charge = -1)  and ((isPositive==1 and (tag_pfIso04_charged + tag_pfIso04_neutral + tag_pfIso04_photon - tag_pfIso04_sumPU/2)/tag_pt < 0.15) or (isPositive==0 and (tag_pfIso04_charged /tag_pt) < 0.15)) and (HLT_IsoMu24_v==1 or HLT_Mu50_v==1) and tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q ==1 and (tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q_dr < 0.1) ",
     "definitions": {
+        "pair_mass_corr": "pair_mass",
         "isPositive":"(tag_pfIso04_neutral + tag_pfIso04_photon - tag_pfIso04_sumPU/2) > 0.0",
         "SAMatched_fakerate":"probe_pt > 10 and  ( probeSA_isTrkMatch == 1) and (probe_isSA == 1)",
         "SAMatched":"probe_pt > 10 and  ( probe_isTrkMatch == 1) and (probe_isSA == 1)",

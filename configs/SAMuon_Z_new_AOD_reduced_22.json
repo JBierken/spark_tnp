@@ -3,7 +3,7 @@
         ["SAMatched", "StandAloneMuons"],
         ["SAMatched_fakerate", "StandAloneMuons"]
     ],
-    "selection": "pair_mass > 70 and pair_mass < 115 and tag_pt > 27 and tag_isTight == 1 and (tag_charge * probe_charge = -1)  and ((isPositive==1 and (tag_pfIso04_charged + tag_pfIso04_neutral + tag_pfIso04_photon - tag_pfIso04_sumPU/2)/tag_pt < 0.15) or (isPositive==0 and (tag_pfIso04_charged /tag_pt) < 0.15)) and (HLT_IsoMu24_v==1 or HLT_Mu50_v==1) and tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q ==1 and (tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q_dr < 0.1) ",
+    "selection": "pair_mass > 40 and pair_mass < 150 and tag_pt > 27 and tag_isTight == 1 and (tag_charge * probe_charge = -1)  and ((isPositive==1 and (tag_pfIso04_charged + tag_pfIso04_neutral + tag_pfIso04_photon - tag_pfIso04_sumPU/2)/tag_pt < 0.15) or (isPositive==0 and (tag_pfIso04_charged /tag_pt) < 0.15)) and (HLT_IsoMu24_v==1 or HLT_Mu50_v==1) and tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q ==1 and (tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q_dr < 0.1) ",
     "definitions": {
         "isPositive":"(tag_pfIso04_neutral + tag_pfIso04_photon - tag_pfIso04_sumPU/2) > 0.0",
         "SAMatched_fakerate":"probe_pt > 10 and  ( probeSA_isTrkMatch == 1) and (probe_isSA == 1)",
@@ -12,8 +12,8 @@
     },
     "binning": {
         "pt": [10, 30, 40, 50, 120, 200],
-        "eta": [-2.4, -2.1, -1.6, -1.1, -0.6, -0.3,-0.2, 0.2, 0.3, 0.6, 1.1, 1.6, 2.1, 2.4],
-        "pt_onebin":[10,200],
+        "eta": [-2.4, -1.6, -1.1, -0.6, -0.3,-0.2, 0.2, 0.3, 0.6, 1.1, 1.6, 2.4],
+        "pt_onebin":[10,120],
         "eta_onebin":[-2.4,2.4],
         "probe_minDR": [0.0,0.2,0.4,0.6],
         "nvtx": [0.5,10.5,15.5,20.5,25.5,30.5,35.5,40.5,45.5,50.5,70.5],

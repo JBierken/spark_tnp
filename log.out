@@ -1,0 +1,4 @@
+Setting up environment
+Setup complete
+Will run:
+./run_single_fit.py /eos/user/j/jbierken/TRK_POG/All_tracks/MINIAOD/fits_mc/muon/standAloneMuons/Z/Run2022/Nominal/NUM_SAMatched_fakerate_DEN_StandAloneMuons/NUM_SAMatched_fakerate_DEN_StandAloneMuons_nvtx_14_eta_onebin_1_pt_onebin_1.root /eos/user/j/jbierken/TRK_POG/All_tracks/MINIAOD/flat/muon/standAloneMuons/Z/Run2022/DY_madgraph/Nominal/NUM_SAMatched_fakerate_DEN_StandAloneMuons_nvtx_eta_onebin_pt_onebin.root NUM_SAMatched_fakerate_DEN_StandAloneMuons_nvtx_14_eta_onebin_1_pt_onebin_1 /eos/user/j/jbierken/TRK_POG/All_tracks/MINIAOD/flat/muon/standAloneMuons/Z/Run2022/DY_madgraph/Nominal/NUM_SAMatched_fakerate_DEN_StandAloneMuons_nvtx_eta_onebin_pt_onebin.root /eos/user/j/jbierken/TRK_POG/All_tracks/MINIAOD/plots/muon/standAloneMuons/Z/Run2022/fits_mc/Nominal/NUM_SAMatched_fakerate_DEN_StandAloneMuons Nominal mc Nominal Z

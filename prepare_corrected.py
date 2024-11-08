@@ -1006,8 +1006,8 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
 
     # plot the efficiencies
     # some default colors for plots
-    colors = [ROOT.kBlack, ROOT.kViolet-2,ROOT.kViolet-2, ROOT.kRed, ROOT.kGreen+2, #for trackeronlyseed
-    #colors = [ROOT.kBlack, 65, 62, ROOT.kRed, ROOT.kGreen+2, #for alltracks 
+    #colors = [ROOT.kBlack, ROOT.kViolet-2,ROOT.kViolet-2, ROOT.kRed, ROOT.kGreen+2, #for trackeronlyseed
+    colors = [ROOT.kBlack, 65, 62, ROOT.kRed, ROOT.kGreen+2, #for alltracks 
              ROOT.kMagenta+1, ROOT.kOrange+1, ROOT.kTeal-1,
               ROOT.kRed-3, ROOT.kBlue]
 
@@ -1134,8 +1134,8 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
                 #dims = [0.56, 0.6, 0.85, 0.8] # trackeronly
                 dims = [0.56, 0.6, 0.85, 0.8] #alltracks
             text = ROOT.TPaveText(*dims+['NB NDC'])
-            #text.AddText("All Tracks") #alltracks
-            text.AddText("Tracker-only Tracks") #trackeronly
+            text.AddText("All Tracks") #alltracks
+            #text.AddText("Tracker-only Tracks") #trackeronly
             text.SetTextSize(0.04)
             text.SetTextAlign(12)
             text.SetTextFont(61)
@@ -1150,8 +1150,8 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
 
         CMS_lumi.cmsText = 'CMS'
         CMS_lumi.writeExtraText = True
-        CMS_lumi.extraText = 'Preliminary'
-        #CMS_lumi.extraText = 'Work in progress'
+        #CMS_lumi.extraText = 'Preliminary'
+        CMS_lumi.extraText = 'Work in progress'
         CMS_lumi.lumi_13p6TeV = "%0.1f fb^{-1}" % (lumi)
         #CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
         CMS_lumi.CMS_lumi(canvas, 4, 11)
@@ -1299,7 +1299,6 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
                             labels=labels,
                             xlabel=xlabel, ylabel=ylabel,
                             xRange=xRange, additional_text=additional_text)
-
         # if no indices, easier, just itself
         else:
             

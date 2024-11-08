@@ -29,8 +29,9 @@ extraOverCmsTextSize = 0.76
 lumi_14TeV = "20.1 fb^{-1}"
 lumi_13TeV = "59.83 fb^{-1}"
 lumi_13p6TeV_2023D = "8.16 fb^{-1}" 
-lumi_13p6TeV_E = "9.2 fb^{-1}" #cambiare qui la lumi (non ho capito perché funziona)
-lumi_13p6TeV_BCD = "8.2 fb^{-1}"
+lumi_13p6TeV_2022E = "9.2 fb^{-1}" #cambiare qui la lumi (non ho capito perché funziona)
+#lumi_13p6TeV_2022BCD = "8.2 fb^{-1}"
+lumi_13p6TeV_2022BCD = "7.66 fb^{-1}"
 lumi_8TeV = "19.7 fb^{-1}"
 lumi_7TeV = "5.1 fb^{-1}"
 lumi_sqrtS = ""
@@ -69,10 +70,18 @@ def CMS_lumi(pad, iPeriod, iPosX):
     # period int is a bit map:
     # 0: 7 TeV, 1: 8 TeV, 2: 13 TeV, 3: 14 TeV
     lumiText = ""
+    #lumis = [
+    #    (lumi_7TeV, '7 TeV'),
+    #    (lumi_8TeV, '8 TeV'),
+    #    (lumi_13p6TeV_E, '13.6TeV,2023D'), #cambiare qui
+    #    (lumi_14TeV, '14 TeV'),
+    #    (lumi_13p6TeV_2023D, '13.6TeV, 2022BCD')
+    #    #(lumi_13p6TeV_BCD, '13.6 TeV, 2022 BCD')
+    #]
     lumis = [
         (lumi_7TeV, '7 TeV'),
         (lumi_8TeV, '8 TeV'),
-        (lumi_13p6TeV_E, '13.6TeV,2023D'), #cambiare qui
+        (lumi_13p6TeV_2022BCD, '13.6TeV,2022BCD'), #cambiare qui
         (lumi_14TeV, '14 TeV'),
         (lumi_13p6TeV_2023D, '13.6TeV, 2022BCD')
         #(lumi_13p6TeV_BCD, '13.6 TeV, 2022 BCD')

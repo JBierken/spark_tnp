@@ -62,9 +62,12 @@ class Configuration(dict):
         default = {
             'JPsi': 
             {
-                'massRangeUp': [2.96, 3.36],
-                'massRangeDown': [2.84, 3.24],
-                'nominal': [2.90, 3.30]
+                #'massRangeUp': [2.96, 3.36],
+                #'massRangeDown': [2.84, 3.24],
+                #'nominal': [2.90, 3.30]
+                'massRangeUp': [2.86, 3.46],
+                'massRangeDown': [2.74, 3.34],
+                'nominal': [2.80, 3.40]
             },
             'Z': {
                 'nominal': [70, 130],

@@ -1,54 +1,50 @@
-LCG_RELEASE=devswan/latest
-#LCG_RELEASE=LCG_105_swan
+LCG_RELEASE=LCG_105_swan
+#LCG_RELEASE=devswan/latest
 LCG_ARCH=x86_64-el9-gcc13
 
+echo "Start setting up environment..."
 if [[ "$HOSTNAME" == *"ithdp"* ]]; then
     # edge node
-    source hadoop-setconf.sh analytix 
-    #source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix 3.2 spark3
-     export KRB5CCNAME=FILE:$XDG_RUNTIME_DIR/krb5cc
-     kinit
-     source /cvmfs/sft.cern.ch/lcg/views/LCG_105_swan/x86_64-centos7-gcc11-opt/setup.sh
-     CC7_LD_LIBRARY_PATH=$LD_LIBRARY_PATH 
-     CC7_PYTHONPATH=$PYTHONPATH
-     CC7_PYSPARK_PYTHON=$PYSPARK_PYTHON
-     source /cvmfs/sft.cern.ch/lcg/views/devswan/latest/x86_64-el9-gcc13-opt/setup.sh
-     PYSPARK_DRIVER_PYTHON=$PYSPARK_PYTHON
-     PYSPARK_PYTHON=$CC7_PYSPARK_PYTHON
-     pyspark --conf spark.executorEnv.PYTHONPATH=$CC7_PYTHONPATH --conf spark.executorEnv.LD_LIBRARY_PATH=$CC7_LD_LIBRARY_PATH 
-    echo "Done!"
-elif [[ "$1" == *"lxplus"* ]]; then
     source /cvmfs/sft.cern.ch/lcg/views/${LCG_RELEASE}/${LCG_ARCH}-opt/setup.sh
-    echo "Sourcing lxplus environment..."
-    source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix 
+    
+    echo "Sourcing hadoop edge node environment..."
+    source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix
+    #source hadoop-setconf.sh analytix 
+    
     export KRB5CCNAME=FILE:$XDG_RUNTIME_DIR/krb5cc
-
+    kinit
+    
+    echo "Done!"
 elif [[ "$HOSTNAME" == *"lxplus7"* ]]; then
-    #lxplus CentOS7
+    # lxplus CentOS7
     sed -i "s~ReplaceMe_by_cdWorkdir~cd $PWD~" condor_wrapper.sh
     sed -i "s~ReplaceMe_by_Hostname~$HOSTNAME~" condor_wrapper.sh
 
     source /cvmfs/sft.cern.ch/lcg/views/LCG_102b/x86_64-centos7-gcc12-opt/setup.sh
     echo "Sourcing lxplus environment..."
-    source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix 
+    source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix
+    
     echo "Done!"
 elif [[ "$HOSTNAME" == *"lxplus"* ]]; then
     # lxplus
     sed -i "s~ReplaceMe_by_cdWorkdir~cd $PWD~" condor_wrapper.sh
     sed -i "s~ReplaceMe_by_Hostname~$HOSTNAME~" condor_wrapper.sh
 
-    source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix 
-    echo "Sourcing lxplus environment..."
+    #source /cvmfs/sft.cern.ch/lcg/views/LCG_102b/x86_64-centos7-gcc12-opt/setup.sh
     source /cvmfs/sft.cern.ch/lcg/views/${LCG_RELEASE}/${LCG_ARCH}-opt/setup.sh
+    echo "Sourcing lxplus environment..."
+    source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix
+    
     export KRB5CCNAME=FILE:$XDG_RUNTIME_DIR/krb5cc
     kinit
+    
     echo "Done!"
 else
-    source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix 
-    echo "Sourcing lxplus environment..."
-    source /cvmfs/sft.cern.ch/lcg/views/devswan/latest/x86_64-el9-gcc13-opt/setup.sh
-    export KRB5CCNAME=FILE:$XDG_RUNTIME_DIR/krb5cc
-    echo "Done!"
+    source /cvmfs/sft.cern.ch/lcg/views/${LCG_RELEASE}/${LCG_ARCH}-opt/setup.sh
+    
+    echo "[Warning] Environment can only be lxplus or the CERN hadoop edge nodes. See README for more details"
+    # still source lxplus env in case this is inside a condor node
+    source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix
 fi
 
 # Compile the Roofit fitting function if it doesn't exist yet
@@ -79,5 +75,3 @@ if [ ! -f RooCruijff_cxx.so ]; then
     root -l -b -q -e '.L RooCruijff.cxx+'
     echo "Done!"
 fi
-
-

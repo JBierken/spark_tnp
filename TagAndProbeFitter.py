@@ -2,6 +2,7 @@ from array import array
 import ROOT
 import os
 import tdrstyle
+import pickle 
 import CMS_lumi
 
 ROOT.gROOT.SetBatch()
@@ -29,10 +30,10 @@ class TagAndProbeFitter:
             #self._fit_range_max = 150
         elif resonance == 'JPsi':
             self._peak = 3.10
-            self._fit_var_min = 2.80
-            self._fit_var_max = 3.40
-            self._fit_range_min = 2.90
-            self._fit_range_max = 3.30
+            self._fit_var_min = 2.70
+            self._fit_var_max = 3.50
+            self._fit_range_min = 2.80
+            self._fit_range_max = 3.40
         self.set_fit_var()
         self.set_fit_range()
 

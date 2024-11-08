@@ -19,7 +19,8 @@ def setMassRange(fitter, resonance, effType, shiftType):
         elif shiftType == 'massRangeDown':
             fitter.set_fit_range(2.84, 3.24)
         else:
-            fitter.set_fit_range(2.90, 3.30)
+            #fitter.set_fit_range(2.90, 3.30)
+            fitter.set_fit_range(2.80, 3.40)
     else:
         if effType=='trig':
             if shiftType == 'massRangeUp':
@@ -38,7 +39,6 @@ def setMassRange(fitter, resonance, effType, shiftType):
                 fitter.set_fit_range(70, 115)
                 #fitter.set_fit_range(40, 149.125)
 
-
 def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
                 version='NominalOld', histType='data', shiftType='Nominal', resonance='Z',
                 effType=''):
@@ -48,8 +48,8 @@ def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
         tnpNomFitSig = [
         "meanP[-0.0, -5.0, 5.0]", "sigmaP[0.9, 0.005, 5.0]",
         "meanF[-0.0, -5.0, 5.0]", "sigmaF[0.9, 0.005, 5.0]",
-        "Gaussian::sigResPass(x, meanP, sigmaP)",
-        "Gaussian::sigResFail(x, meanF, sigmaF)",
+        "Gaussian::sigPass(x, meanP, sigmaP)",
+        "Gaussian::sigFail(x, meanF, sigmaF)",
         ]
         tnpNomFitBkg = [
             # Linear background
