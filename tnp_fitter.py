@@ -318,75 +318,75 @@ def main(argv=None):
     elif args.command == 'flatten':
         from flattener import run_spark
         run_spark(
-            args.particle, args.probe, args.resonance, args.era,
-            Configuration(args.config),
-            numerator=args.numerator,
-            denominator=args.denominator,
-            shiftType=args.shiftType,
-            baseDir=baseDir,
-            dataOnly=args.dataOnly,
-            bySubEraAlso=args.bySubEraAlso,
-            useLocalSpark=args.useLocalSpark,
-            registry=args.registry,
-            dataTier=args.dataTier,
-            ntupleVer=args.ntupleVer,
-        )
+                args.particle, args.probe, args.resonance, args.era,
+                Configuration(args.config),
+                numerator           = args.numerator,
+                denominator         = args.denominator,
+                shiftType           = args.shiftType,
+                baseDir             = baseDir,
+                dataOnly            = args.dataOnly,
+                bySubEraAlso        = args.bySubEraAlso,
+                useLocalSpark       = args.useLocalSpark,
+                registry            = args.registry,
+                dataTier            = args.dataTier,
+                ntupleVer           = args.ntupleVer,
+            )
         return 0
     elif args.command == 'fit':
         from fitter import run_single_fit, build_fit_jobs, build_condor_submit
-        job_fn = run_single_fit
-        jobs = build_fit_jobs(
-            args.particle, args.probe, args.resonance, args.era,
-            Configuration(args.config),
-            baseDir=baseDir,
-            numerator=args.numerator,
-            denominator=args.denominator,
-            fitType=args.fitType,
-            sampleType=args.sampleType,
-            shiftType=args.shiftType,
-            efficiencyBin=args.efficiencyBin,
-            recover=args.recover,
-        )
-        unit = 'fit'
-        desc = 'Fitting'
+        job_fn  = run_single_fit
+        jobs    = build_fit_jobs(
+                    args.particle, args.probe, args.resonance, args.era,
+                    Configuration(args.config),
+                    baseDir         = baseDir,
+                    numerator       = args.numerator,
+                    denominator     = args.denominator,
+                    fitType         = args.fitType,
+                    sampleType      = args.sampleType,
+                    shiftType       = args.shiftType,
+                    efficiencyBin   = args.efficiencyBin,
+                    recover         = args.recover,
+                )
+        unit    = 'fit'
+        desc    = 'Fitting'
     elif args.command == 'prepare':
         from prepare import prepare, build_prepare_jobs
-        job_fn = prepare
-        jobs = build_prepare_jobs(
-            args.particle,
-            args.probe,
-            args.resonance,
-            args.era,
-            Configuration(args.config),
-            numerator=args.numerator,
-            denominator=args.denominator,
-            baseDir=baseDir,
-            registry=args.registry,
-            dataTier=args.dataTier,
-            ntupleVer=args.ntupleVer,
-        )
-        jobs = [job + [args.skipPlots, args.cutAndCount] for job in jobs]
-        unit = 'efficiency'
-        desc = 'Preparing'
+        job_fn  = prepare
+        jobs    = build_prepare_jobs(
+                    args.particle,
+                    args.probe,
+                    args.resonance,
+                    args.era,
+                    Configuration(args.config),
+                    numerator       = args.numerator,
+                    denominator     = args.denominator,
+                    baseDir         = baseDir,
+                    registry        = args.registry,
+                    dataTier        = args.dataTier,
+                    ntupleVer       = args.ntupleVer,
+                )
+        jobs    = [job + [args.skipPlots, args.cutAndCount] for job in jobs]
+        unit    = 'efficiency'
+        desc    = 'Preparing'
     elif args.command == 'prepare_corrected':
         from prepare_corrected import prepare_corrected, build_prepare_corrected_jobs
-        job_fn = prepare_corrected
-        jobs = build_prepare_corrected_jobs(
-            args.particle,
-            args.probe,
-            args.resonance,
-            args.era,
-            Configuration(args.config),
-            numerator=args.numerator,
-            denominator=args.denominator,
-            baseDir=baseDir,
-            registry=args.registry,
-            dataTier=args.dataTier,
-            ntupleVer=args.ntupleVer,
-        )
-        jobs = [job + [args.skipPlots, args.cutAndCount] for job in jobs]
-        unit = 'efficiency'
-        desc = 'Preparing'
+        job_fn  = prepare_corrected
+        jobs    = build_prepare_corrected_jobs(
+                    args.particle,
+                    args.probe,
+                    args.resonance,
+                    args.era,
+                    Configuration(args.config),
+                    numerator       = args.numerator,
+                    denominator     = args.denominator,
+                    baseDir         = baseDir,
+                    registry        = args.registry,
+                    dataTier        = args.dataTier,
+                    ntupleVer       = args.ntupleVer,
+                )
+        jobs    = [job + [args.skipPlots, args.cutAndCount] for job in jobs]
+        unit    = 'efficiency'
+        desc    = 'Preparing'
 
     elif args.command == 'compare':
         from compare import compare
@@ -398,10 +398,10 @@ def main(argv=None):
                 args.resonance,
                 args.era,
                 args.config,
-                subera1=args.subera1,
-                subera2=args.subera2,
-                era2=args.era2,
-                baseDir=baseDir,
+                subera1             = args.subera1,
+                subera2             = args.subera2,
+                era2                = args.era2,
+                baseDir             = baseDir,
             )
         else:
             compare(
@@ -410,10 +410,10 @@ def main(argv=None):
                 args.resonance,
                 args.era,
                 Configuration(args.config),
-                subera1=args.subera1,
-                subera2=args.subera2,
-                era2=args.era2,
-                baseDir=baseDir,
+                subera1             = args.subera1,
+                subera2             = args.subera2,
+                era2                = args.era2,
+                baseDir             = baseDir,
             )
 
         return 0
@@ -421,23 +421,25 @@ def main(argv=None):
     if args.dryrun:
         print('Will run {} {} jobs'.format(len(jobs), args.command))
     elif args.condor:
-        test = False
-        submit_dir = ''
-        joblist = os.path.join(
-            submit_dir,
-            '{}joblist_{}_{}_{}_{}{}.txt'.format(
-                'test_' if test else '',
-                args.particle,
-                args.probe,
-                args.resonance,
-                args.era,
-                '_'+args.condorTag if args.condorTag != '' else ''
-            )
-        )
-        config = build_condor_submit(joblist,
-                                     test=test,
-                                     jobsPerSubmit=args.jobsPerSubmit,
-                                     njobs=len(jobs))
+        test        = False
+        submit_dir  = ''
+        joblist     = os.path.join(
+                        submit_dir,
+                        '{}joblist_{}_{}_{}_{}{}.txt'.format(
+                            'test_' if test else '',
+                            args.particle,
+                            args.probe,
+                            args.resonance,
+                            args.era,
+                            '_'+args.condorTag if args.condorTag != '' else ''
+                        )
+                    )
+        config = build_condor_submit(
+                    joblist,
+                    test            = test,
+                    jobsPerSubmit   = args.jobsPerSubmit,
+                    njobs           = len(jobs)
+                )
         if test:
             os.makedirs('condor', exist_ok=True)
         configpath = os.path.join(

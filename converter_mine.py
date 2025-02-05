@@ -37,9 +37,7 @@ def convert(path):
     file        = os.path.join(path, 'tnp.root')
     with uproot.open(file) as rfile:
         tree    = rfile["muon/StandAloneEvents"] 
-        #tree    = rfile["muon/Events"]
         
-        #df_np   = tree.arrays(library='np')
         df_np   = tree.arrays(
                     [
                         "pair_mass",
@@ -71,16 +69,16 @@ def convert(path):
                         "HLT_Mu50_v", 
                         "tag_hltL3fL1sMu5L1f0L2f5L3Filtered8", 
                         "tag_hltL3fL1sMu5L1f0L2f5L3Filtered8_dr", 
-                        "tag_hltL3fL1sMu15DQIqL1f0L2f10L3Filtered15",
-                        "tag_hltL3fL1sMu15DQIqL1f0L2f10L3Filtered15_dr",
-                        "tag_hltL3fL1sMu15DQIL1f0L2f10L3Filtered17",
-                        "tag_hltL3fL1sMu15DQIL1f0L2f10L3Filtered17_dr",
+                        "tag_hltL3fL1sMu15DQlqL1f0L2f10L3Filtered15",
+                        "tag_hltL3fL1sMu15DQlqL1f0L2f10L3Filtered15_dr",
+                        "tag_hltL3fL1sMu15DQlqL1f0L2f10L3Filtered17",
+                        "tag_hltL3fL1sMu15DQlqL1f0L2f10L3Filtered17_dr",
                         "tag_hltL3fL1sMu18L1f0L2f10QL3Filtered20Q",
                         "tag_hltL3fL1sMu18L1f0L2f10QL3Filtered20Q_dr",
                         "tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q",
                         "tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q_dr",
-                        "tag_hltL3fL1sMu22Or25L1f10QL3Filtered50Q",
-                        "tag_hltL3fL1sMu22Or25L1f10QL3Filtered50Q_dr",
+                        "tag_hltL3fL1sMu22Or25L1f0L2f10QL3Filtered50Q",
+                        "tag_hltL3fL1sMu22Or25L1f0L2f10QL3Filtered50Q_dr",
                         ], # Variables for Tracking study 
                     library='np'
                 )

@@ -1,2 +1,2 @@
-/pool/condor/dir_710211/condor_wrapper.sh: line 4: env_cp_root_files_fit_jobs.sh: No such file or directory
-/pool/condor/dir_710211/condor_wrapper.sh: line 18: ./run_single_fit.py: Permission denied
+/pool/condor/dir_123537/condor_wrapper.sh: line 4: env_cp_root_files_fit_jobs.sh: No such file or directory
+/pool/condor/dir_123537/condor_wrapper.sh: line 18: ./run_single_fit.py: Permission denied

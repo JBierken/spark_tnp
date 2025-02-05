@@ -14,8 +14,14 @@ from pyspark.sql import functions as F
 
 from registry import registry
 from dataset_allowed_definitions import get_allowed_sub_eras, get_data_mc_sub_eras
-from muon_definitions import (get_miniIso_dataframe,
+#from muon_definitions import (get_miniIso_dataframe,
+#                              get_weighted_dataframe,
+#                              get_binned_dataframe,
+#                              get_extended_eff_name,
+#                              get_full_name)
+from muon_definitions_old import (get_miniIso_dataframe,
                               get_weighted_dataframe,
+                              get_prescaled_dataframe,
                               get_binned_dataframe,
                               get_extended_eff_name,
                               get_full_name)
@@ -309,21 +315,21 @@ def run_spark(particle, probe, resonance, era, config, **kwargs):
 
     if useParquet == False:
         spark = spark\
-        .config("spark.jars", local_jars)\
-        .config("spark.driver.extraClassPath", local_jars)\
-        .config("spark.executor.extraClassPath", local_jars)\
+        .config("spark.jars",                           local_jars)\
+        .config("spark.driver.extraClassPath",          local_jars)\
+        .config("spark.executor.extraClassPath",        local_jars)\
         .config("spark.dynamicAllocation.maxExecutors", "100")\
-        .config("spark.driver.memory", "6g")\
-        .config("spark.executor.memory", "4g")\
-        .config("spark.executor.cores", "2")
+        .config("spark.driver.memory",                  "6g")\
+        .config("spark.executor.memory",                "4g")\
+        .config("spark.executor.cores",                 "2")
     else:
         spark = spark\
-        .config("spark.sql.broadcastTimeout", "36000")\
-        .config("spark.network.timeout", "600s")\
-        .config("spark.driver.memory", "6g")\
-        .config("spark.executor.memory", "10g")\
-        .config("spark.executorEnv.JAVA_HOME", java_home)\
-        .config("spark.yarn.appMasterEnv.JAVA_HOME", java_home)
+        .config("spark.sql.broadcastTimeout",           "36000")\
+        .config("spark.network.timeout",                "600s")\
+        .config("spark.driver.memory",                  "6g")\
+        .config("spark.executor.memory",                "10g")\
+        .config("spark.executorEnv.JAVA_HOME",          java_home)\
+        .config("spark.yarn.appMasterEnv.JAVA_HOME",    java_home)
     
     if _useLocalSpark == True:
         spark = spark.master("local")

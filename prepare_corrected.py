@@ -12,7 +12,11 @@ import tdrstyle
 import CMS_lumi
 
 from dataset_allowed_definitions import get_data_mc_sub_eras
-from muon_definitions import (get_full_name, get_eff_name,
+#from muon_definitions import (get_full_name, get_eff_name,
+#                              get_bin_name,
+#                              get_extended_eff_name,
+#                              get_variables_name)
+from muon_definitions_old import (get_full_name, get_eff_name,
                               get_bin_name,
                               get_extended_eff_name,
                               get_variables_name)
@@ -24,23 +28,23 @@ ROOT.gROOT.ProcessLine("gErrorIgnoreLevel = 1001;")
 tdrstyle.setTDRStyle()
 
 def generateClopperPearsonInterval(num,den):
-    confidenceLevel = 0.68
-    alpha = 1 - confidenceLevel
+    confidenceLevel             = 0.68
+    alpha                       = 1 - confidenceLevel
     
-    lowerLimit = round(ROOT.Math.beta_quantile(alpha/2,num,den-num + 1),4)
-    if num==den:
-        upperLimit=1
-    else:
-        upperLimit = round(ROOT.Math.beta_quantile(1-alpha/2,num + 1,den-num),4)
+    lowerLimit                  = round(ROOT.Math.beta_quantile(alpha/2,num,den-num + 1),4)
+    if num==den:                upperLimit  = 1
+    else:                       upperLimit  = round(ROOT.Math.beta_quantile(1-alpha/2,num + 1,den-num),4)
+    
     return lowerLimit,upperLimit
 
 
 def computeEff(n1, n2, e1, e2):
-    eff = n1 / (n1 + n2)
-    err = 1 / (n1 + n2) * math.sqrt(e1 * e1 * n2 * n2 + e2 * e2 * n1 * n1) / (n1 + n2)
-    effD, effU = generateClopperPearsonInterval(n1,n1+n2)
-    effD = err
-    effU = err
+    eff                         = n1 / (n1 + n2)
+    err                         = 1 / (n1 + n2) * math.sqrt(e1 * e1 * n2 * n2 + e2 * e2 * n1 * n1) / (n1 + n2)
+    effD, effU                  = generateClopperPearsonInterval(n1,n1+n2)
+    effD                        = err
+    effU                        = err
+
     return eff, effD, effU
 
 
@@ -48,44 +52,48 @@ def computeEff(n1, n2, e1, e2):
 def getEff(binName, fname, massRanges, shift=None, cutAndCount=False, resonance='Z'):
     try:
         # MC Eff is always cut and count now
-        tfile = ROOT.TFile(fname, 'read')
+        tfile                   = ROOT.TFile(fname, 'read')
         if cutAndCount:
-            hP = tfile.Get('{}_Pass'.format(binName))
-            hF = tfile.Get('{}_Fail'.format(binName))
+            hP                  = tfile.Get('{}_Pass'.format(binName))
+            hF                  = tfile.Get('{}_Fail'.format(binName))
         else:
-            hP = tfile.Get('{}_GenPass'.format(binName))
-            hF = tfile.Get('{}_GenFail'.format(binName))
+            hP                  = tfile.Get('{}_GenPass'.format(binName))
+            hF                  = tfile.Get('{}_GenFail'.format(binName))
+        
         # hard code Z for now (same as in run_single_fit.py)
         # AF: TODO make the Z vs JPsi treatment less hacky perhaps
         if resonance == 'JPsi':
             if shift == 'massRangeUp':
-                blow, bhigh = 2.96, 3.36
+                blow, bhigh     = 2.96, 3.36
             elif shift == 'massRangeDown':
-                blow, bhigh = 2.84, 3.24
+                blow, bhigh     = 2.84, 3.24
             else:
-                blow, bhigh = 2.90, 3.30
+                blow, bhigh    = 2.50, 3.80
+                #blow, bhigh     = 2.00, 4.00
         else:
             if shift == 'massRangeUp':
-                blow, bhigh = 75, 135
+                blow, bhigh     = 75, 135
             elif shift == 'massRangeDown':
-                blow, bhigh = 65, 125
+                blow, bhigh     = 65, 125
             else:
-                blow, bhigh = 70, 115
+                blow, bhigh     = 70, 115
         #blow, bhigh = massRanges[resonance].get(shift, massRanges[resonance]["nominal"])
 
-        bin1 = hP.GetXaxis().FindBin(blow)
-        bin2 = hP.GetXaxis().FindBin(bhigh)
-        eP = ctypes.c_double(-1.0)
-        eF = ctypes.c_double(-1.0)
-        nP = hP.IntegralAndError(bin1, bin2, eP)
-        nF = hF.IntegralAndError(bin1, bin2, eF)
-        eff, effD, effU = computeEff(nP, nF, eP, eF)
-        #errD = abs(eff-effD)
-        #errU = abs(eff-effU)
-        errD = effD
-        errU = effU
+        bin1                    = hP.GetXaxis().FindBin(blow)
+        bin2                    = hP.GetXaxis().FindBin(bhigh)
+        eP                      = ctypes.c_double(-1.0)
+        eF                      = ctypes.c_double(-1.0)
+        nP                      = hP.IntegralAndError(bin1, bin2, eP)
+        nF                      = hF.IntegralAndError(bin1, bin2, eF)
+        eff, effD, effU         = computeEff(nP, nF, eP, eF)
+        #errD                   = abs(eff-effD)
+        #errU                   = abs(eff-effU)
+        errD                    = effD
+        errU                    = effU
         tfile.Close()
+
         return eff, errD, errU
+    
     except Exception as e:
         print('Exception for getEff', binName)
         print(e)
@@ -98,62 +106,64 @@ def getMCEff(binName, fname, massRanges, shift=None, cutAndCount=False, resonanc
         # AF: TODO make the Z vs JPsi treatment less hacky perhaps
     if resonance == 'JPsi':
         if shift == 'massRangeUp':
-            blow, bhigh = 2.96, 3.36
+            blow, bhigh         = 2.96, 3.36
         elif shift == 'massRangeDown':
-            blow, bhigh = 2.84, 3.24
+            blow, bhigh         = 2.84, 3.24
         else:
-            blow, bhigh = 2.90, 3.30
+            #blow, bhigh        = 2.50, 3.80
+            blow, bhigh         = 2.00, 4.00
     else:
         if shift == 'massRangeUp':
-            blow, bhigh = 75, 135
+            blow, bhigh         = 75, 135
         elif shift == 'massRangeDown':
-            blow, bhigh = 65, 125
+            blow, bhigh         = 65, 125
         else:
-            blow, bhigh = 70, 115
+            blow, bhigh         = 70, 115
     #blow, bhigh = massRanges[resonance].get(shift, massRanges[resonance]["nominal"])
     try:
-        tfile = ROOT.TFile(fname, 'read')
+        tfile                   = ROOT.TFile(fname, 'read')
         if cutAndCount:
-            hP = tfile.Get('{}_GenPass'.format(binName))
-            hF = tfile.Get('{}_GenFail'.format(binName))
+            hP                  = tfile.Get('{}_GenPass'.format(binName))
+            hF                  = tfile.Get('{}_GenFail'.format(binName))
 
-            bin1 = hP.GetXaxis().FindBin(blow)
-            bin2 = hP.GetXaxis().FindBin(bhigh)
-            eP = ctypes.c_double(-1.0)
-            eF = ctypes.c_double(-1.0)
-            nP = hP.IntegralAndError(bin1, bin2, eP)
-            nF = hF.IntegralAndError(bin1, bin2, eF)
-            eff, effD, effU = computeEff(nP, nF, eP, eF)
+            bin1                = hP.GetXaxis().FindBin(blow)
+            bin2                = hP.GetXaxis().FindBin(bhigh)
+            eP                  = ctypes.c_double(-1.0)
+            eF                  = ctypes.c_double(-1.0)
+            nP                  = hP.IntegralAndError(bin1, bin2, eP)
+            nF                  = hF.IntegralAndError(bin1, bin2, eF)
+            eff, effD, effU     = computeEff(nP, nF, eP, eF)
         else:
-            fitresP = tfile.Get('{}_resP'.format(binName))
-            fitresF = tfile.Get('{}_resF'.format(binName))
+            fitresP             = tfile.Get('{}_resP'.format(binName))
+            fitresF             = tfile.Get('{}_resF'.format(binName))
 
-            fitP = fitresP.floatParsFinal().find('nSigP')
-            fitF = fitresF.floatParsFinal().find('nSigF')
+            fitP                = fitresP.floatParsFinal().find('nSigP')
+            fitF                = fitresF.floatParsFinal().find('nSigF')
 
-            nP = fitP.getVal()
-            nF = fitF.getVal()
-            eP = fitP.getError()
-            eF = fitF.getError()
+            nP                  = fitP.getVal()
+            nF                  = fitF.getVal()
+            eP                  = fitP.getError()
+            eF                  = fitF.getError()
 
-            hP = tfile.Get('{}_Pass'.format(binName))
-            hF = tfile.Get('{}_Fail'.format(binName))
+            hP                  = tfile.Get('{}_Pass'.format(binName))
+            hF                  = tfile.Get('{}_Fail'.format(binName))
 
-            bin1 = hP.GetXaxis().FindBin(blow)
-            bin2 = hP.GetXaxis().FindBin(bhigh)
-            ePalt = ctypes.c_double(-1.0)
-            eFalt = ctypes.c_double(-1.0)
+            bin1                = hP.GetXaxis().FindBin(blow)
+            bin2                = hP.GetXaxis().FindBin(bhigh)
+            ePalt               = ctypes.c_double(-1.0)
+            eFalt               = ctypes.c_double(-1.0)
             hP.IntegralAndError(bin1, bin2, ePalt)
             hF.IntegralAndError(bin1, bin2, eFalt)
 
-            #eP = min(eP, ePalt.value)
-            #eF = min(eF, eFalt.value)
-            eff, effD, effU = computeEff(nP, nF, eP, eF)
-        #errD = abs(eff-effD)
-        #errU = abs(eff-effU)
-        errD = effD
-        errU = effU
+            #eP                 = min(eP, ePalt.value)
+            #eF                 = min(eF, eFalt.value)
+            eff, effD, effU     = computeEff(nP, nF, eP, eF)
+        #errD                   = abs(eff-effD)
+        #errU                   = abs(eff-effU)
+        errD                    = effD
+        errU                    = effU
         tfile.Close()
+
         return eff, errD, errU
 
     except Exception as e:
@@ -169,62 +179,64 @@ def getDataEff(binName, fname, massRanges, shift=None, cutAndCount=False, resona
         # AF: TODO make the Z vs JPsi treatment less hacky perhaps
     if resonance == 'JPsi':
         if shift == 'massRangeUp':
-            blow, bhigh = 2.96, 3.36
+            blow, bhigh         = 2.96, 3.36
         elif shift == 'massRangeDown':
-            blow, bhigh = 2.84, 3.24
+            blow, bhigh         = 2.84, 3.24
         else:
-            blow, bhigh = 2.90, 3.30
+            #blow, bhigh         = 2.50, 3.80
+            blow, bhigh         = 2.00, 4.00
     else:
         if shift == 'massRangeUp':
-            blow, bhigh = 75, 135
+            blow, bhigh         = 75, 135
         elif shift == 'massRangeDown':
-            blow, bhigh = 65, 125
+            blow, bhigh         = 65, 125
         else:
-            blow, bhigh = 70, 115
-    #blow, bhigh = massRanges[resonance].get(shift, massRanges[resonance]["nominal"])
+            blow, bhigh         = 70, 115
+    #blow, bhigh                = massRanges[resonance].get(shift, massRanges[resonance]["nominal"])
     try:
-        tfile = ROOT.TFile(fname, 'read')
+        tfile                   = ROOT.TFile(fname, 'read')
         if cutAndCount:
-            hP = tfile.Get('{}_Pass'.format(binName))
-            hF = tfile.Get('{}_Fail'.format(binName))
+            hP                  = tfile.Get('{}_Pass'.format(binName))
+            hF                  = tfile.Get('{}_Fail'.format(binName))
 
-            bin1 = hP.GetXaxis().FindBin(blow)
-            bin2 = hP.GetXaxis().FindBin(bhigh)
-            eP = ctypes.c_double(-1.0)
-            eF = ctypes.c_double(-1.0)
-            nP = hP.IntegralAndError(bin1, bin2, eP)
-            nF = hF.IntegralAndError(bin1, bin2, eF)
-            eff, effD, effU = computeEff(nP, nF, eP, eF)
+            bin1                = hP.GetXaxis().FindBin(blow)
+            bin2                = hP.GetXaxis().FindBin(bhigh)
+            eP                  = ctypes.c_double(-1.0)
+            eF                  = ctypes.c_double(-1.0)
+            nP                  = hP.IntegralAndError(bin1, bin2, eP)
+            nF                  = hF.IntegralAndError(bin1, bin2, eF)
+            eff, effD, effU     = computeEff(nP, nF, eP, eF)
         else:
-            fitresP = tfile.Get('{}_resP'.format(binName))
-            fitresF = tfile.Get('{}_resF'.format(binName))
+            fitresP             = tfile.Get('{}_resP'.format(binName))
+            fitresF             = tfile.Get('{}_resF'.format(binName))
 
-            fitP = fitresP.floatParsFinal().find('nSigP')
-            fitF = fitresF.floatParsFinal().find('nSigF')
+            fitP                = fitresP.floatParsFinal().find('nSigP')
+            fitF                = fitresF.floatParsFinal().find('nSigF')
 
-            nP = fitP.getVal()
-            nF = fitF.getVal()
-            eP = fitP.getError()
-            eF = fitF.getError()
+            nP                  = fitP.getVal()
+            nF                  = fitF.getVal()
+            eP                  = fitP.getError()
+            eF                  = fitF.getError()
 
-            hP = tfile.Get('{}_Pass'.format(binName))
-            hF = tfile.Get('{}_Fail'.format(binName))
+            hP                  = tfile.Get('{}_Pass'.format(binName))
+            hF                  = tfile.Get('{}_Fail'.format(binName))
 
-            bin1 = hP.GetXaxis().FindBin(blow)
-            bin2 = hP.GetXaxis().FindBin(bhigh)
-            ePalt = ctypes.c_double(-1.0)
-            eFalt = ctypes.c_double(-1.0)
+            bin1                = hP.GetXaxis().FindBin(blow)
+            bin2                = hP.GetXaxis().FindBin(bhigh)
+            ePalt               = ctypes.c_double(-1.0)
+            eFalt               = ctypes.c_double(-1.0)
             hP.IntegralAndError(bin1, bin2, ePalt)
             hF.IntegralAndError(bin1, bin2, eFalt)
 
-            #eP = min(eP, ePalt.value)
-            #eF = min(eF, eFalt.value)
-            eff, effD, effU = computeEff(nP, nF, eP, eF)
-        #errD = abs(eff-effD)
-        #errU = abs(eff-effU)
-        errD = effD
-        errU = effU
+            #eP                 = min(eP, ePalt.value)
+            #eF                 = min(eF, eFalt.value)
+            eff, effD, effU     = computeEff(nP, nF, eP, eF)
+        #errD                   = abs(eff-effD)
+        #errU                   = abs(eff-effU)
+        errD                    = effD
+        errU                    = effU
         tfile.Close()
+
         return eff, errD, errU
 
     except Exception as e:
@@ -235,59 +247,59 @@ def getDataEff(binName, fname, massRanges, shift=None, cutAndCount=False, resona
 
 
 def getSF(binName, fname, massRanges, shift=None, resonance='Z'):
-    mcEff, mcErrD, mcErrU = getMCEff(binName, fname, massRanges, shift, False, resonance)
+    mcEff, mcErrD, mcErrU       = getMCEff(binName, fname, massRanges, shift, False, resonance)
     dataEff, dataErrD, dataErrU = getDataEff(binName, fname, massRanges, shift, False, resonance)
-    sf = dataEff / mcEff if mcEff else 0.0
-    sf_err = 0.0
+    sf                          = dataEff / mcEff if mcEff else 0.0
+    sf_err                      = 0.0
     if dataEff and mcEff:
-        dataErr = max(dataErrD, dataErrU)
-        mcErr = max(mcErrD, mcErrU)
-        sf_err = sf * ((dataErr / dataEff)**2 + (mcErr / mcEff)**2)**0.5
+        dataErr                 = max(dataErrD, dataErrU)
+        mcErr                   = max(mcErrD, mcErrU)
+        sf_err                  = sf * ((dataErr / dataEff)**2 + (mcErr / mcEff)**2)**0.5
+    
     return sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU
 
-
 def getSF_fitdataMC(binName, fname_data, fname_mc,massRanges, shift=None, resonance='Z'):
-    mcEff, mcErrD, mcErrU = getMCEff(binName, fname_mc, massRanges, shift, False, resonance)
+    mcEff, mcErrD, mcErrU       = getMCEff(binName, fname_mc, massRanges, shift, False, resonance)
     dataEff, dataErrD, dataErrU = getDataEff(binName, fname_data, massRanges, shift, False, resonance)
     #inizializzo le variabili corrette ai valori non corretti, altrimenti la funzione cerca di ritornare valori condizionali (verrebbero referenziati nell'if)
-    mcEff_corr = mcEff
-    mcErrU_corr = mcErrU
-    mcErrD_corr = mcErrD
-    dataEff_corr = dataEff
-    dataErrU_corr = dataErrU
-    dataErrD_corr = dataErrD
+    mcEff_corr                  = mcEff
+    mcErrU_corr                 = mcErrU
+    mcErrD_corr                 = mcErrD
+    dataEff_corr                = dataEff
+    dataErrU_corr               = dataErrU
+    dataErrD_corr               = dataErrD
     
     if not 'Matched_fakerate_' in fname_data:
-        fname_mc_fake = '%s' % fname_mc
-        fname_data_fake = '%s' % fname_data
-        binName_fake = '%s' % binName
-        fname_mc_fake = fname_mc_fake.replace('Matched_', 'Matched_fakerate_')
-        fname_data_fake = fname_data_fake.replace('Matched_', 'Matched_fakerate_')
-        binName_fake = binName_fake.replace('Matched_', 'Matched_fakerate_')
-        mcEff_fake, mcErr_fakeD, mcErr_fakeU  = getMCEff(binName_fake, fname_mc_fake, massRanges, shift, False, resonance)
-        dataEff_fake, dataErr_fakeD, dataErr_fakeU = getDataEff(binName_fake, fname_data_fake, massRanges, shift, False, resonance)
+        fname_mc_fake           = '%s' % fname_mc
+        fname_data_fake         = '%s' % fname_data
+        binName_fake            = '%s' % binName
+        fname_mc_fake           = fname_mc_fake.replace('Matched_', 'Matched_fakerate_')
+        fname_data_fake         = fname_data_fake.replace('Matched_', 'Matched_fakerate_')
+        binName_fake            = binName_fake.replace('Matched_', 'Matched_fakerate_')
+        mcEff_fake, mcErr_fakeD, mcErr_fakeU        = getMCEff(binName_fake, fname_mc_fake, massRanges, shift, False, resonance)
+        dataEff_fake, dataErr_fakeD, dataErr_fakeU  = getDataEff(binName_fake, fname_data_fake, massRanges, shift, False, resonance)
         
         if mcEff_fake != 1 and dataEff_fake != 1 :
 
-            mcEff_corr = (mcEff - mcEff_fake)/(1 - mcEff_fake) #(   y   -    yf   )/(1-    yf   )
-            mcErrU_corr =   ((mcEff+mcErrU)-(mcEff_fake-mcErr_fakeD))/(1-(mcEff_fake-mcErr_fakeD)) - mcEff_corr
-            mcErrD_corr =   mcEff_corr - ((mcEff-mcErrD)-(mcEff_fake+mcErr_fakeU))/(1-(mcEff_fake+mcErr_fakeU)) #double ycorr_lo = ((y-eyl)-(yf+eyhf))/(1-(yf+eyhf));
+            mcEff_corr          = (mcEff - mcEff_fake)/(1 - mcEff_fake) #(   y   -    yf   )/(1-    yf   )
+            mcErrU_corr         =   ((mcEff+mcErrU)-(mcEff_fake-mcErr_fakeD))/(1-(mcEff_fake-mcErr_fakeD)) - mcEff_corr
+            mcErrD_corr         =   mcEff_corr - ((mcEff-mcErrD)-(mcEff_fake+mcErr_fakeU))/(1-(mcEff_fake+mcErr_fakeU)) #double ycorr_lo = ((y-eyl)-(yf+eyhf))/(1-(yf+eyhf));
 
-            dataEff_corr = (dataEff - dataEff_fake)/(1 - dataEff_fake) 
-            dataErrU_corr =  ((dataEff+dataErrU)-(dataEff_fake-dataErr_fakeD))/(1-(dataEff_fake-dataErr_fakeD)) - dataEff_corr
-            dataErrD_corr =   dataEff_corr - ((dataEff-dataErrD)-(dataEff_fake+dataErr_fakeU))/(1-(dataEff_fake+dataErr_fakeU))
+            dataEff_corr        = (dataEff - dataEff_fake)/(1 - dataEff_fake) 
+            dataErrU_corr       =  ((dataEff+dataErrU)-(dataEff_fake-dataErr_fakeD))/(1-(dataEff_fake-dataErr_fakeD)) - dataEff_corr
+            dataErrD_corr       =   dataEff_corr - ((dataEff-dataErrD)-(dataEff_fake+dataErr_fakeU))/(1-(dataEff_fake+dataErr_fakeU))
 
             if(dataErrU_corr < 0):
-                dataErrU_corr = 0
+                dataErrU_corr   = 0
 
             if(dataErrD_corr < 0):
-                dataErrD_corr = 0
+                dataErrD_corr   = 0
 
             if(mcErrD_corr < 0):
-                mcErrD_corr = 0
+                mcErrD_corr     = 0
                 
             if(mcErrU_corr < 0):
-                mcErrU_corr = 0  
+                mcErrU_corr     = 0  
 
             print("")
             print("dataEff non corretta:")
@@ -310,84 +322,85 @@ def getSF_fitdataMC(binName, fname_data, fname_mc,massRanges, shift=None, resona
             print(dataErrD_corr)
             print("")
                 
-    sf = dataEff_corr / mcEff_corr if mcEff_corr else 0.0
-    sf_err = 0.0
+    sf                          = dataEff_corr / mcEff_corr if mcEff_corr else 0.0
+    sf_err                      = 0.0
     
     if dataEff_corr and mcEff_corr:
-        dataErr = max(dataErrD_corr, dataErrU_corr)
-        mcErr = max(mcErrD_corr, mcErrU_corr)
-        sf_err = sf * ((dataErr / dataEff_corr)**2 + (mcErr / mcEff_corr)**2)**0.5
+        dataErr                 = max(dataErrD_corr, dataErrU_corr)
+        mcErr                   = max(mcErrD_corr, mcErrU_corr)
+        sf_err                  = sf * ((dataErr / dataEff_corr)**2 + (mcErr / mcEff_corr)**2)**0.5
+    
     return sf, sf_err, dataEff_corr, dataErrD_corr, dataErrU_corr, mcEff_corr, mcErrD_corr, mcErrU_corr
 
-
 def getSF_cutAndCount(binName, fnameData, fnameMC, massRanges, shift=None, resonance='Z'):
-    mcEff, mcErrD, mcErrU = getEff(binName, fnameMC, massRanges, shift, True, resonance)
+    mcEff, mcErrD, mcErrU       = getEff(binName, fnameMC, massRanges, shift, True, resonance)
     dataEff, dataErrD, dataErrU = getDataEff(binName, fnameData, massRanges, shift, True, resonance)
-    sf = dataEff / mcEff if mcEff else 0.0
-    sf_err = 0.0
-    if dataEff and mcEff:
-        dataErr = max(dataErrD, dataErrU)
-        mcErr = max(mcErrD, mcErrU)
-        sf_err = sf * ((dataErr / dataEff)**2 + (mcErr / mcEff)**2)**0.5
-    return sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU
+    sf                          = dataEff / mcEff if mcEff else 0.0
+    sf_err                      = 0.0
 
+    if dataEff and mcEff:
+        dataErr                 = max(dataErrD, dataErrU)
+        mcErr                   = max(mcErrD, mcErrU)
+        sf_err                  = sf * ((dataErr / dataEff)**2 + (mcErr / mcEff)**2)**0.5
+    
+    return sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU
 
 #def getSyst(binName, fname, fitTypes, shiftTypes, massRanges, resonance='Z'):
 #    sf, sf_err, dataEff, dataErr, mcEff, mcErr = getSF(binName, fname, massRanges, resonance=resonance)
 def getSyst(binName, fname_data, fname_mc,fitTypes, shiftTypes, massRanges, resonance='Z'):
     sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU = getSF_fitdataMC(binName, fname_data, fname_mc, massRanges, resonance=resonance)
-    syst = {}
+    syst                        = {}
     for isyst in fitTypes:
-        systfname = fname.replace('Nominal', isyst)
+        systfname               = fname.replace('Nominal', isyst)
         # sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU
-        tmp = getSF(binName, systfname, massRanges, isyst, resonance=resonance)
-        syst[isyst] = {
-            'sf': tmp[0],
-            'err': abs(tmp[0]-sf),
-            'dataEff': tmp[2],
-            'dataErr': abs(tmp[2]-dataEff),
-            'mcEff': tmp[5],
-            'mcErr': abs(tmp[5]-mcEff),
-        }
+        tmp                     = getSF(binName, systfname, massRanges, isyst, resonance=resonance)
+        syst[isyst]             = {
+                                    'sf':       tmp[0],
+                                    'err':      abs(tmp[0]-sf),
+                                    'dataEff':  tmp[2],
+                                    'dataErr':  abs(tmp[2]-dataEff),
+                                    'mcEff':    tmp[5],
+                                    'mcErr':    abs(tmp[5]-mcEff),
+                                }
 
     for isyst in shiftTypes:
-        systUpfname = fname.replace('Nominal', isyst+'Up')
-        systDnfname = fname.replace('Nominal', isyst+'Down')
+        systUpfname             = fname.replace('Nominal', isyst+'Up')
+        systDnfname             = fname.replace('Nominal', isyst+'Down')
         # sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU
-        tmpUp = getSF(binName, systUpfname, massRanges, isyst+'Up'  , resonance=resonance)
-        tmpDn = getSF(binName, systDnfname, massRanges, isyst+'Down', resonance=resonance)
-        tmp = [
-            (tmpUp[0]+tmpDn[0])/2,
-            (abs(tmpUp[0]-sf)+abs(tmpDn[0]-sf))/2,
-            (tmpUp[2]+tmpDn[2])/2,
-            (abs(tmpUp[2]-dataEff)+abs(tmpDn[2]-dataEff))/2,
-            (tmpUp[5]+tmpDn[5])/2,
-            (abs(tmpUp[5]-mcEff)+abs(tmpDn[5]-mcEff))/2,
-        ]
-        syst[isyst] = {
-            'sf': tmp[0],
-            'err': tmp[1],
-            'dataEff': tmp[2],
-            'dataErr': tmp[3],
-            'mcEff': tmp[4],
-            'mcErr': tmp[5],
-        }
-        syst[isyst+'Up'] = {
-            'sf': tmpUp[0],
-            'err': abs(tmpUp[0]-sf),
-            'dataEff': tmpUp[2],
-            'dataErr': abs(tmpUp[2]-dataEff),
-            'mcEff': tmpUp[5],
-            'mcErr': abs(tmpUp[5]-mcEff),
-        }
-        syst[isyst+'Down'] = {
-            'sf': tmpDn[0],
-            'err': abs(tmpDn[0]-sf),
-            'dataEff': tmpDn[2],
-            'dataErr': abs(tmpDn[2]-dataEff),
-            'mcEff': tmpDn[5],
-            'mcErr': abs(tmpDn[5]-mcEff),
-        }
+        tmpUp                   = getSF(binName, systUpfname, massRanges, isyst+'Up'  , resonance=resonance)
+        tmpDn                   = getSF(binName, systDnfname, massRanges, isyst+'Down', resonance=resonance)
+        tmp                     = [
+                                    (tmpUp[0]+tmpDn[0])/2,
+                                    (abs(tmpUp[0]-sf)+abs(tmpDn[0]-sf))/2,
+                                    (tmpUp[2]+tmpDn[2])/2,
+                                    (abs(tmpUp[2]-dataEff)+abs(tmpDn[2]-dataEff))/2,
+                                    (tmpUp[5]+tmpDn[5])/2,
+                                    (abs(tmpUp[5]-mcEff)+abs(tmpDn[5]-mcEff))/2,
+                                ]
+        syst[isyst]             = {
+                                    'sf':       tmp[0],
+                                    'err':      tmp[1],
+                                    'dataEff':  tmp[2],
+                                    'dataErr':  tmp[3],
+                                    'mcEff':    tmp[4],
+                                    'mcErr':    tmp[5],
+                                }
+        syst[isyst+'Up']        = {
+                                    'sf':       tmpUp[0],
+                                    'err':      abs(tmpUp[0]-sf),
+                                    'dataEff':  tmpUp[2],
+                                    'dataErr':  abs(tmpUp[2]-dataEff),
+                                    'mcEff':    tmpUp[5],
+                                    'mcErr':    abs(tmpUp[5]-mcEff),
+                                }
+        syst[isyst+'Down']      = {
+                                    'sf':       tmpDn[0],
+                                    'err':      abs(tmpDn[0]-sf),
+                                    'dataEff':  tmpDn[2],
+                                    'dataErr':  abs(tmpDn[2]-dataEff),
+                                    'mcEff':    tmpDn[5],
+                                    'mcErr':    abs(tmpDn[5]-mcEff),
+                                }
 
     return syst
 
@@ -396,63 +409,82 @@ def getSyst_cutAndCount(binName, fnameData, fnameMC, fitTypes, shiftTypes, massR
     sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU = getSF_cutAndCount(
         binName, fnameData, fnameMC, massRanges, resonance=resonance)
 
-    syst = {}
+    syst                        = {}
     for isyst in fitTypes:
-        systfnameData = fnameData.replace('Nominal', isyst)
-        systfnameMC = fnameMC.replace('Nominal', isyst)
+        systfnameData           = fnameData.replace('Nominal', isyst)
+        systfnameMC             = fnameMC.replace('Nominal', isyst)
         # sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU
-        tmp = getSF_cutAndCount(binName, systfnameData, systfnameMC, massRanges, isyst, resonance=resonance)
-        syst[isyst] = {
-            'sf': tmp[0],
-            'err': abs(tmp[0]-sf),
-            'dataEff': tmp[2],
-            'dataErr': abs(tmp[2]-dataEff),
-            'mcEff': tmp[5],
-            'mcErr': abs(tmp[5]-mcEff),
-        }
+        tmp                     = getSF_cutAndCount(
+                                    binName, 
+                                    systfnameData, 
+                                    systfnameMC, 
+                                    massRanges, 
+                                    isyst, 
+                                    resonance=resonance
+                                )
+        syst[isyst]             = {
+                                    'sf':       tmp[0],
+                                    'err':      abs(tmp[0]-sf),
+                                    'dataEff':  tmp[2],
+                                    'dataErr':  abs(tmp[2]-dataEff),
+                                    'mcEff':    tmp[5],
+                                    'mcErr':    abs(tmp[5]-mcEff),
+                                }
 
     for isyst in shiftTypes:
-        systUpfnameData = fnameData.replace('Nominal', isyst+'Up')
-        systDnfnameData = fnameData.replace('Nominal', isyst+'Down')
-        systUpfnameMC = fnameMC.replace('Nominal', isyst+'Up')
-        systDnfnameMC = fnameMC.replace('Nominal', isyst+'Down')
+        systUpfnameData         = fnameData.replace('Nominal', isyst+'Up')
+        systDnfnameData         = fnameData.replace('Nominal', isyst+'Down')
+        systUpfnameMC           = fnameMC.replace('Nominal', isyst+'Up')
+        systDnfnameMC           = fnameMC.replace('Nominal', isyst+'Down')
          # sf, sf_err, dataEff, dataErrD, dataErrU, mcEff, mcErrD, mcErrU
-        tmpUp = getSF_cutAndCount(binName, systUpfnameData,
-                                  systUpfnameMC, massRanges, isyst+'Up'  , resonance=resonance)
-        tmpDn = getSF_cutAndCount(binName, systDnfnameData,
-                                  systDnfnameMC, massRanges, isyst+'Down', resonance=resonance)
-        tmp = [
-            (tmpUp[0]+tmpDn[0])/2,
-            (abs(tmpUp[0]-sf)+abs(tmpDn[0]-sf))/2,
-            (tmpUp[2]+tmpDn[2])/2,
-            (abs(tmpUp[2]-dataEff)+abs(tmpDn[2]-dataEff))/2,
-            (tmpUp[5]+tmpDn[5])/2,
-            (abs(tmpUp[5]-mcEff)+abs(tmpDn[5]-mcEff))/2,
-        ]
-        syst[isyst] = {
-            'sf': tmp[0],
-            'err': tmp[1],
-            'dataEff': tmp[2],
-            'dataErr': tmp[3],
-            'mcEff': tmp[4],
-            'mcErr': tmp[5],
-        }
-        syst[isyst+'Up'] = {
-            'sf': tmpUp[0],
-            'err': abs(tmpUp[0]-sf),
-            'dataEff': tmpUp[2],
-            'dataErr': abs(tmpUp[2]-dataEff),
-            'mcEff': tmpUp[5],
-            'mcErr': abs(tmpUp[5]-mcEff),
-        }
-        syst[isyst+'Down'] = {
-            'sf': tmpDn[0],
-            'err': abs(tmpDn[0]-sf),
-            'dataEff': tmpDn[2],
-            'dataErr': abs(tmpDn[2]-dataEff),
-            'mcEff': tmpDn[5],
-            'mcErr': abs(tmpDn[5]-mcEff),
-        }
+        tmpUp                   = getSF_cutAndCount(
+                                    binName, 
+                                    systUpfnameData,
+                                    systUpfnameMC, 
+                                    massRanges, 
+                                    isyst+'Up'  , 
+                                    resonance=resonance
+                                )
+        tmpDn                   = getSF_cutAndCount(
+                                    binName, 
+                                    systDnfnameData,
+                                    systDnfnameMC, 
+                                    massRanges, 
+                                    isyst+'Down', 
+                                    resonance=resonance
+                                )
+        tmp                     = [
+                                    (tmpUp[0]+tmpDn[0])/2,
+                                    (abs(tmpUp[0]-sf)+abs(tmpDn[0]-sf))/2,
+                                    (tmpUp[2]+tmpDn[2])/2,
+                                    (abs(tmpUp[2]-dataEff)+abs(tmpDn[2]-dataEff))/2,
+                                    (tmpUp[5]+tmpDn[5])/2,
+                                    (abs(tmpUp[5]-mcEff)+abs(tmpDn[5]-mcEff))/2,
+                                ]
+        syst[isyst]             = {
+                                    'sf':       tmp[0],
+                                    'err':      tmp[1],
+                                    'dataEff':  tmp[2],
+                                    'dataErr':  tmp[3],
+                                    'mcEff':    tmp[4],
+                                    'mcErr':    tmp[5],
+                                }
+        syst[isyst+'Up']        = {
+                                    'sf':       tmpUp[0],
+                                    'err':      abs(tmpUp[0]-sf),
+                                    'dataEff':  tmpUp[2],
+                                    'dataErr':  abs(tmpUp[2]-dataEff),
+                                    'mcEff':    tmpUp[5],
+                                    'mcErr':    abs(tmpUp[5]-mcEff),
+                                }
+        syst[isyst+'Down']      = {
+                                    'sf':       tmpDn[0],
+                                    'err':      abs(tmpDn[0]-sf),
+                                    'dataEff':  tmpDn[2],
+                                    'dataErr':  abs(tmpDn[2]-dataEff),
+                                    'mcEff':    tmpDn[5],
+                                    'mcErr':    abs(tmpDn[5]-mcEff),
+                                }
 
     return syst
 
@@ -461,44 +493,42 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
             config, num, denom, variableLabels, lumi,
             skipPlots=False, cutAndCount=False):
     
-    hists = {}
+    hists                       = {}
 
-    effType = config.type() if 'type' in config else ''
-    effName = get_eff_name(num, denom)
-    extEffName = get_extended_eff_name(num, denom, variableLabels)
-    binning = config.binning()
-    dataSubEra, mcSubEra = get_data_mc_sub_eras(resonance, era)
+    effType                     = config.type() if 'type' in config else ''
+    effName                     = get_eff_name(num, denom)
+    extEffName                  = get_extended_eff_name(num, denom, variableLabels)
+    binning                     = config.binning()
+    dataSubEra, mcSubEra        = get_data_mc_sub_eras(resonance, era)
 
-    systList = config.get('systematics',
-                          {x: {'fitTypes': [],
-                               'shiftTypes': []}
-                           for x in ['SF', 'dataEff', 'mcEff']})
+    systList                    = config.get('systematics',
+                                            {x: {'fitTypes': [],
+                                                'shiftTypes': []}
+                                            for x in ['SF', 'dataEff', 'mcEff']})
 
-    massRanges = config.get("massRanges") # Start from a sensible default, but allow customization
+    massRanges                  = config.get("massRanges") # Start from a sensible default, but allow customization
 
     def get_variable_name_pretty(variableLabel):
-        variables = config.variables()
+        variables               = config.variables()
+        
         return variables.get(variableLabel, {}).get('pretty', variableLabel)
 
     # create output histograms
-    nVars = len(variableLabels)
-    if nVars == 1:
-        THX = ROOT.TH1F
-    elif nVars == 2:
-        THX = ROOT.TH2F
-    elif nVars == 3:
-        THX = ROOT.TH3F
+    nVars                       = len(variableLabels)
+    if nVars == 1:              THX = ROOT.TH1F
+    elif nVars == 2:            THX = ROOT.TH2F
+    elif nVars == 3:            THX = ROOT.TH3F
     else:
         raise NotImplementedError(
             'More than 3 dimensions are not supported for scale factors'
         )
 
-    hargs = [extEffName, extEffName]
+    hargs                       = [extEffName, extEffName]
     for variableLabel in variableLabels:
-        hargs += [len(binning[variableLabel]) - 1,
-                  array('d', binning[variableLabel])]
-    hist = THX(*hargs)
-    axes = [hist.GetXaxis(), hist.GetYaxis(), hist.GetZaxis()]
+        hargs                   += [len(binning[variableLabel]) - 1,
+                                    array('d', binning[variableLabel])]
+    hist                        = THX(*hargs)
+    axes                        = [hist.GetXaxis(), hist.GetYaxis(), hist.GetZaxis()]
     for vi, variableLabel in enumerate(variableLabels):
         axes[vi].SetTitle(get_variable_name_pretty(variableLabel))
     if nVars == 1:
@@ -506,96 +536,90 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
     if nVars == 2:
         hist.SetOption('colz')
         hist.GetZaxis().SetTitle('Scalefactor')
-    hist_stat = hist.Clone(extEffName+'_stat')
-    hist_syst = hist.Clone(extEffName+'_syst')
-    histList_syst = {
-        'combined_syst': hist.Clone(extEffName+'_combined_syst'),
-    }
-    if nVars == 2:
-        histList_syst['combined_syst'].GetZaxis().SetTitle('Uncertainty')
+    hist_stat                   = hist.Clone(extEffName+'_stat')
+    hist_syst                   = hist.Clone(extEffName+'_syst')
+    histList_syst               = {
+                                    'combined_syst': hist.Clone(extEffName+'_combined_syst'),
+                                }
+    if nVars == 2:              histList_syst['combined_syst'].GetZaxis().SetTitle('Uncertainty')
 
-    hist_dataEff = hist.Clone(extEffName+'_efficiencyData')
-    if nVars == 1:
-        hist_dataEff.GetYaxis().SetTitle('Efficiency')
-    if nVars == 2:
-        hist_dataEff.GetZaxis().SetTitle('Efficiency')
-    hist_dataEff_errD = hist_dataEff.Clone(extEffName+'_efficiencyData_errD')
-    hist_dataEff_errU = hist_dataEff.Clone(extEffName+'_efficiencyData_errU')
-    hist_dataEff_stat = hist_dataEff.Clone(extEffName+'_efficiencyData_stat')
-    hist_dataEff_syst = hist_dataEff.Clone(extEffName+'_efficiencyData_syst')
-    histList_dataEff_syst = {
-        'combined_syst': hist_dataEff.Clone(
-            extEffName+'_efficiencyData_combined_syst'),
-    }
-    if nVars == 2:
-        histList_dataEff_syst['combined_syst'].GetZaxis().SetTitle('Uncertainty')
-    hist_mcEff = hist_dataEff.Clone(extEffName+'_efficiencyMC')
-    hist_mcEff_errD = hist_dataEff.Clone(extEffName+'_efficiencyMC_errD')
-    hist_mcEff_errU = hist_dataEff.Clone(extEffName+'_efficiencyMC_errU')
-    hist_mcEff_stat = hist_dataEff.Clone(extEffName+'_efficiencyMC_stat')
-    hist_mcEff_syst = hist_dataEff.Clone(extEffName+'_efficiencyMC_syst')
-    histList_mcEff_syst = {
-        'combined_syst': hist_dataEff.Clone(
-            extEffName+'_efficiencyMC_combined_syst'),
-    }
-    if nVars == 2:
-        histList_mcEff_syst['combined_syst'].GetZaxis().SetTitle('Uncertainty')
+    hist_dataEff                = hist.Clone(extEffName+'_efficiencyData')
+    if nVars == 1:              hist_dataEff.GetYaxis().SetTitle('Efficiency')
+    if nVars == 2:              hist_dataEff.GetZaxis().SetTitle('Efficiency')
+    hist_dataEff_errD           = hist_dataEff.Clone(extEffName+'_efficiencyData_errD')
+    hist_dataEff_errU           = hist_dataEff.Clone(extEffName+'_efficiencyData_errU')
+    hist_dataEff_stat           = hist_dataEff.Clone(extEffName+'_efficiencyData_stat')
+    hist_dataEff_syst           = hist_dataEff.Clone(extEffName+'_efficiencyData_syst')
+    histList_dataEff_syst       = {
+                                    'combined_syst': hist_dataEff.Clone(
+                                        extEffName+'_efficiencyData_combined_syst'),
+                                }
+    if nVars == 2:              histList_dataEff_syst['combined_syst'].GetZaxis().SetTitle('Uncertainty')
+    hist_mcEff                  = hist_dataEff.Clone(extEffName+'_efficiencyMC')
+    hist_mcEff_errD             = hist_dataEff.Clone(extEffName+'_efficiencyMC_errD')
+    hist_mcEff_errU             = hist_dataEff.Clone(extEffName+'_efficiencyMC_errU')
+    hist_mcEff_stat             = hist_dataEff.Clone(extEffName+'_efficiencyMC_stat')
+    hist_mcEff_syst             = hist_dataEff.Clone(extEffName+'_efficiencyMC_syst')
+    histList_mcEff_syst         = {
+                                    'combined_syst': hist_dataEff.Clone(
+                                        extEffName+'_efficiencyMC_combined_syst'),
+                                }
+    if nVars == 2:              histList_mcEff_syst['combined_syst'].GetZaxis().SetTitle('Uncertainty')
 
     # the individual systematics
     for iSyst in itertools.chain(systList['SF']['fitTypes'],
                                  systList['SF']['shiftTypes']):
-        histList_syst[iSyst] = hist.Clone(extEffName+'_'+iSyst)
-        histList_syst[iSyst+'_syst'] = hist.Clone(extEffName+'_'+iSyst+'_syst')
-        if nVars == 2:
-            histList_syst[iSyst+'_syst'].GetZaxis().SetTitle('Uncertainty')
+        histList_syst[iSyst]                    = hist.Clone(extEffName+'_'+iSyst)
+        histList_syst[iSyst+'_syst']            = hist.Clone(extEffName+'_'+iSyst+'_syst')
+        if nVars == 2:                          histList_syst[iSyst+'_syst'].GetZaxis().SetTitle('Uncertainty')
+    
     for iSyst in itertools.chain(systList['dataEff']['fitTypes'],
                                  systList['dataEff']['shiftTypes']):
-        histList_dataEff_syst[iSyst] = hist_dataEff.Clone(extEffName+'_'+iSyst)
-        histList_dataEff_syst[iSyst+'_syst'] = hist_dataEff.Clone(
-            extEffName+'_'+iSyst+'_syst')
-        if nVars == 2:
-            histList_dataEff_syst[iSyst+'_syst'].GetZaxis().SetTitle('Uncertainty')
+        histList_dataEff_syst[iSyst]            = hist_dataEff.Clone(extEffName+'_'+iSyst)
+        histList_dataEff_syst[iSyst+'_syst']    = hist_dataEff.Clone(
+                                                    extEffName+'_'+iSyst+'_syst')
+        if nVars == 2:                          histList_dataEff_syst[iSyst+'_syst'].GetZaxis().SetTitle('Uncertainty')
+    
     for iSyst in itertools.chain(systList['mcEff']['fitTypes'],
                                  systList['mcEff']['shiftTypes']):
-        histList_mcEff_syst[iSyst] = hist_mcEff.Clone(extEffName+'_'+iSyst)
-        histList_mcEff_syst[iSyst+'_syst'] = hist_mcEff.Clone(
-            extEffName+'_'+iSyst+'_syst')
-        if nVars == 2:
-            histList_mcEff_syst[iSyst+'_syst'].GetZaxis().SetTitle('Uncertainty')
+        histList_mcEff_syst[iSyst]              = hist_mcEff.Clone(extEffName+'_'+iSyst)
+        histList_mcEff_syst[iSyst+'_syst']      = hist_mcEff.Clone(
+                                                    extEffName+'_'+iSyst+'_syst')
+        if nVars == 2:                          histList_mcEff_syst[iSyst+'_syst'].GetZaxis().SetTitle('Uncertainty')
 
-    varName = get_variables_name(variableLabels)
+    varName                         = get_variables_name(variableLabels)
 
     # iterate through the bin indices
     # this does nested for loops of the N-D binning (e.g. pt, eta)
     # binning starts at 1 (0 is underflow), same as ROOT
-    indices = [list(range(1, len(binning[variableLabel])))
-               for variableLabel in variableLabels]
-    output = {effName: {varName: {}}}
-    all_systematics = {}
+    indices                         = [list(range(1, len(binning[variableLabel])))
+                                        for variableLabel in variableLabels]
+    output                          = {effName: {varName: {}}}
+    all_systematics                 = {}
     for index in itertools.product(*indices):
-        binName = get_full_name(num, denom, variableLabels, index)
-        subVarKeys = [
-            '{}:[{},{}]'.format(
-                variableLabels[i],
-                binning[variableLabels[i]][ind-1],
-                binning[variableLabels[i]][ind]
-            ) for i, ind in enumerate(index)
-        ]
-        _out = output[effName][varName]
+        binName                     = get_full_name(num, denom, variableLabels, index)
+        subVarKeys                  = [
+                                        '{}:[{},{}]'.format(
+                                            variableLabels[i],
+                                            binning[variableLabels[i]][ind-1],
+                                            binning[variableLabels[i]][ind]
+                                        ) for i, ind in enumerate(index)
+                                    ]
+        _out                        = output[effName][varName]
 
         # add binning definitions
-        _out['binning'] = [
-            {
-                'variable': vl,
-                'binning': binning[vl].tolist(),
-            }
-            for vl in variableLabels
-        ]
+        _out['binning']             = [
+                                        {
+                                            'variable': vl,
+                                            'binning':  binning[vl].tolist(),
+                                        }
+                                        for vl in variableLabels
+                                    ]
 
         for subVarKey in subVarKeys:
             if subVarKey not in _out:
-                _out[subVarKey] = {}
-            _out = _out[subVarKey]
+                _out[subVarKey]     = {}
+            _out                    = _out[subVarKey]
 
         # the fitted distributions
         fitType = 'Nominal'

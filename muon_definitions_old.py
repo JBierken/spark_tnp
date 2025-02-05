@@ -6,6 +6,13 @@ from pyspark.sql import types as T
 from pyspark.ml.feature import Bucketizer
 from pyspark.sql.functions import pandas_udf
 import correctionlib
+import numpy as np
+
+from pyspark.sql import functions as F
+from pyspark.sql import SparkSession
+from pyspark.sql import functions as F
+
+spark = SparkSession.builder.appName("YourAppName").getOrCreate()
 
 def get_pileup(resonance, era, subEra):
    '''
@@ -17,64 +24,91 @@ def get_pileup(resonance, era, subEra):
    dataPileup = {
       # Note: for now use ReReco version of pileup
       # TODO: need to redo splitting by 2016 B-F/F-H
-      'Run2016_UL_HIPM': 'pileup/data/Run2016.root',
-      'Run2016_UL': 'pileup/data/Run2016.root',
-      'Run2017_UL': 'pileup/data/Run2017.root',
-      'Run2018_UL': 'pileup/data/Run2018.root',
+      'Run2016_UL_HIPM':    'pileup/data/Run2016.root',
+      'Run2016_UL':         'pileup/data/Run2016.root',
+      'Run2017_UL':         'pileup/data/Run2017.root',
+      'Run2018_UL':         'pileup/data/Run2018.root',
       # Double muon PD
       'Run2016_UL_HIPM_DM': 'pileup/data/Run2016.root',
-      'Run2016_UL_DM': 'pileup/data/Run2016.root',
-      'Run2017_UL_DM': 'pileup/data/Run2017.root',
-      'Run2018_UL_DM': 'pileup/data/Run2018.root',
-      'Run2016': 'pileup/data/Run2016.root',
-      'Run2017': 'pileup/data/Run2017.root',
-      'Run2018': 'pileup/data/Run2018.root',
+      'Run2016_UL_DM':      'pileup/data/Run2016.root',
+      'Run2017_UL_DM':      'pileup/data/Run2017.root',
+      'Run2018_UL_DM':      'pileup/data/Run2018.root',
+      'Run2016':            'pileup/data/Run2016.root',
+      'Run2017':            'pileup/data/Run2017.root',
+      'Run2018':            'pileup/data/Run2018.root',
       # Run2022 : Centrally produced ROOT files by LUMI POG (https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData#Centrally_produced_ROOT_histogra)
-      'Run2022': 'pileup/data/Run2022_LUM.root',
-      'Run2022_EE': 'pileup/data/Run2022_LUM.root',
+      'Run2022':            'pileup/data/Run2022_LUM.root',
+      'Run2022_EE':         'pileup/data/Run2022_LUM.root',
       # Run2023 
-      'Run2023': 'pileup/data/Run2023_LUM.root',
-      'Run2023_BPix': 'pileup/data/Run2023_LUM.root',
+      'Run2023':            'pileup/data/Run2023_LUM.root',
+      'Run2023_BPix':       'pileup/data/Run2023_LUM.root',
    }
    mcPileup = {
       # TODO: do the two eras have different profiles?
-      'Run2016_UL_HIPM': 'pileup/mc/Run2016_UL.root',
-      'Run2016_UL': 'pileup/mc/Run2016_UL.root',
-      'Run2017_UL': 'pileup/mc/Run2017_UL.root',
-      'Run2018_UL': 'pileup/mc/Run2018_UL.root',
+      'Run2016_UL_HIPM':    'pileup/mc/Run2016_UL.root',
+      'Run2016_UL':         'pileup/mc/Run2016_UL.root',
+      'Run2017_UL':         'pileup/mc/Run2017_UL.root',
+      'Run2018_UL':         'pileup/mc/Run2018_UL.root',
       # Double muon PD
       'Run2016_UL_HIPM_DM': 'pileup/mc/Run2016_UL.root',
-      'Run2016_UL_DM': 'pileup/mc/Run2016_UL.root',
-      'Run2017_UL_DM': 'pileup/mc/Run2017_UL.root',
-      'Run2018_UL_DM': 'pileup/mc/Run2018_UL.root',
-      'Run2016': 'pileup/mc/Run2016.root',
-      'Run2017': 'pileup/mc/Run2017.root',
-      'Run2018': 'pileup/mc/Run2018.root',
+      'Run2016_UL_DM':      'pileup/mc/Run2016_UL.root',
+      'Run2017_UL_DM':      'pileup/mc/Run2017_UL.root',
+      'Run2018_UL_DM':      'pileup/mc/Run2018_UL.root',
+      'Run2016':            'pileup/mc/Run2016.root',
+      'Run2017':            'pileup/mc/Run2017.root',
+      'Run2018':            'pileup/mc/Run2018.root',
       # Run2022 (nTrueInteractions profile got privately by Sergio over our MC ntuples.)
-      'Run2022': 'pileup/mc/Run2022.root',
-      'Run2022_EE': 'pileup/mc/Run2022EE.root',
+      'Run2022':            'pileup/mc/Run2022.root',
+      'Run2022_EE':         'pileup/mc/Run2022EE.root',
       # Run2023 (nTrueInteractions profile got privately by Sergio over our MC ntuples.)
-      'Run2023': 'pileup/mc/Run2023.root',
-      'Run2023_BPix': 'pileup/mc/Run2023_BPix.root',
+      'Run2023':            'pileup/mc/Run2023.root',
+      'Run2023_BPix':       'pileup/mc/Run2023_BPix.root',
    }
    # get absolute path
-   baseDir = os.path.dirname(__file__)
-   dataPileup = {k: os.path.join(baseDir, dataPileup[k]) for k in dataPileup}
-   mcPileup = {k: os.path.join(baseDir, mcPileup[k]) for k in mcPileup}
+   baseDir          = os.path.dirname(__file__)
+   dataPileup       = {k: os.path.join(baseDir, dataPileup[k]) for k in dataPileup}
+   mcPileup         = {k: os.path.join(baseDir, mcPileup[k]) for k in mcPileup}
    with uproot.open(dataPileup[era]) as f:
-       data_edges = f['pileup'].axis(0).edges()
-       data_pileup = f['pileup'].values()
-       data_pileup /= sum(data_pileup)
+       data_edges   = f['pileup'].axis(0).edges()
+       data_pileup  = f['pileup'].values()
+       data_pileup  /= sum(data_pileup)
    with uproot.open(mcPileup[era]) as f:
-       mc_edges = f['pileup'].axis(0).edges()
-       mc_pileup = f['pileup'].values()
-       mc_pileup /= sum(mc_pileup)
-   pileup_edges = data_edges if len(data_edges) < len(mc_edges) else mc_edges
-   pileup_ratio = [d/m if m else 1.0 for d, m in zip(
+       mc_edges     = f['pileup'].axis(0).edges()
+       mc_pileup    = f['pileup'].values()
+       mc_pileup    /= sum(mc_pileup)
+   pileup_edges     = data_edges if len(data_edges) < len(mc_edges) else mc_edges
+   pileup_ratio     = [d/m if m else 1.0 for d, m in zip(
        data_pileup[:len(pileup_edges)-1], mc_pileup[:len(pileup_edges)-1])]
 
    return pileup_ratio, pileup_edges
 
+def get_prescale(resonance, era, subEra):
+   '''
+   Get the prescale factors to apply to simulation
+   for a given era.
+   '''
+   mcPrescale = {
+       # TODO: do the two eras have different profiles?
+       #'Run2016_UL_HIPM':  'pileup/mc/Run2016_UL.root',
+       #'Run2016_UL':       'pileup/mc/Run2016_UL.root',
+       'Run2017_UL':        'prescale/mc/Run2017_UL.root',
+       #'Run2018_UL':       'pileup/mc/Run2018_UL.root',
+       #'Run2016':          'pileup/mc/Run2016.root',
+       #'Run2017':          'pileup/mc/Run2017.root',
+       #'Run2018':          'pileup/mc/Run2018.root'
+   }
+   # get absolute path
+   baseDir              = os.path.dirname(__file__)
+   #dataPileup          = {k: os.path.join(baseDir, dataPileup[k]) for k in dataPileup}
+   mcPrescale           = {k: os.path.join(baseDir, mcPrescale[k]) for k in mcPrescale}
+   with uproot.open(mcPrescale[era]) as f:
+       mc_edges         = f['prescale'].edges
+       mc_prescale      = f['prescale'].values
+       #mc_pileup       /= sum(mc_pileup)
+   prescale_edges       = mc_edges
+   prescale_values      = mc_prescale.astype('float64')
+
+   return prescale_values, prescale_edges
 
 def get_tag_dataframe(df, resonance, era, subEra, shift=None):
    '''
@@ -190,6 +224,21 @@ def get_weighted_dataframe(df, doGen, resonance, era, subEra, shift=None):
        'weight2', F.col('weight') * F.col('weight'))
 
    return weightedDF
+
+def get_prescaled_dataframe(df, doGen, resonance, era, subEra):
+  
+  prescale_values, prescale_edges   = get_prescale(resonance, era, subEra)
+
+  # build the weights (prescale for MC)
+  if doGen:
+    prescaleMap                     = {e: v for e, v in zip(prescale_edges[:-1], prescale_values)}
+    mapping_expr                    = F.create_map([F.lit(x) for x in itertools.chain(*prescaleMap.items())])
+    
+    scaledDF                        = df.withColumn('prescale_weight',mapping_expr.getItem(F.floor('tag_pt')))
+  else:
+    scaledDF                        = df.withColumn('prescale_weight', F.lit(1.0))
+  
+  return scaledDF
 
 
 def get_binned_dataframe(df, bin_name, variable_name, edges):

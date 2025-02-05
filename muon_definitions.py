@@ -214,38 +214,81 @@ def check_and_fill_missing_fake(doGen, passing_data_counts):
     if not doGen:
         filled_df       = missing_values_df.fillna(0, subset=['fake_data'])
     else: 
-        filled_df   = missing_values_df.fillna(0, subset=['fake_mc'])
+        filled_df       = missing_values_df.fillna(0, subset=['fake_mc'])
     
     return filled_df.orderBy('nVertices')
 
 def get_data_passing(df, doGen, resonance, era, subEra, shift=None):
    
-    passing_data_counts = df.filter((F.col('probe_isTrkMatch') == True) & (F.col('probeSA_isTrkMatch') == False)) \
-                            .groupBy('nVertices').count().withColumnRenamed('count', 'passing_data').orderBy('nVertices')  
-    
+    passing_data_counts = df.filter(
+                            (F.col('probe_isTrkMatch') == True) & (F.col('probeSA_isTrkMatch') == False)) \
+                            .groupBy('nVertices') \
+                            .count() \
+                            .withColumnRenamed('count', 'passing_data') \
+                            .orderBy('nVertices')  
     passing_data_counts = check_and_fill_missing_passing(doGen, passing_data_counts)
     
     return passing_data_counts
 
 def get_data_failing(df, doGen, resonance, era, subEra, shift=None):
 
-    failing_data_counts = df.filter((F.col('probe_isTrkMatch') == False) & (F.col('probeSA_isTrkMatch') == False)) \
-                            .groupBy('nVertices').count().withColumnRenamed('count', 'failing_data').orderBy('nVertices')
-
+    failing_data_counts = df.filter(
+                            (F.col('probe_isTrkMatch') == False) & (F.col('probeSA_isTrkMatch') == False)) \
+                            .groupBy('nVertices') \
+                            .count() \
+                            .withColumnRenamed('count', 'failing_data') \
+                            .orderBy('nVertices')
     failing_data_counts = check_and_fill_missing_failing(doGen, failing_data_counts)
     
     return failing_data_counts
 
 def get_data_fake(df, doGen, resonance, era, subEra, shift=None):
 
-    fake_data_counts    = df.filter((
-                            F.col('probe_isTrkMatch') == True) & (F.col('probeSA_isTrkMatch') == True)) \
-                                .groupBy('nVertices').count().withColumnRenamed('count', 'fake_data').orderBy(F.col('nVertices')
-                        )
-
+    fake_data_counts    = df.filter(
+                            (F.col('probe_isTrkMatch') == True) & (F.col('probeSA_isTrkMatch') == True)) \
+                            .groupBy('nVertices') \
+                            .count() \
+                            .withColumnRenamed('count', 'fake_data') \
+                            .orderBy(F.col('nVertices'))
     fake_data_counts    = check_and_fill_missing_fake(doGen, fake_data_counts)
     
     return fake_data_counts    
+
+def get_mc_passing(df, doGen, resonance, era, subEra, shift=None):
+   
+    passing_mc_counts = df.filter(
+                            (F.col('probe_isTrkMatch') == True) & (F.col('probeSA_isTrkMatch') == False)) \
+                            .groupBy('nVertices') \
+                            .count() \
+                            .withColumnRenamed('count', 'passing_mc') \
+                            .orderBy('nVertices')  
+    passing_mc_counts = check_and_fill_missing_passing(doGen, passing_mc_counts)
+    
+    return passing_mc_counts
+
+def get_mc_failing(df, doGen, resonance, era, subEra, shift=None):
+
+    failing_mc_counts = df.filter(
+                            (F.col('probe_isTrkMatch') == False) & (F.col('probeSA_isTrkMatch') == False)) \
+                            .groupBy('nVertices') \
+                            .count() \
+                            .withColumnRenamed('count', 'failing_mc') \
+                            .orderBy('nVertices')
+    failing_mc_counts = check_and_fill_missing_failing(doGen, failing_mc_counts)
+    
+    return failing_mc_counts
+
+def get_mc_fake(df, doGen, resonance, era, subEra, shift=None):
+
+    fake_mc_counts    = df.filter(
+                                (F.col('probe_isTrkMatch') == True) & (F.col('probeSA_isTrkMatch') == True)) \
+                                .groupBy('nVertices') \
+                                .count() \
+                                .withColumnRenamed('count', 'fake_mc') \
+                                .orderBy(F.col('nVertices'))
+    fake_mc_counts    = check_and_fill_missing_fake(doGen, fake_mc_counts)
+    
+    return fake_mc_counts    
 
 def save_to_parquet(nVertices_dist, filename):
     
@@ -257,102 +300,78 @@ def read_from_parquet(spark, filename):
 
 def get_weighted_dataframe(df, doGen, resonance, era, subEra, shift=None):
 
-
-    #df = df.withColumn('isPositive',(F.col('tag_pfIso04_neutral') + F.col('tag_pfIso04_photon') - F.col('tag_pfIso04_sumPU') / 2) > 0.0)
-#
-    #selections = (
-    #(F.col('pair_mass_corr') > 70) &
-    #(F.col('pair_mass_corr') < 115) &
-    #(F.col('tag_pt') > 27) &
-    #(F.col('tag_isTight') == 1) &
-    #(F.col('tag_charge') * F.col('probe_charge') == -1) &
-    #(
-    #    (F.col('isPositive') == 1) &
-    #    ((F.col('tag_pfIso04_charged') + F.col('tag_pfIso04_neutral') + F.col('tag_pfIso04_photon') - F.col('tag_pfIso04_sumPU') / 2) / F.col('tag_pt') < 0.15)
-    #    |
-    #    (F.col('isPositive') == 0) &
-    #    ((F.col('tag_pfIso04_charged') / F.col('tag_pt')) < 0.15)
-    #) &
-    #(
-    #    (F.col('HLT_IsoMu24_v') == 1) |
-    #    (F.col('HLT_Mu50_v') == 1)
-    #) &
-    #(F.col('tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q') == 1) &
-    #(F.col('tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q_dr') < 0.1)
-#
-    #& (F.col('probe_pt') > 10) & (F.col('probe_isSA') ==1 )    )
-    global_filter           = ((F.col('probe_dxy') != -99.0) & (F.col('probe_dz') != -99.0))
-    #global_filter          = selections & ((F.col('probe_dxy') != -99.0) & (F.col('probe_dz') != -99.0) & (F.col('nVertices') <= 80) )
-    df                      = df.filter(global_filter)
+    global_filter               = ((F.col('probe_dxy') != -99.0) & (F.col('probe_dz') != -99.0))
+    df                          = df.filter(global_filter)
 
     data_passing_filename       = 'data_passing.parquet'
     data_failing_filename       = 'data_failing.parquet'
     data_fake_filename          = 'data_fake.parquet'
     
     if not doGen:  # data
-        passing_data_counts     = get_data_passing(df, doGen, resonance, era, subEra, shift=None)
-        failing_data_counts     = get_data_failing(df, doGen, resonance, era, subEra, shift=None)
-        fake_data_counts        = get_data_fake(df, doGen, resonance, era, subEra, shift=None)
+        # Get passing/failing/fake counts from dataFrame
+        passing_data_counts     = get_data_passing( df, doGen, resonance, era, subEra, shift=None)
+        failing_data_counts     = get_data_failing( df, doGen, resonance, era, subEra, shift=None)
+        fake_data_counts        = get_data_fake(    df, doGen, resonance, era, subEra, shift=None)
         
         passing_data_counts.show(120)
         failing_data_counts.show(120)
         
-        save_to_parquet(passing_data_counts, data_passing_filename)
-        save_to_parquet(failing_data_counts, data_failing_filename)
-        save_to_parquet(fake_data_counts, data_fake_filename)
+        # Write passing/failing/fake counts to parquet file
+        save_to_parquet(passing_data_counts,    data_passing_filename)
+        save_to_parquet(failing_data_counts,    data_failing_filename)
+        save_to_parquet(fake_data_counts,       data_fake_filename)
 
         weightedDF              = df.withColumn('weight', F.lit(1.0))
 
     else:   # mc
         print("MC elaboration")
-        passing_data_counts     = read_from_parquet(spark,data_passing_filename)
-        failing_data_counts     = read_from_parquet(spark, data_failing_filename)
-        fake_data_counts        = read_from_parquet(spark, data_fake_filename)
 
-        passing_mc_counts       = df.filter(
-                                        (F.col('probe_isTrkMatch') == True) & (F.col('probeSA_isTrkMatch') == False)) \
-                                        .groupBy('nVertices').count().withColumnRenamed('count', 'passing_mc').orderBy('nVertices')
-        
-        passing_mc_counts       = check_and_fill_missing_passing(doGen, passing_mc_counts)
+        #Read passing/failing/fake counts from data parquet files
+        passing_data_counts     = read_from_parquet(spark,  data_passing_filename)
+        failing_data_counts     = read_from_parquet(spark,  data_failing_filename)
+        fake_data_counts        = read_from_parquet(spark,  data_fake_filename)
+
+        # Get passing/failing/fake counts from dataFrame
+        passing_mc_counts     = get_mc_passing( df, doGen, resonance, era, subEra, shift=None)
+        failing_mc_counts     = get_mc_failing( df, doGen, resonance, era, subEra, shift=None)
+        fake_mc_counts        = get_mc_fake(    df, doGen, resonance, era, subEra, shift=None)
         
         passing_mc_counts.show(120)
-
-        failing_mc_counts       = df.filter(
-                                        (F.col('probe_isTrkMatch') == False) & (F.col('probeSA_isTrkMatch') == False)) \
-                                        .groupBy('nVertices').count().withColumnRenamed('count', 'failing_mc').orderBy('nVertices')
-        
-        failing_mc_counts       = check_and_fill_missing_failing(doGen, failing_mc_counts)
-
         failing_mc_counts.show(120)
-
-        fake_mc_counts          = df.filter(
-                                        (F.col('probe_isTrkMatch') == True) & (F.col('probeSA_isTrkMatch') == True)) \
-                                        .groupBy('nVertices').count().withColumnRenamed('count', 'fake_mc').orderBy('nVertices') 
-                       
-        fake_mc_counts          = check_and_fill_missing_fake(doGen, fake_mc_counts)
-
-        weights_expr_passing    = F.when(passing_mc_counts['passing_mc'] != 0, passing_data_counts['passing_data'] / passing_mc_counts['passing_mc']).otherwise(passing_data_counts['passing_data'] )
         
-        weights_expr_failing    = F.when(failing_mc_counts['failing_mc'] != 0, failing_data_counts['failing_data'] / failing_mc_counts['failing_mc']).otherwise(failing_data_counts['failing_data'])
+        # Calculate passing/failing/fake weights for mc (based on data counts)
+        weights_expr_passing    = F.when(
+                                        passing_mc_counts['passing_mc'] != 0, 
+                                        passing_data_counts['passing_data'] / passing_mc_counts['passing_mc']
+                                    ) \
+                                   .otherwise(passing_data_counts['passing_data'])
+        weights_expr_failing    = F.when(
+                                        failing_mc_counts['failing_mc'] != 0, 
+                                        failing_data_counts['failing_data'] / failing_mc_counts['failing_mc']
+                                    ) \
+                                   .otherwise(failing_data_counts['failing_data'])
+        weights_expr_fake       = F.when(
+                                        fake_mc_counts['fake_mc'] != 0, 
+                                        fake_data_counts['fake_data'] / fake_mc_counts['fake_mc']
+                                    ) \
+                                   .otherwise(fake_data_counts['fake_data'])
 
-        weights_expr_fake       = F.when(fake_mc_counts['fake_mc'] != 0, fake_data_counts['fake_data'] / fake_mc_counts['fake_mc']).otherwise(fake_data_counts['fake_data'])
-
-        weightedDF              = df.join(passing_data_counts, 'nVertices', 'left') \
-                                    .join(failing_data_counts, 'nVertices', 'left') \
-                                    .join(passing_mc_counts, 'nVertices', 'left') \
-                                    .join(failing_mc_counts, 'nVertices', 'left') \
-                                    .join(fake_data_counts, 'nVertices', 'left') \
-                                    .join(fake_mc_counts, 'nVertices', 'left') \
-                                    .withColumn('weight', F.when((F.col('probe_isTrkMatch') == True) & (F.col('probeSA_isTrkMatch') == False), weights_expr_passing)
-                                                            .when((F.col('probe_isTrkMatch') == False) & (F.col('probeSA_isTrkMatch') == False), weights_expr_failing)
-                                                            .when((F.col('probe_isTrkMatch') == True) & (F.col('probeSA_isTrkMatch') == True), weights_expr_fake)
-                                                            .otherwise(F.lit(1.0))
-                                )
+        # Apply passing/failing/fake weights on mc dataframes
+        weightedDF              = df.join(passing_data_counts,  'nVertices', 'left') \
+                                    .join(failing_data_counts,  'nVertices', 'left') \
+                                    .join(passing_mc_counts,    'nVertices', 'left') \
+                                    .join(failing_mc_counts,    'nVertices', 'left') \
+                                    .join(fake_data_counts,     'nVertices', 'left') \
+                                    .join(fake_mc_counts,       'nVertices', 'left') \
+                                    .withColumn(
+                                        'weight', 
+                                        F.when((F.col('probe_isTrkMatch') == True)  & (F.col('probeSA_isTrkMatch') == False),   weights_expr_passing)
+                                         .when((F.col('probe_isTrkMatch') == False) & (F.col('probeSA_isTrkMatch') == False),   weights_expr_failing)
+                                         .when((F.col('probe_isTrkMatch') == True)  & (F.col('probeSA_isTrkMatch') == True),    weights_expr_fake)
+                                         .otherwise(F.lit(1.0))
+                                    )
 
     weightedDF                  = weightedDF.withColumn('weight2', F.col('weight') * F.col('weight'))
-    
-    # to show the df with some filters
-    #weightedDF.filter((F.col('probe_isTrkMatch') == False) & (F.col('probeSA_isTrkMatch') == False)).select('event','nVertices', 'weight', 'pair_mass_corr' ,'probe_isTrkMatch', 'probeSA_isTrkMatch', 'tag_dxy', 'probe_dxy', 'probe_dz').show(200)
     
     return weightedDF
 
@@ -364,8 +383,8 @@ def get_prescaled_dataframe(df, doGen, resonance, era, subEra):
   if doGen:
     prescaleMap                     = {e: v for e, v in zip(prescale_edges[:-1], prescale_values)}
     mapping_expr                    = F.create_map([F.lit(x) for x in itertools.chain(*prescaleMap.items())])
+    
     scaledDF                        = df.withColumn('prescale_weight',mapping_expr.getItem(F.floor('tag_pt')))
-    #scaledDF                       = df.withColumn('prescale_weight',F.lit(1.0))
   else:
     scaledDF                        = df.withColumn('prescale_weight', F.lit(1.0))
   
@@ -378,9 +397,9 @@ def get_binned_dataframe(df, bin_name, variable_name, edges):
    '''
    splits                           = [-float('inf')]+list(edges)+[float('inf')]
    bucketizer                       = Bucketizer(
-                                        splits=splits, 
-                                        inputCol=variable_name, 
-                                        outputCol=bin_name
+                                        splits      = splits, 
+                                        inputCol    = variable_name, 
+                                        outputCol   = bin_name
                                     )
    binnedDF                         = bucketizer.transform(df)
    
@@ -416,10 +435,10 @@ def get_variables_name(variableNames):
 
 def get_full_name(num, denom, variableNames, index):
    
-    eff_name                        = get_eff_name(num, denom)
-    bin_name                        = get_bin_name(variableNames, index)
+    eff_name                        = get_eff_name(num,             denom)
+    bin_name                        = get_bin_name(variableNames,   index)
    
-2    return '{}_{}'.format(eff_name, bin_name)
+    return '{}_{}'.format(eff_name, bin_name)
 
 
 def get_full_pass_name(num, denom, variableNames, index):

@@ -19,8 +19,8 @@ def setMassRange(fitter, resonance, effType, shiftType):
         elif shiftType == 'massRangeDown':
             fitter.set_fit_range(2.84, 3.24)
         else:
-            #fitter.set_fit_range(2.90, 3.30)
-            fitter.set_fit_range(2.80, 3.40)
+            fitter.set_fit_range(2.50, 3.80)
+            #fitter.set_fit_range(2.00, 4.00)
     else:
         if effType=='trig':
             if shiftType == 'massRangeUp':
@@ -35,9 +35,7 @@ def setMassRange(fitter, resonance, effType, shiftType):
             elif shiftType == 'massRangeDown':
                 fitter.set_fit_range(65, 105)
             else:
-                #fitter.set_fit_range(40, 150)
                 fitter.set_fit_range(70, 115)
-                #fitter.set_fit_range(40, 149.125)
 
 def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
                 version='NominalOld', histType='data', shiftType='Nominal', resonance='Z',
@@ -45,206 +43,215 @@ def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
 
     # Nominal
     if resonance == 'JPsi':
-        tnpNomFitSig = [
-        "meanP[-0.0, -5.0, 5.0]", "sigmaP[0.9, 0.005, 5.0]",
-        "meanF[-0.0, -5.0, 5.0]", "sigmaF[0.9, 0.005, 5.0]",
-        "Gaussian::sigPass(x, meanP, sigmaP)",
-        "Gaussian::sigFail(x, meanF, sigmaF)",
-        ]
-        tnpNomFitBkg = [
-            # Linear background
-            # "Chebychev::bkgPass(x, cPass[0,-1,1])",
-            # "Chebychev::bkgFail(x, cFail[0,-1,1])",
-            # Quadratic background
-            "Chebychev::bkgPass(x, {cPass1[0,-1,1], cPass2[0,-1,1]})",
-            "Chebychev::bkgFail(x, {cFail1[0,-1,1], cFail2[0,-1,1]})",
-            # CMSShape background (note it was designed for Z->ll)
-            # (look at RooCMSShape.cc)
-            # "acmsP[2.9, 2.0, 4.0]", "betaP[0.05, 0.001, 0.10]",
-            # "gammaP[0.1, -20, 20]", "peakP[3.1]",
-            # "acmsF[2.9, 2.0, 4.0]", "betaF[0.05, 0.001, 0.10]",
-            # "gammaF[0.1, -20, 20]", "peakF[3.1]",
-            # "RooCMSShape::bkgPass(x, acmsP, betaP, gammaP, peakP)",
-            # "RooCMSShape::bkgFail(x, acmsF, betaF, gammaF, peakF)",
-            
-        ]
-    else:
-
         ROOT.gSystem.Load("./RooDCBShape_cxx.so")
-        tnpNomFitSig = [
-        #"RooCBShape::cb(mass, mean[91,85,95], sigma[5,1,30], alphaL[3,-25,25], nL[5,-25,25])",
-        #"meanP[0.0, -5, 5]", "sigmaP[0.9, 0.05, 5.0]",
-        #"meanF[0.0, -5, 5]", "sigmaF[0.9, 0.05, 5.0]",
-        #"Gaussian::sigResPass(x, meanP, sigmaP)",
-        #"Gaussian::sigResFail(x, meanF, sigmaF)",
-        #"meanP[91,70,115]", "sigmaP[5,1,30]", 
-        #"meanP[91, 85, 95 ]", "sigmaP[1,0.1,3]",
-        #"widthP[2.495,1,5]", 
-        ##"widthP[3.8,3,7,4]", 
-        #"meanF[91,80,100]", "sigmaF[5,1,30]", 
-        ##"meanF[91,85,95]", "sigmaF[1,0.1,10]",
-        #"widthF[2.495,1,5]",
-        #"Voigtian::sigPass(x, meanP, widthP, sigmaP)",
-        #"Voigtian::sigFail(x, meanF, widthF, sigmaF)",
+        tnpNomFitSig        = [
+                                # Single Gaussian signal
+                                "meanP[3.1, 2.8, 3.4]", "sigmaP[0.2, 0.10, 0.3]",
+                                "meanF[3.1, 2.8, 3.4]", "sigmaF[0.2, 0.10, 0.3]",
+                                "Gaussian::sigPass(x, meanP, sigmaP)",
+                                "Gaussian::sigFail(x, meanF, sigmaF)",
+                                # Double-Sided-crystal Ball signal
+                                #"meanP[3.1, 2.8, 3.4]", "sigmaP[0.2, 0.1, 0.3]", "alphaLP[1, 0.5, 2]", "alphaRP[1, 0.5, 2]", "nLP[1.5, 1, 2.5]", "nRP[1.5, 1, 2.5]",
+                                #"meanF[3.1, 2.8, 3.4]", "sigmaF[0.2, 0.1, 0.3]", "alphaLF[1, 0.5, 2]", "alphaRF[1, 0.5, 2]", "nLF[1.5, 1, 2.5]", "nRF[1.5, 1, 2.5]",
+                                #"RooDCBShape::sigPass(x, meanP, sigmaP, alphaLP, alphaRP, nLP, nRP)",
+                                #"RooDCBShape::sigFail(x, meanF, sigmaF, alphaLF, alphaRF, nLF, nRF)",
+                            ]
+            
+        tnpNomFitBkg        = [
+                                # Linear background
+                                "Chebychev::bkgPass(x, cPass[0,-1,1])",
+                                "Chebychev::bkgFail(x, cFail[0,-1,1])",
+                                # Quadratic background
+                                #"Chebychev::bkgPass(x, {cPass1[0,-1,1], cPass2[0,-1,1]})",
+                                #"Chebychev::bkgFail(x, {cFail1[0,-1,1], cFail2[0,-1,1]})",
+                                # Exponential background
+                                #"alphaP[-0.1, -2, 0.1]",
+                                #"alphaF[-0.1, -2, 0.1]",
+                                #"Exponential::bkgPass(x, alphaP)",
+                                #"Exponential::bkgFail(x, alphaF)",
+                                # CMSShape background (note it was designed for Z->ll)
+                                # (look at RooCMSShape.cc)
+                                #"acmsP[2.9, 2.0, 4.0]", "betaP[0.05, 0.001, 0.10]",
+                                #"gammaP[0.1, -20, 20]", "peakP[3.1]",
+                                #"acmsF[2.9, 2.0, 4.0]", "betaF[0.05, 0.001, 0.10]",
+                                #"gammaF[0.1, -20, 20]", "peakF[3.1]",
+                                #"RooCMSShape::bkgPass(x, acmsP, betaP, gammaP, peakP)",
+                                #"RooCMSShape::bkgFail(x, acmsF, betaF, gammaF, peakF)",
+                            ]
 
-        "meanP[91,85,95]", "sigmaP[2,0.1,5]", "alphaLP[1,0.5,2]", "alphaRP[1,0.5,2]","nLP[1.5,1,2.5]","nRP[1.5,1,2.5]",
-        "meanF[91,70,115]", "sigmaF[2,0.1,5]", "alphaLF[1,0.5,2]", "alphaRF[1,0.5,2]","nLF[1.5,1,2.5]","nRF[1.5,1,2.5]",
-        "RooDCBShape::sigPass(x, meanP, sigmaP, alphaLP, alphaRP, nLP, nRP)",
-        "RooDCBShape::sigFail(x, meanF, sigmaF, alphaLF, alphaRF, nLF, nRF)",
- 
-        ]
+    else:
+        ROOT.gSystem.Load("./RooDCBShape_cxx.so")
+        tnpNomFitSig        = [
+                                # Single Gaussian signal
+                                #"Gaussian::sigResPass(x, meanP, sigmaP)",
+                                #"Gaussian::sigResFail(x, meanF, sigmaF)",
+                                # Crystal-Ball signal
+                                #"RooCBShape::cb(mass, mean[91,85,95], sigma[5,1,30], alphaL[3,-25,25], nL[5,-25,25])",
+                                # Voigtain signal
+                                #"meanP[0.0, -5, 5]", "sigmaP[0.9, 0.05, 5.0]",
+                                #"meanF[0.0, -5, 5]", "sigmaF[0.9, 0.05, 5.0]",
+                                #"meanP[91,70,115]", "sigmaP[5,1,30]", 
+                                #"meanP[91, 85, 95 ]", "sigmaP[1,0.1,3]",
+                                #"widthP[2.495,1,5]", 
+                                ##"widthP[3.8,3,7,4]", 
+                                #"meanF[91,80,100]", "sigmaF[5,1,30]", 
+                                ##"meanF[91,85,95]", "sigmaF[1,0.1,10]",
+                                #"widthF[2.495,1,5]",
+                                #"Voigtian::sigPass(x, meanP, widthP, sigmaP)",
+                                #"Voigtian::sigFail(x, meanF, widthF, sigmaF)",
+                                # Double-Sided Crystal Ball signal
+                                "meanP[91,85,95]", "sigmaP[2, 1.0, 10]", "alphaLP[1,0.5,2]", "alphaRP[1,0.5,2]","nLP[1.5,1,2.5]","nRP[1.5,1,2.5]",
+                                "meanF[91,70,115]", "sigmaF[2, 1.0, 10]", "alphaLF[1,0.5,2]", "alphaRF[1,0.5,2]","nLF[1.5,1,2.5]","nRF[1.5,1,2.5]",
+                                "RooDCBShape::sigPass(x, meanP, sigmaP, alphaLP, alphaRP, nLP, nRP)",
+                                "RooDCBShape::sigFail(x, meanF, sigmaF, alphaLF, alphaRF, nLF, nRF)",
+                            ]
         # Exponential is the nominal bkg shape for trigger SFs
         if effType=='trig':
-            tnpNomFitBkg = [
-                #"alphaP[-0.1, -1., 1.]",  #upper bound 0.1 original 
-                #"alphaF[-0.1, -1., 1.]",   #upper bound 0.1 original
-                #"Exponential::bkgPass(x, alphaP)",
-                #"Exponential::bkgFail(x, alphaF)",
-                #"acmsP[80., 50., 140.]", "betaP[0.05, 0.01, 0.08]",
-                #"gammaP[-0.1, -1., 0.1]", "peakP[91.0]",
-                #"acmsF[80., 50., 140.]", "betaF[0.05, 0.01, 0.08]",
-                #"gammaF[-0.1, -1., 0.1]", "peakF[91.0]",
-                #"RooCMSShape::bkgPass(x, acmsP, betaP, gammaP, peakP)",
-                #"RooCMSShape::bkgFail(x, acmsF, betaF, gammaF, peakF)",
-
-            ]
+            tnpNomFitBkg    = [
+                                #"alphaP[-0.1, -1., 1.]",  #upper bound 0.1 original 
+                                #"alphaF[-0.1, -1., 1.]",   #upper bound 0.1 original
+                                #"Exponential::bkgPass(x, alphaP)",
+                                #"Exponential::bkgFail(x, alphaF)",
+                                #"acmsP[80., 50., 140.]", "betaP[0.05, 0.01, 0.08]",
+                                #"gammaP[-0.1, -1., 0.1]", "peakP[91.0]",
+                                #"acmsF[80., 50., 140.]", "betaF[0.05, 0.01, 0.08]",
+                                #"gammaF[-0.1, -1., 0.1]", "peakF[91.0]",
+                                #"RooCMSShape::bkgPass(x, acmsP, betaP, gammaP, peakP)",
+                                #"RooCMSShape::bkgFail(x, acmsF, betaF, gammaF, peakF)",
+                            ]
         else:
-            tnpNomFitBkg = [
-                "alphaP[-0.1, -2, 0.1]",
-                "alphaF[-0.1, -2, 0.1]",
-                "Exponential::bkgPass(x, alphaP)",
-                "Exponential::bkgFail(x, alphaF)",
-                #"acmsP[80., 50., 140.]", "betaP[0.05, 0.01, 0.08]",
-                #"gammaP[-0.1, -1., 0.1]", "peakP[91.0]",
-                #"acmsF[80., 50., 140.]", "betaF[0.05, 0.01, 0.08]",
-                #"gammaF[-0.1, -1., 0.1]", "peakF[91.0]",
-                #"RooCMSShape::bkgPass(x, acmsP, betaP, gammaP, peakP)",
-                #"RooCMSShape::bkgFail(x, acmsF, betaF, gammaF, peakF)",
-                #"acmsP[60., 50., 190.]", "betaP[0.05, 0.01, 0.08]",
-                #"gammaP[0.1, -2, 2]", "peakP[91.0]",
-                ##"acmsF[60., 50., 190.]", "betaF[0.05, 0.01, 0.08]",
-                ##"gammaF[0.1, -2, 2]", "peakF[91.0]",
-                #"RooCMSShape::bkgPass(x, acmsP, betaP, gammaP, peakP)",
-                ##"RooCMSShape::bkgFail(x, acmsF, betaF, gammaF, peakF)",
-
-
-
-
-            ]
+            tnpNomFitBkg    = [
+                                "alphaP[-0.1, -2, 0.1]",
+                                "alphaF[-0.1, -2, 0.1]",
+                                "Exponential::bkgPass(x, alphaP)",
+                                "Exponential::bkgFail(x, alphaF)",
+                                #"acmsP[80., 50., 140.]", "betaP[0.05, 0.01, 0.08]",
+                                #"gammaP[-0.1, -1., 0.1]", "peakP[91.0]",
+                                #"acmsF[80., 50., 140.]", "betaF[0.05, 0.01, 0.08]",
+                                #"gammaF[-0.1, -1., 0.1]", "peakF[91.0]",
+                                #"RooCMSShape::bkgPass(x, acmsP, betaP, gammaP, peakP)",
+                                #"RooCMSShape::bkgFail(x, acmsF, betaF, gammaF, peakF)",
+                                #"acmsP[60., 50., 190.]", "betaP[0.05, 0.01, 0.08]",
+                                #"gammaP[0.1, -2, 2]", "peakP[91.0]",
+                                ##"acmsF[60., 50., 190.]", "betaF[0.05, 0.01, 0.08]",
+                                ##"gammaF[0.1, -2, 2]", "peakF[91.0]",
+                                #"RooCMSShape::bkgPass(x, acmsP, betaP, gammaP, peakP)",
+                                ##"RooCMSShape::bkgFail(x, acmsF, betaF, gammaF, peakF)",
+                            ]
 
     # NominalOld 
-    tnpNomFitOldSig = [
-        #"meanP1[90.0, 80.0, 100.0]", "sigmaP1[0.9, 0.5, 3.0]",
-        #"widthP1[2.495]",
-        #"meanF1[90.0, 80.0, 100.0]", "sigmaF1[0.9, 0.5, 3.0]",
-        #"widthF1[2.495]",
-        #"meanP2[90.0, 80.0, 100.0]", "sigmaP2[4.0, 3.0, 10.0]",
-        #"widthP2[2.495]",
-        #"meanF2[90.0, 80.0, 100.0]", "sigmaF2[4.0, 3.0, 10.0]",
-        #"widthF2[2.495]",
-        #"Voigtian::sigPass1(x, meanP1, widthP1, sigmaP1)",
-        #"Voigtian::sigFail1(x, meanF1, widthF1, sigmaF1)",
-        #"Voigtian::sigPass2(x, meanP2, widthP2, sigmaP2)",
-        #"Voigtian::sigFail2(x, meanF2, widthF2, sigmaF2)",
-        #"SUM::sigPass(fP[0.7, 0.5, 1]*sigPass1, sigPass2)",
-        #"SUM::sigFail(fF[0.7, 0.5, 1]*sigFail1, sigFail2)",
-       "Voigtian::sigPass(x, mean[90,80,100], width[2.495], sigma[3,1,10])",
-       "Voigtian::sigFail(x, mean[90,80,100], width[2.495], sigma[3,1,10])",
-    ]
-    tnpNomFitOldBkg = [
-        ############ First pre-approval #################
-        #"alphaP[-0.1, -1., 0.1]",
-        #"alphaF[-0.1, -1., 0.1]",
-        #"Exponential::bkgPass(x, alphaP)",
-        #"Exponential::bkgFail(x, alphaF)",
-        #################################################
-        "acmsP[90., 80., 100.]", "betaP[0.05, 0.01, 0.08]",
-        "gammaP[0.1, -2, 2]", "peakP[90.0]",
-        "acmsF[90., 80., 100.]", "betaF[0.05, 0.01, 0.08]",
-        "gammaF[0.1, -2, 2]", "peakF[90.0]",
-        "RooCMSShape::bkgPass(x, acmsP, betaP, gammaP, peakP)",
-        "RooCMSShape::bkgFail(x, acmsF, betaF, gammaF, peakF)"
-        
-    ]
+    tnpNomFitOldSig         = [
+                                #"meanP1[90.0, 80.0, 100.0]", "sigmaP1[0.9, 0.5, 3.0]",
+                                #"widthP1[2.495]",
+                                #"meanF1[90.0, 80.0, 100.0]", "sigmaF1[0.9, 0.5, 3.0]",
+                                #"widthF1[2.495]",
+                                #"meanP2[90.0, 80.0, 100.0]", "sigmaP2[4.0, 3.0, 10.0]",
+                                #"widthP2[2.495]",
+                                #"meanF2[90.0, 80.0, 100.0]", "sigmaF2[4.0, 3.0, 10.0]",
+                                #"widthF2[2.495]",
+                                #"Voigtian::sigPass1(x, meanP1, widthP1, sigmaP1)",
+                                #"Voigtian::sigFail1(x, meanF1, widthF1, sigmaF1)",
+                                #"Voigtian::sigPass2(x, meanP2, widthP2, sigmaP2)",
+                                #"Voigtian::sigFail2(x, meanF2, widthF2, sigmaF2)",
+                                #"SUM::sigPass(fP[0.7, 0.5, 1]*sigPass1, sigPass2)",
+                                #"SUM::sigFail(fF[0.7, 0.5, 1]*sigFail1, sigFail2)",
+                               "Voigtian::sigPass(x, mean[90,80,100], width[2.495], sigma[3,1,10])",
+                               "Voigtian::sigFail(x, mean[90,80,100], width[2.495], sigma[3,1,10])",
+                            ]
+    tnpNomFitOldBkg         = [
+                                ############ First pre-approval #################
+                                #"alphaP[-0.1, -1., 0.1]",
+                                #"alphaF[-0.1, -1., 0.1]",
+                                #"Exponential::bkgPass(x, alphaP)",
+                                #"Exponential::bkgFail(x, alphaF)",
+                                #################################################
+                                "acmsP[90., 80., 100.]", "betaP[0.05, 0.01, 0.08]",
+                                "gammaP[0.1, -2, 2]", "peakP[90.0]",
+                                "acmsF[90., 80., 100.]", "betaF[0.05, 0.01, 0.08]",
+                                "gammaF[0.1, -2, 2]", "peakF[90.0]",
+                                "RooCMSShape::bkgPass(x, acmsP, betaP, gammaP, peakP)",
+                                "RooCMSShape::bkgFail(x, acmsF, betaF, gammaF, peakF)"
+                            ]
 
     # AltSig (note, originally was CB for res, but took too long)
     if resonance == 'JPsi':
-        tnpAltSigFit = [
-            "meanP[-0.0, -5.0, 5.0]", "sigmaP[1, 0.001, 6.0]",
-            "alphaP[2.0, 1.2, 3.5]",
-            'nP[3, -5, 5]', "sigmaP_2[1.5, 0.5, 6.0]", "sosP[1, 0.5, 5.0]",
-            "meanF[-0.0, -5.0, 5.0]", "sigmaF[2, 0.001, 15.0]",
-            "alphaF[2.0, 1.2, 3.5]",
-            'nF[3, -5, 5]', "sigmaF_2[2.0, 0.5, 6.0]", "sosF[1, 0.5, 5.0]",
-            # alternative for faster fitting, just use gen truth for template
-            "Gaussian::sigResPass(x, meanP, sigmaP)",
-            "Gaussian::sigResFail(x, meanF, sigmaF)",
-        ]
+        tnpAltSigFit        = [
+                                "meanP[-0.0, -5.0, 5.0]", "sigmaP[1, 0.001, 6.0]",
+                                "alphaP[2.0, 1.2, 3.5]",
+                                'nP[3, -5, 5]', "sigmaP_2[1.5, 0.5, 6.0]", "sosP[1, 0.5, 5.0]",
+                                "meanF[-0.0, -5.0, 5.0]", "sigmaF[2, 0.001, 15.0]",
+                                "alphaF[2.0, 1.2, 3.5]",
+                                'nF[3, -5, 5]', "sigmaF_2[2.0, 0.5, 6.0]", "sosF[1, 0.5, 5.0]",
+                                # alternative for faster fitting, just use gen truth for template
+                                "Gaussian::sigResPass(x, meanP, sigmaP)",
+                                "Gaussian::sigResFail(x, meanF, sigmaF)",
+                            ]
     else:
-        tnpAltSigFit = [
-            "meanP[-0.0, -5.0, 5.0]", "sigmaP[1, 0.7, 6.0]",
-            "alphaP[2.0, 1.2, 3.5]",
-            'nP[3, -5, 5]', "sigmaP_2[1.5, 0.5, 6.0]", "sosP[1, 0.5, 5.0]",
-            "meanF[-0.0, -5.0, 5.0]", "sigmaF[2, 0.7, 15.0]",
-            "alphaF[2.0, 1.2, 3.5]",
-            'nF[3, -5, 5]', "sigmaF_2[2.0, 0.5, 6.0]", "sosF[1, 0.5, 5.0]",
-            # alternative for faster fitting, just use gen truth for template
-            "Gaussian::sigResPass(x, meanP, sigmaP)",
-            "Gaussian::sigResFail(x, meanF, sigmaF)",
-        ]
+        tnpAltSigFit        = [
+                                "meanP[-0.0, -5.0, 5.0]", "sigmaP[1, 0.7, 6.0]",
+                                "alphaP[2.0, 1.2, 3.5]",
+                                'nP[3, -5, 5]', "sigmaP_2[1.5, 0.5, 6.0]", "sosP[1, 0.5, 5.0]",
+                                "meanF[-0.0, -5.0, 5.0]", "sigmaF[2, 0.7, 15.0]",
+                                "alphaF[2.0, 1.2, 3.5]",
+                                'nF[3, -5, 5]', "sigmaF_2[2.0, 0.5, 6.0]", "sosF[1, 0.5, 5.0]",
+                                # alternative for faster fitting, just use gen truth for template
+                                "Gaussian::sigResPass(x, meanP, sigmaP)",
+                                "Gaussian::sigResFail(x, meanF, sigmaF)",
+                            ]
 
     # AltSigOld
-    tnpAltSigFitOld = [
-        "meanP[90.0, 80.0, 100.0]", "sigmaP[0.9, 0.5, 5.0]", "widthP[2.495]",
-        "meanF[90.0, 80.0, 100.0]", "sigmaF[0.9, 0.5, 5.0]", "widthF[2.495]",
-        "Voigtian::sigPass(x, meanP, widthP, sigmaP)",
-        "Voigtian::sigFail(x, meanF, widthF, sigmaF)",
-    ]
+    tnpAltSigFitOld         = [
+                                "meanP[90.0, 80.0, 100.0]", "sigmaP[0.9, 0.5, 5.0]", "widthP[2.495]",
+                                "meanF[90.0, 80.0, 100.0]", "sigmaF[0.9, 0.5, 5.0]", "widthF[2.495]",
+                                "Voigtian::sigPass(x, meanP, widthP, sigmaP)",
+                                "Voigtian::sigFail(x, meanF, widthF, sigmaF)",
+                            ]
 
     # Alternative signal model with Voigtian+RooErfExp
-    tnpAltSigErfFit = [
-        "meanVRP[90.0, 80.0, 100.0]", "widthVRP[2.495]", "sigmaVRP[0.9, 0.8, 5.0]",
-        "meanVRF[90.0, 80.0, 100.0]", "widthVRF[2.495]", "sigmaVRF[0.9, 0.8, 5.0]",
-        "alphaVRP[70.0, 65.0, 90.0]", "gammaVRP[-1., -10, 10.]", "betaVRP[1., 0.01, 10.]", "nVRP[0.2, 0.1, 0.5]",
-        "alphaVRF[70.0, 65.0, 90.0]", "gammaVRF[-1., -10, 10.]", "betaVRF[1., 0.01, 10.]", "nVRF[0.2, 0.1, 0.5]",
-        "meanP[-0.0, -5.0, 5.0]", "sigmaP[0.9, 0.005, 5.0]",
-        "meanF[-0.0, -5.0, 5.0]", "sigmaF[0.9, 0.005, 5.0]",        
-        "RooErfExp::sigPass1(x, alphaVRP, gammaVRP, betaVRP, nVRP)",
-        "RooErfExp::sigFail1(x, alphaVRF, gammaVRF, betaVRF, nVRF)",
-        "Voigtian::sigPass2(x, meanVRP, widthVRP, sigmaVRP)",
-        "Voigtian::sigFail2(x, meanVRF, widthVRF, sigmaVRF)",
-        "fVRP[0.5, 0.1, 1.1]",
-        "fVRF[0.5, 0.1, 1.1]",
-        "SUM::sigSumPass(fVRP*sigPass1, sigPass2)",
-        "SUM::sigSumFail(fVRF*sigFail1, sigFail2)",
-        "meanResP[-0.0, -5.0, 5.0]", "sigmaResP[0.9, 0.05, 5.0]",
-        "meanResF[-0.0, -5.0, 5.0]", "sigmaResF[0.9, 0.05, 5.0]",
-        "Gaussian::sigResPass(x, meanResP, sigmaResP)",
-        "Gaussian::sigResFail(x, meanResF, sigmaResF)",
-        "FCONV::sigPass(x, sigSumPass, sigResPass)",
-        "FCONV::sigFail(x, sigSumFail, sigResFail)",
-    ]
+    tnpAltSigErfFit         = [
+                                "meanVRP[90.0, 80.0, 100.0]", "widthVRP[2.495]", "sigmaVRP[0.9, 0.8, 5.0]",
+                                "meanVRF[90.0, 80.0, 100.0]", "widthVRF[2.495]", "sigmaVRF[0.9, 0.8, 5.0]",
+                                "alphaVRP[70.0, 65.0, 90.0]", "gammaVRP[-1., -10, 10.]", "betaVRP[1., 0.01, 10.]", "nVRP[0.2, 0.1, 0.5]",
+                                "alphaVRF[70.0, 65.0, 90.0]", "gammaVRF[-1., -10, 10.]", "betaVRF[1., 0.01, 10.]", "nVRF[0.2, 0.1, 0.5]",
+                                "meanP[-0.0, -5.0, 5.0]", "sigmaP[0.9, 0.005, 5.0]",
+                                "meanF[-0.0, -5.0, 5.0]", "sigmaF[0.9, 0.005, 5.0]",        
+                                "RooErfExp::sigPass1(x, alphaVRP, gammaVRP, betaVRP, nVRP)",
+                                "RooErfExp::sigFail1(x, alphaVRF, gammaVRF, betaVRF, nVRF)",
+                                "Voigtian::sigPass2(x, meanVRP, widthVRP, sigmaVRP)",
+                                "Voigtian::sigFail2(x, meanVRF, widthVRF, sigmaVRF)",
+                                "fVRP[0.5, 0.1, 1.1]",
+                                "fVRF[0.5, 0.1, 1.1]",
+                                "SUM::sigSumPass(fVRP*sigPass1, sigPass2)",
+                                "SUM::sigSumFail(fVRF*sigFail1, sigFail2)",
+                                "meanResP[-0.0, -5.0, 5.0]", "sigmaResP[0.9, 0.05, 5.0]",
+                                "meanResF[-0.0, -5.0, 5.0]", "sigmaResF[0.9, 0.05, 5.0]",
+                                "Gaussian::sigResPass(x, meanResP, sigmaResP)",
+                                "Gaussian::sigResFail(x, meanResF, sigmaResF)",
+                                "FCONV::sigPass(x, sigSumPass, sigResPass)",
+                                "FCONV::sigFail(x, sigSumFail, sigResFail)",
+                            ]
 
     # AltBkg
     if effType=='trig':
-        tnpAltBkgFit = [
-            "acmsP[60., 50., 190.]", "betaP[0.05, 0.01, 0.08]",
-            "gammaP[0.1, -2, 2]", "peakP[91.0]",
-            "acmsF[60., 50., 190.]", "betaF[0.05, 0.01, 0.08]",
-            "gammaF[0.1, -2, 2]", "peakF[91.0]",
-            "RooCMSShape::bkgPass(x, acmsP, betaP, gammaP, peakP)",
-            "RooCMSShape::bkgFail(x, acmsF, betaF, gammaF, peakF)",
-        ]
+        tnpAltBkgFit        = [
+                                "acmsP[60., 50., 190.]", "betaP[0.05, 0.01, 0.08]",
+                                "gammaP[0.1, -2, 2]", "peakP[91.0]",
+                                "acmsF[60., 50., 190.]", "betaF[0.05, 0.01, 0.08]",
+                                "gammaF[0.1, -2, 2]", "peakF[91.0]",
+                                "RooCMSShape::bkgPass(x, acmsP, betaP, gammaP, peakP)",
+                                "RooCMSShape::bkgFail(x, acmsF, betaF, gammaF, peakF)",
+                            ]
     else:
-        tnpAltBkgFit = [
-            "alphaP[0., -5., 5.]",
-            "alphaF[0., -5., 5.]",
-            "Exponential::bkgPass(x, alphaP)",
-            "Exponential::bkgFail(x, alphaF)",
-        ]
+        tnpAltBkgFit        = [
+                                "alphaP[0., -5., 5.]",
+                                "alphaF[0., -5., 5.]",
+                                "Exponential::bkgPass(x, alphaP)",
+                                "Exponential::bkgFail(x, alphaF)",
+                            ]
 
-    tnpWorkspace = []
-    doTemplate = True
+    # Set-up TnP workspace 
+    tnpWorkspace            = []
+    doTemplate              = True
     if version == 'Nominal':
         tnpWorkspace.extend(tnpNomFitSig)
         tnpWorkspace.extend(tnpNomFitBkg)
@@ -270,13 +277,13 @@ def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
 
     def rebin(hP, hF):
         if shiftType == 'massBinUp':
-            pass  # no rebin, bin widths are 0.25 GeV
+            pass                            # no rebin, bin widths are 0.25 GeV
         elif shiftType == 'massBinDown':
-            hP = hP.Rebin(4)  # 1.0 GeV bins
-            hF = hF.Rebin(4)  # 1.0 GeV bins
+            hP              = hP.Rebin(4)   # 1.0 GeV bins
+            hF              = hF.Rebin(4)   # 1.0 GeV bins
         else:
-            hP = hP.Rebin(1)  # 1.125 GeV bins
-            hF = hF.Rebin(1)  # 1.125 GeV bins
+            hP              = hP.Rebin(1)   # 1.125 GeV bins
+            hF              = hF.Rebin(1)   # 1.125 GeV bins
           
         return hP, hF
 
@@ -288,46 +295,46 @@ def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
     fileTruth = ROOT.TFile(templateFName, 'read')
     if version == 'AltSig':
         # TODO: truth file for ZmmGenLevel instead of reco in case of AltSig
-        histZLineShapeP = fileTruth.Get(f'{binName}_Pass_Gen')
-        histZLineShapeF = fileTruth.Get(f'{binName}_Fail_Gen')
+        histZLineShapeP     = fileTruth.Get(f'{binName}_Pass_Gen')
+        histZLineShapeF     = fileTruth.Get(f'{binName}_Fail_Gen')
     else:
-        histZLineShapeP = fileTruth.Get(f'{binName}_Pass')
-        histZLineShapeF = fileTruth.Get(f'{binName}_Fail')
+        histZLineShapeP     = fileTruth.Get(f'{binName}_Pass')
+        histZLineShapeF     = fileTruth.Get(f'{binName}_Fail')
     histZLineShapeP, histZLineShapeF = rebin(histZLineShapeP, histZLineShapeF)
     
-    tnpWS = tnpWorkspace.copy()
+    tnpWS                   = tnpWorkspace.copy()
     
     if version == 'AltSigErf':
-        fitter = TagAndProbeFitter(binName, resonance=resonance, addName="sig")
+        fitter              = TagAndProbeFitter(binName, resonance=resonance, addName="sig")
         setMassRange(fitter, resonance, effType, shiftType)
         fitter.set_gen_shapes(histZLineShapeP, histZLineShapeF)
         fitter.set_histograms(histZLineShapeP, histZLineShapeF, fitSignalOnly = True)
         fitter.set_workspace(tnpWorkspace, doTemplate, fitSignalOnly = True)
-        fitter._useMinos = False
+        fitter._useMinos    = False
         fitter.fit(outFName, histType == 'mc', doTemplate, fitSignalOnly = True)
-        tnpAltSigErfFitFix = {}
+        tnpAltSigErfFitFix  = {}
 
-        tightFit = ['betaVRP', 'betaVRF', 'nVRP', 'nVRF', 'gammaVRP', 'gammaVRF', 'alphaVRP', 'alphaVRF']
-        mediumFit = ['nVRP', 'nVRF', 'betaVRP', 'betaVRF', 'fVRP', 'fVRF', 'alphaVRP', 'alphaVRF']
-        looseFit = ['nVRP', 'nVRF', 'fVRP', 'fVRF', 'alphaVRP', 'alphaVRF']
+        tightFit            = ['betaVRP', 'betaVRF', 'nVRP', 'nVRF', 'gammaVRP', 'gammaVRF', 'alphaVRP', 'alphaVRF']
+        mediumFit           = ['nVRP', 'nVRF', 'betaVRP', 'betaVRF', 'fVRP', 'fVRF', 'alphaVRP', 'alphaVRF']
+        looseFit            = ['nVRP', 'nVRF', 'fVRP', 'fVRF', 'alphaVRP', 'alphaVRF']
         
         for v in fitter._w.allVars():
-            varName = v.GetName()
+            varName         = v.GetName()
             tnpAltSigErfFitFix[varName] = varName+'['+str(v.getVal())+']'
         for ix, x in enumerate(tnpWS):
             for y in tnpAltSigErfFitFix.keys():
                 if y in tightFit:
                     if x.startswith(y+'['): tnpWS[ix] = tnpAltSigErfFitFix[y]
 
-    fitter = TagAndProbeFitter(binName, resonance=resonance, addName="main")
+    fitter                  = TagAndProbeFitter(binName, resonance=resonance, addName="main")
     if version == 'AltSigErf': fitter._useMinos = False
     setMassRange(fitter, resonance, effType, shiftType)
     fitter.set_gen_shapes(histZLineShapeP, histZLineShapeF)
     
-    infile = ROOT.TFile(inFName, "read")
-    hP = infile.Get(f'{binName}_Pass')
-    hF = infile.Get(f'{binName}_Fail')
-    hP, hF = rebin(hP, hF)    
+    infile                  = ROOT.TFile(inFName, "read")
+    hP                      = infile.Get(f'{binName}_Pass')
+    hF                      = infile.Get(f'{binName}_Fail')
+    hP, hF                  = rebin(hP, hF)    
     fitter.set_histograms(hP, hF)
     fitter.set_workspace(tnpWS, doTemplate)
     fitter.fit(outFName, histType == 'mc', doTemplate)
