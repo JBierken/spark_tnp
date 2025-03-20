@@ -91,19 +91,24 @@ def get_prescale(resonance, era, subEra):
        # TODO: do the two eras have different profiles?
        #'Run2016_UL_HIPM':  'pileup/mc/Run2016_UL.root',
        #'Run2016_UL':       'pileup/mc/Run2016_UL.root',
-       'Run2017_UL':        'prescale/mc/Run2017_UL.root',
        #'Run2018_UL':       'pileup/mc/Run2018_UL.root',
        #'Run2016':          'pileup/mc/Run2016.root',
        #'Run2017':          'pileup/mc/Run2017.root',
        #'Run2018':          'pileup/mc/Run2018.root'
+       'Run2022':           'prescale/mc/Run2022.root',
+       'Run2022_EE':        'prescale/mc/Run2022_EE.root',
+       'Run2023':           'prescale/mc/Run2023.root',
+       'Run2023_BPix':      'prescale/mc/Run2023_BPix.root',
    }
    # get absolute path
    baseDir              = os.path.dirname(__file__)
    #dataPileup          = {k: os.path.join(baseDir, dataPileup[k]) for k in dataPileup}
    mcPrescale           = {k: os.path.join(baseDir, mcPrescale[k]) for k in mcPrescale}
    with uproot.open(mcPrescale[era]) as f:
-       mc_edges         = f['prescale'].edges
-       mc_prescale      = f['prescale'].values
+       #mc_edges         = f['prescale'].edges
+       #mc_prescale      = f['prescale'].values
+       mc_edges         = f['prescale'].axis(0).edges()
+       mc_prescale      = f['prescale'].values()
        #mc_pileup       /= sum(mc_pileup)
    prescale_edges       = mc_edges
    prescale_values      = mc_prescale.astype('float64')
@@ -180,66 +185,109 @@ def get_weighted_dataframe(df, doGen, resonance, era, subEra, shift=None):
    '''
    # TODO: implement systematic shifts in the weight such as PDF, pileup, etc.
    # get the pileup
-   pileup_ratio, pileup_edges = get_pileup(resonance, era, subEra)
+   pileup_ratio, pileup_edges   = get_pileup(resonance, era, subEra)
 
    if pileup_ratio is None or pileup_edges is None:
-       doGen = False
+       doGen                    = False
 
    # build the weights (pileup for MC)
    # TODO: if there is a weight column (ie, gen weight) get that first
    if doGen:
-       pileupMap = {e: r for e, r in zip(pileup_edges[:-1], pileup_ratio)}
-       mapping_expr = F.create_map(
-           [F.lit(x) for x in itertools.chain(*pileupMap.items())])
+       pileupMap                = {e: r for e, r in zip(pileup_edges[:-1], pileup_ratio)}
+       mapping_expr             = F.create_map(
+                                    [F.lit(x) for x in itertools.chain(*pileupMap.items())]
+                                )
        # M.Oh: temporary solution for missing true PU branch in the new ntuples
        if 'pair_truePileUp' in df.columns:
            #weightedDF = df.withColumn(
            #    'PUweight', mapping_expr.getItem(F.round('pair_truePileUp')))
-           weightedDF = df.withColumn(
-               'PUweight', mapping_expr[F.round('pair_truePileUp')])
+           weightedDF           = df.withColumn(
+                                    'PUweight', 
+                                    mapping_expr[F.round('pair_truePileUp')]
+                                )
        elif 'nTrueInteractions' in df.columns:
            #weightedDF = df.withColumn(
            #    'PUweight', mapping_expr.getItem(F.round('nTrueInteractions')))
-           weightedDF = df.withColumn(
-               'PUweight', mapping_expr[F.round('nTrueInteractions')])
+           weightedDF           = df.withColumn(
+                                    'PUweight', 
+                                    mapping_expr[F.round('nTrueInteractions')]
+                                )
        elif 'nVertices' in df.columns:
            #weightedDF = df.withColumn(
            #   'PUweight', mapping_expr.getItem(F.col('nVertices')))
-           weightedDF = df.withColumn(
-               'PUweight', mapping_expr[F.col('nVertices')])
+           weightedDF           = df.withColumn(
+                                    'PUweight', 
+                                    mapping_expr[F.col('nVertices')]
+                                )
        else:
-           weightedDF = df.withColumn('PUweight', F.lit(1.0))
+           weightedDF           = df.withColumn(
+                                    'PUweight', 
+                                    F.lit(1.0)
+                                )
        # apply gen weights
        if 'genWeight' in weightedDF.columns:
-           weightedDF = weightedDF.withColumn('genWeightSign', F.signum('genWeight'))
-           weightedDF = weightedDF.withColumn('weight', F.col('genWeightSign') * F.col('PUweight'))
+           weightedDF           = weightedDF.withColumn(
+                                    'genWeightSign', 
+                                    F.signum('genWeight')
+                                )
+           weightedDF           = weightedDF.withColumn(
+                                    'weight', 
+                                    F.col('genWeightSign') * F.col('PUweight')
+                                )
        elif 'pair_genWeight' in weightedDF.columns:
-           weightedDF = weightedDF.withColumn('genWeightSign', F.signum('pair_genWeight'))
-           weightedDF = weightedDF.withColumn('weight', F.col('genWeightSign') * F.col('PUweight'))
+           weightedDF           = weightedDF.withColumn(
+                                    'genWeightSign', 
+                                    F.signum('pair_genWeight')
+                                )
+           weightedDF           = weightedDF.withColumn(
+                                    'weight', 
+                                    F.col('genWeightSign') * F.col('PUweight')
+                                )
        else:
-           weightedDF = weightedDF.withColumn('weight', F.col('PUweight'))
+           weightedDF           = weightedDF.withColumn(
+                                    'weight', 
+                                    F.col('PUweight')
+                                )
    else:
-       weightedDF = df.withColumn('weight', F.lit(1.0))
-   weightedDF = weightedDF.withColumn(
-       'weight2', F.col('weight') * F.col('weight'))
+       weightedDF               = df.withColumn('weight', F.lit(1.0))
+   weightedDF                   = weightedDF.withColumn(
+                                    'weight2', 
+                                    F.col('weight') * F.col('weight')
+                                )
 
    return weightedDF
 
 def get_prescaled_dataframe(df, doGen, resonance, era, subEra):
-  
-  prescale_values, prescale_edges   = get_prescale(resonance, era, subEra)
+    '''
+    Produces a dataframe with a prescale weight and weight2 column
+    with weight corresponding to:
+       1 for data
+    or
+       prescale for mc
+    The optional shift parameter allows for a different
+    systematic shift to the weights
+    '''
+    # get the pileup
+    prescale_values, prescale_edges = get_prescale(resonance, era, subEra)
 
-  # build the weights (prescale for MC)
-  if doGen:
-    prescaleMap                     = {e: v for e, v in zip(prescale_edges[:-1], prescale_values)}
-    mapping_expr                    = F.create_map([F.lit(x) for x in itertools.chain(*prescaleMap.items())])
-    
-    scaledDF                        = df.withColumn('prescale_weight',mapping_expr.getItem(F.floor('tag_pt')))
-  else:
-    scaledDF                        = df.withColumn('prescale_weight', F.lit(1.0))
+    # build the weights (prescale for MC)
+    if doGen:
+        prescaleMap                 = {e: v for e, v in zip(prescale_edges[:-1], prescale_values)}
+        mapping_expr                = F.create_map(
+                                        [F.lit(x) for x in itertools.chain(*prescaleMap.items())]
+                                    )
+   
+        scaledDF                    = df.withColumn(
+                                        'prescale_weight',
+                                        mapping_expr.getItem(F.floor('tag_pt'))
+                                    )
+    else:
+        scaledDF                    = df.withColumn(
+                                        'prescale_weight', 
+                                        F.lit(1.0)
+                                    )
   
-  return scaledDF
-
+    return scaledDF
 
 def get_binned_dataframe(df, bin_name, variable_name, edges):
    '''

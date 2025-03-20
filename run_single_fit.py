@@ -19,8 +19,8 @@ def setMassRange(fitter, resonance, effType, shiftType):
         elif shiftType == 'massRangeDown':
             fitter.set_fit_range(2.84, 3.24)
         else:
-            fitter.set_fit_range(2.50, 3.80)
-            #fitter.set_fit_range(2.00, 4.00)
+            #fitter.set_fit_range(2.50, 3.80)
+            fitter.set_fit_range(2.00, 4.00)
     else:
         if effType=='trig':
             if shiftType == 'massRangeUp':
@@ -46,24 +46,24 @@ def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
         ROOT.gSystem.Load("./RooDCBShape_cxx.so")
         tnpNomFitSig        = [
                                 # Single Gaussian signal
-                                "meanP[3.1, 2.8, 3.4]", "sigmaP[0.2, 0.10, 0.3]",
-                                "meanF[3.1, 2.8, 3.4]", "sigmaF[0.2, 0.10, 0.3]",
+                                "meanP[3.1, 3.0, 3.2]", "sigmaP[0.03, 0.03, 0.23]",
+                                "meanF[3.1, 3.0, 3.2]", "sigmaF[0.03, 0.03, 0.23]",
                                 "Gaussian::sigPass(x, meanP, sigmaP)",
                                 "Gaussian::sigFail(x, meanF, sigmaF)",
                                 # Double-Sided-crystal Ball signal
-                                #"meanP[3.1, 2.8, 3.4]", "sigmaP[0.2, 0.1, 0.3]", "alphaLP[1, 0.5, 2]", "alphaRP[1, 0.5, 2]", "nLP[1.5, 1, 2.5]", "nRP[1.5, 1, 2.5]",
-                                #"meanF[3.1, 2.8, 3.4]", "sigmaF[0.2, 0.1, 0.3]", "alphaLF[1, 0.5, 2]", "alphaRF[1, 0.5, 2]", "nLF[1.5, 1, 2.5]", "nRF[1.5, 1, 2.5]",
+                                #"meanP[3.1, 3.0, 3.2]", "sigmaP[0.15, 0.1, 0.2]", "alphaLP[1, 0.5, 2]", "alphaRP[1, 0.5, 2]", "nLP[1.5, 1, 2.5]", "nRP[1.5, 1, 2.5]",
+                                #"meanF[3.1, 3.0, 3.2]", "sigmaF[0.15, 0.1, 0.2]", "alphaLF[1, 0.5, 2]", "alphaRF[1, 0.5, 2]", "nLF[1.5, 1, 2.5]", "nRF[1.5, 1, 2.5]",
                                 #"RooDCBShape::sigPass(x, meanP, sigmaP, alphaLP, alphaRP, nLP, nRP)",
                                 #"RooDCBShape::sigFail(x, meanF, sigmaF, alphaLF, alphaRF, nLF, nRF)",
                             ]
             
         tnpNomFitBkg        = [
                                 # Linear background
-                                "Chebychev::bkgPass(x, cPass[0,-1,1])",
-                                "Chebychev::bkgFail(x, cFail[0,-1,1])",
+                                #"Chebychev::bkgPass(x, cPass[0,-1,1])",
+                                #"Chebychev::bkgFail(x, cFail[0,-1,1])",
                                 # Quadratic background
-                                #"Chebychev::bkgPass(x, {cPass1[0,-1,1], cPass2[0,-1,1]})",
-                                #"Chebychev::bkgFail(x, {cFail1[0,-1,1], cFail2[0,-1,1]})",
+                                "Chebychev::bkgPass(x, {cPass1[0,-1,1], cPass2[0,-1,1]})",
+                                "Chebychev::bkgFail(x, {cFail1[0,-1,1], cFail2[0,-1,1]})",
                                 # Exponential background
                                 #"alphaP[-0.1, -2, 0.1]",
                                 #"alphaF[-0.1, -2, 0.1]",

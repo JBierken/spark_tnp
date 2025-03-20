@@ -68,8 +68,8 @@ def getEff(binName, fname, massRanges, shift=None, cutAndCount=False, resonance=
             elif shift == 'massRangeDown':
                 blow, bhigh     = 2.84, 3.24
             else:
-                blow, bhigh    = 2.50, 3.80
-                #blow, bhigh     = 2.00, 4.00
+                #blow, bhigh    = 2.50, 3.80
+                blow, bhigh     = 2.00, 4.00
         else:
             if shift == 'massRangeUp':
                 blow, bhigh     = 75, 135
@@ -909,8 +909,11 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
             CMS_lumi.writeExtraText = True
             CMS_lumi.extraText = 'Preliminary'
             #CMS_lumi.extraText = 'Work in progress'
-            #CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
-            CMS_lumi.lumi_13p6TeV = "%0.1f fb^{-1}" % (lumi)
+            CMS_lumi.lumi_13p6TeV          = "%0.1f fb^{-1}" % (lumi)
+            #CMS_lumi.lumi_13p6TeV_2022BCD   = "%0.1f fb^{-1}" % (lumi)      # Run2022
+            #CMS_lumi.lumi_13p6TeV_2022EFG   = "%0.1f fb^{-1}" % (lumi)      # Run2022_EE
+            #CMS_lumi.lumi_13p6TeV_2023BC    = "%0.1f fb^{-1}" % (lumi)      # Run2023
+            #CMS_lumi.lumi_13p6TeV_2023D     = "%0.1f fb^{-1}" % (lumi)      # Run2023_BPix
             CMS_lumi.CMS_lumi(canvas, 4, 11)
 
             if effType == 'trig':
@@ -969,8 +972,11 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
                     CMS_lumi.writeExtraText = True
                     CMS_lumi.extraText = 'Preliminary'
                     #CMS_lumi.extraText = 'Work in progress'
-                    #CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
-                    CMS_lumi.lumi_13p6TeV = "%0.1f fb^{-1}" % (lumi)
+                    CMS_lumi.lumi_13p6TeV          = "%0.1f fb^{-1}" % (lumi)
+                    #CMS_lumi.lumi_13p6TeV_2022BCD   = "%0.1f fb^{-1}" % (lumi)      # Run2022
+                    #CMS_lumi.lumi_13p6TeV_2022EFG   = "%0.1f fb^{-1}" % (lumi)      # Run2022_EE
+                    #CMS_lumi.lumi_13p6TeV_2023BC    = "%0.1f fb^{-1}" % (lumi)      # Run2023
+                    #CMS_lumi.lumi_13p6TeV_2023D     = "%0.1f fb^{-1}" % (lumi)      # Run2023_BPix
                     CMS_lumi.CMS_lumi(canvas, 4, 11)
 
                     if effType == 'trig':
@@ -1036,7 +1042,8 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
               ROOT.kRed-3, ROOT.kBlue]
 
     def plot_1d_eff(savename, graphs,
-                    labels=['Data', 'Drell-Yan (MC)'],
+                    #labels=['Data', 'Drell-Yan (MC)'],
+                    labels=['Data', 'Simulation'],
                     colors=colors,
                     xlabel='', ylabel='Efficiency',
                     xRange=[], additional_text=[]):
@@ -1114,8 +1121,8 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
                 mg.GetYaxis().SetRangeUser(0.85, 1.10)
                 #mg.GetYaxis().SetRangeUser(0.97, 1.02 )
             else:
-                mg.GetYaxis().SetRangeUser(0.0001, 0.7)
-                #ROOT.gPad.SetLogy()
+                mg.GetYaxis().SetRangeUser(0.000001, 0.2)
+                ROOT.gPad.SetLogy()
         if not 'fake' in savename:
             #legend = ROOT.TLegend(0.20, 0.3, 0.5, 0.45)
             legend = ROOT.TLegend(0.70, 0.75, 0.90, 0.90)
@@ -1152,14 +1159,14 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
             #dims = [0.55, 0.52, 0.93, 0.28]
             #dims = [0.55, 0.65-nother*0.04-0.02, 0.75+nother*0.055+0.02, 0.3]
             if not 'fake' in savename:
-                dims = [0.57, 0.3, 0.85, 0.5]#alltracks
-                #dims = [0.56, 0.3, 0.85, 0.5] # trackeronly
+                dims = [0.57, 0.3, 0.85, 0.5]           # alltracks
+                #dims = [0.56, 0.3, 0.85, 0.5]          # trackeronly
             else:
-                #dims = [0.56, 0.6, 0.85, 0.8] # trackeronly
-                dims = [0.56, 0.6, 0.85, 0.8] #alltracks
+                #dims = [0.56, 0.6, 0.85, 0.8]          # trackeronly
+                dims = [0.56, 0.6, 0.85, 0.8]           # alltracks
             text = ROOT.TPaveText(*dims+['NB NDC'])
-            text.AddText("All Tracks") #alltracks
-            #text.AddText("Tracker-only Tracks") #trackeronly
+            text.AddText("All Tracks")                  # alltracks
+            #text.AddText("Tracker-only Tracks")        # trackeronly
             text.SetTextSize(0.04)
             text.SetTextAlign(12)
             text.SetTextFont(61)
@@ -1172,12 +1179,15 @@ def prepare_corrected(baseDir, particle, probe, resonance, era,
             text.SetFillColor(0)
             text.Draw()
 
-        CMS_lumi.cmsText = 'CMS'
-        CMS_lumi.writeExtraText = True
-        #CMS_lumi.extraText = 'Preliminary'
-        CMS_lumi.extraText = 'Work in progress'
-        CMS_lumi.lumi_13p6TeV = "%0.1f fb^{-1}" % (lumi)
-        #CMS_lumi.lumi_13TeV = "%0.1f fb^{-1}" % (lumi)
+        CMS_lumi.cmsText                = 'CMS'
+        CMS_lumi.writeExtraText         = True
+        CMS_lumi.extraText              = 'Preliminary'
+        #CMS_lumi.extraText             = 'Work in progress'
+        CMS_lumi.lumi_13p6TeV          = "%0.1f fb^{-1}" % (lumi)
+        #CMS_lumi.lumi_13p6TeV_2022BCD   = "%0.1f fb^{-1}" % (lumi)      # Run2022
+        #CMS_lumi.lumi_13p6TeV_2022EFG   = "%0.1f fb^{-1}" % (lumi)      # Run2022_EE
+        #CMS_lumi.lumi_13p6TeV_2023BC    = "%0.1f fb^{-1}" % (lumi)      # Run2023
+        #CMS_lumi.lumi_13p6TeV_2023D     = "%0.1f fb^{-1}" % (lumi)      # Run2023_BPix
         CMS_lumi.CMS_lumi(canvas, 4, 11)
 
         # Added 2 for Make ratioplots

@@ -28,12 +28,12 @@ class TagAndProbeFitter:
             self._peak          = 3.10
             #self._fit_var_min   = 2.50
             #self._fit_var_max   = 3.80
-            #self._fit_range_min = 2.50
-            #self._fit_range_max = 3.80
             self._fit_var_min   = 2.00
             self._fit_var_max   = 4.00
-            self._fit_range_min = 2.00
-            self._fit_range_max = 4.00
+            self._fit_range_min = 3.00
+            self._fit_range_max = 3.20
+            #self._fit_range_min = 3.00
+            #self._fit_range_max = 3.20
         self.set_fit_var()
         self.set_fit_range()
 
@@ -422,7 +422,7 @@ class TagAndProbeFitter:
             return arglist
         
         text.SetTextFont(52)
-        text.AddText("    Passing Probes")
+        text.AddText("Passing Probes")
         text.GetListOfLines().Last().SetTextColor(ROOT.kGreen-2)
         listParFinalP           = argsetToList(resPass.floatParsFinal())
         for p in listParFinalP:
@@ -470,7 +470,7 @@ class TagAndProbeFitter:
                 text.AddText('    - {} \t= ({:.2f} #pm {:.2f}) #times 10^{{-3}}'.format(
                     pName, pVar.getVal()*1000, pVar.getError()*1000))
 
-        text.AddText("    Failing Probes")
+        text.AddText("Failing Probes")
         text.GetListOfLines().Last().SetTextColor(ROOT.kRed)
         listParFinalF           = argsetToList(resFail.floatParsFinal())
         for p in listParFinalF:

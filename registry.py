@@ -84,7 +84,9 @@ _jsons = [
 
     #'data/registry_muon_Z_standAloneMuons_MINIAOD.json',
     #'data/registry_muon_Z_standAloneMuons_AOD.json'
-    'data/registry_muon_JPsi_standAloneMuons_MINIAOD.json',
+    #'data/registry_muon_JPsi_standAloneMuons_MINIAOD_AllTracks.json',
+    'data/registry_muon_JPsi_standAloneMuons_MINIAOD_AllTracks_2.json',
+    #'data/registry_muon_JPsi_standAloneMuons_MINIAOD_TrackerOnly.json',
     'data/registry_muon_Z_standAloneMuons_MINIAOD_mine.json'
     #'data/registry_muon_Z_standAloneMuons_AOD_mine.json'
 

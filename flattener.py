@@ -117,13 +117,13 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
                             shift=shift
                         )
     #prescale for MC
-    #baseDF              = get_prescaled_dataframe(
-    #                        baseDF, 
-    #                        doGen, 
-    #                        resonance, 
-    #                        era, 
-    #                        subera
-    #                    )
+    baseDF              = get_prescaled_dataframe(
+                            baseDF, 
+                            doGen, 
+                            resonance, 
+                            era, 
+                            subEra
+                        )
 
     # create the binning structure
     fitVariable         = config.fitVariable()
@@ -152,7 +152,9 @@ def run_flattening(spark, particle, probe, resonance, era, subEra,
     # they are binned in the ID, bin variables, and fit variable
     yields              = {}
     yields_gen          = {}
-
+    # prescale weight applied to weight column
+    baseDF              = baseDF.withColumn('weight',   baseDF['weight'] * baseDF['prescale_weight'])
+    baseDF              = baseDF.withColumn('weight2',  F.col('weight')  * F.col('weight')) 
     for numLabel, denLabel in efficiencies:
         den             = baseDF.filter(denLabel)
         #if doProbeMultiplicity:
