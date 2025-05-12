@@ -46,8 +46,8 @@ def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
         ROOT.gSystem.Load("./RooDCBShape_cxx.so")
         tnpNomFitSig        = [
                                 # Single Gaussian signal
-                                "meanP[3.1, 3.0, 3.2]", "sigmaP[0.03, 0.03, 0.23]",
-                                "meanF[3.1, 3.0, 3.2]", "sigmaF[0.03, 0.03, 0.23]",
+                                "meanP[3.1, 3.0, 3.2]", "sigmaP[0.05, 0.03, 0.23]",
+                                "meanF[3.1, 3.0, 3.2]", "sigmaF[0.05, 0.03, 0.23]",
                                 "Gaussian::sigPass(x, meanP, sigmaP)",
                                 "Gaussian::sigFail(x, meanF, sigmaF)",
                                 # Double-Sided-crystal Ball signal
@@ -59,11 +59,11 @@ def hist_fitter(outFName, inFName, binName, templateFName, plotDir,
             
         tnpNomFitBkg        = [
                                 # Linear background
-                                #"Chebychev::bkgPass(x, cPass[0,-1,1])",
-                                #"Chebychev::bkgFail(x, cFail[0,-1,1])",
+                                "Chebychev::bkgPass(x, cPass[0,-1,1])",
+                                "Chebychev::bkgFail(x, cFail[0,-1,1])",
                                 # Quadratic background
-                                "Chebychev::bkgPass(x, {cPass1[0,-1,1], cPass2[0,-1,1]})",
-                                "Chebychev::bkgFail(x, {cFail1[0,-1,1], cFail2[0,-1,1]})",
+                                #"Chebychev::bkgPass(x, {cPass1[0,-1,1], cPass2[0,-1,1]})",
+                                #"Chebychev::bkgFail(x, {cFail1[0,-1,1], cFail2[0,-1,1]})",
                                 # Exponential background
                                 #"alphaP[-0.1, -2, 0.1]",
                                 #"alphaF[-0.1, -2, 0.1]",

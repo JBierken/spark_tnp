@@ -9,7 +9,7 @@ if [[ "$HOSTNAME" == *"ithdp"* ]]; then
     
     echo "Sourcing hadoop edge node environment..."
     source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix
-    #source hadoop-setconf.sh analytix 
+    source hadoop-setconf.sh analytix 
     
     export KRB5CCNAME=FILE:$XDG_RUNTIME_DIR/krb5cc
     kinit
@@ -30,10 +30,11 @@ elif [[ "$HOSTNAME" == *"lxplus"* ]]; then
     sed -i "s~ReplaceMe_by_cdWorkdir~cd $PWD~" condor_wrapper.sh
     sed -i "s~ReplaceMe_by_Hostname~$HOSTNAME~" condor_wrapper.sh
 
+    echo "Sourcing lxplus environment..."
     #source /cvmfs/sft.cern.ch/lcg/views/LCG_102b/x86_64-centos7-gcc12-opt/setup.sh
     source /cvmfs/sft.cern.ch/lcg/views/${LCG_RELEASE}/${LCG_ARCH}-opt/setup.sh
-    echo "Sourcing lxplus environment..."
-    source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix
+    #source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh analytix
+    source /cvmfs/sft.cern.ch/lcg/etc/hadoop-confext/hadoop-swan-setconf.sh hadoop-analytix
     
     export KRB5CCNAME=FILE:$XDG_RUNTIME_DIR/krb5cc
     kinit

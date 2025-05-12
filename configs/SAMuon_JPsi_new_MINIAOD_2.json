@@ -5,14 +5,14 @@
     ],
     "selection": "triggers==1 and tag_trigger_match==1 and tag_pt>8 and tag_isTight==1 and pair_opposite_charge==1 and pair_mass_window==1",
     "definitions": {
-        "triggers": "(HLT_Mu8_v==1) or (HLT_Mu15_v==1) or (HLT_Mu17_v==1) or (HLT_IsoMu24_v==1) or (HLT_Mu50_v==1)",
+        "triggers": "(HLT_Mu8_v==1) or (HLT_Mu15_v==1) or (HLT_Mu17_v==1)",
         "tag_hlt_mu8": "(tag_hltL3fL1sMu5L1f0L2f5L3Filtered8==1) and (tag_hltL3fL1sMu5L1f0L2f5L3Filtered8_dr < 0.1)",
         "tag_hlt_mu15": "(tag_hltL3fL1sMu15DQlqL1f0L2f10L3Filtered15==1) and (tag_hltL3fL1sMu15DQlqL1f0L2f10L3Filtered15_dr< 0.1)",
         "tag_hlt_mu17": "(tag_hltL3fL1sMu15DQlqL1f0L2f10L3Filtered17==1) and (tag_hltL3fL1sMu15DQlqL1f0L2f10L3Filtered17_dr< 0.1)",
         "tag_hlt_mu20": "(tag_hltL3fL1sMu18L1f0L2f10QL3Filtered20Q==1) and (tag_hltL3fL1sMu18L1f0L2f10QL3Filtered20Q_dr< 0.1)",
         "tag_hlt_isomu24": "(tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q==1) and (tag_hltL3fL1sSingleMu22L1f0L2f10QL3Filtered24Q_dr < 0.1)",
         "tag_hlt_mu50": "(tag_hltL3fL1sMu22Or25L1f0L2f10QL3Filtered50Q==1) and (tag_hltL3fL1sMu22Or25L1f0L2f10QL3Filtered50Q_dr< 0.1)",
-        "tag_trigger_match": "(tag_hlt_mu8==1) or (tag_hlt_mu15==1) or (tag_hlt_mu17==1) or (tag_hlt_isomu24==1) or (tag_hlt_mu50==1)",
+        "tag_trigger_match": "(tag_hlt_mu8==1) or (tag_hlt_mu15==1) or (tag_hlt_mu17==1)",
         "pair_opposite_charge": "(tag_charge * probe_charge = -1)",
         "pair_mass_window": "(pair_mass>=2.0) and (pair_mass<=4.0)",
         "isPositive":"(tag_pfIso04_neutral + tag_pfIso04_photon - tag_pfIso04_sumPU/2) > 0.0",
@@ -28,7 +28,7 @@
         "abseta": [0, 0.9, 1.2, 2.1, 2.4],
         "eta": [-2.4, -2.1, -1.6, -1.2, -0.9, -0.3, -0.2, 0.2, 0.3, 0.9, 1.2, 1.6, 2.1, 2.4],
         "eta_onebin":[-1.6,1.6],
-        "nvtx": [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
+        "nvtx": [0, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40],
         "mass": "np.linspace(2.00, 4.00, 80)",
         "mcMass": "np.linspace(2.00, 4.00, 80)",
         "phi":[-3.14, -2.5, -2.0, -1.25, -0.63, 0.0, 0.63, 1.25, 2.0, 2.5, 3.14]
@@ -47,10 +47,10 @@
     "fitVariable": "mass",
     "fitVariableGen": "mcMass",
     "binVariables": [
-        ["pt","eta_onebin"],
-        ["nvtx","eta_onebin","pt_onebin"],
+        ["pt"],
+        ["nvtx","pt_onebin"],
         ["eta", "pt_onebin"],
-        ["phi","pt_onebin","eta_onebin"]
+        ["phi","pt_onebin"]
     ],
     "shifts": {
     },

@@ -101,9 +101,9 @@ def get_prescale(era, subera):
     for i, val in enumerate(np.linspace(0, 500, 500)):
         
         # Define flag based on which trigger is fired
-        if (val > 50):      flag = 'HLT_Mu50_v'
-        elif (val > 24):    flag = 'HLT_IsoMu24_v'
-        elif (val > 17):    flag = 'HLT_Mu17_v'
+        #if (val > 50):      flag = 'HLT_Mu50_v'
+        #elif (val > 24):    flag = 'HLT_IsoMu24_v'
+        if (val > 17):    flag = 'HLT_Mu17_v'
         elif (val > 15):    flag = 'HLT_Mu15_v'
         else:               flag = 'HLT_Mu8_v'
 
